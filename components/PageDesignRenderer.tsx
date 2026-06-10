@@ -7,6 +7,7 @@ import { ExtractChapterButton } from "./ExtractChapterButton";
 import { EditDocButton } from "./EditDocButton";
 import { tryFormatJson } from "@/lib/jsonText";
 import { sectionAnchor } from "@/lib/anchors";
+import { SectionNav } from "./SectionNav";
 
 /* ── Icons (inline, no dependency) ──────────────────────────── */
 
@@ -497,9 +498,15 @@ function groupByChapter(sections: PageDesign["sections"]) {
 export function PageDesignRenderer({ design, slug }: { design: PageDesign; slug: string }) {
   const chapterGroups = groupByChapter(design.sections);
   const showChapters = chapterGroups.filter((group) => group.chapter).length > 1;
+  const navItems = design.sections.map((section, index) => ({
+    anchor: sectionAnchor(section.title, index),
+    title: section.title,
+    chapter: section.chapter,
+  }));
 
   return (
     <article className="bg-white">
+      <SectionNav items={navItems} showChapters={showChapters} />
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy-950 text-white">
         <div className="creta-grain pointer-events-none absolute inset-0 opacity-[0.05]" />

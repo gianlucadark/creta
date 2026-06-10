@@ -13,6 +13,25 @@ import { PageDesignSchema, type PageDesign } from "./schema";
 const PAGES_DIR = join(process.cwd(), "content", "pages");
 const BLOB_PREFIX = "pages/";
 
+/* In-memory TTL cache over the Blob backend only: every list/get/head is a
+   billable network call, so warm serverless instances reuse what they have
+   already fetched. Mutations update the cache in place, so reads after a
+   write/delete on the same instance are always fresh; staleness across
+   instances is bounded by the TTL. The filesystem backend stays uncached
+   (local dev must see files changed on disk, e.g. by scripts/reingest.ts). */
+const CACHE_TTL_MS = 60_000;
+let listCache: { at: number; files: PageFile[] } | null = null;
+const readCache = new Map<string, { at: number; raw: string | null }>();
+
+function cacheRead(slug: string, raw: string | null) {
+  readCache.set(slug, { at: Date.now(), raw });
+}
+
+function freshRead(slug: string) {
+  const hit = readCache.get(slug);
+  return hit && Date.now() - hit.at < CACHE_TTL_MS ? hit : null;
+}
+
 function shouldUseBlobStore() {
   return Boolean(
     process.env.BLOB_READ_WRITE_TOKEN ||
@@ -38,6 +57,9 @@ export type PageFile = { slug: string; mtime: number };
 /** List the stored documents with their last-modified time. */
 export async function listPageFiles(): Promise<PageFile[]> {
   if (shouldUseBlobStore()) {
+    if (listCache && Date.now() - listCache.at < CACHE_TTL_MS) {
+      return listCache.files;
+    }
     const { list } = await import("@vercel/blob");
     const blobs: Awaited<ReturnType<typeof list>>["blobs"] = [];
     let cursor: string | undefined;
@@ -48,7 +70,7 @@ export async function listPageFiles(): Promise<PageFile[]> {
       if (!page.hasMore) break;
     } while (cursor);
 
-    return blobs
+    const files = blobs
       .filter((blob) => blob.pathname.endsWith(".json"))
       .map((blob) => ({
         slug: blob.pathname
@@ -56,6 +78,8 @@ export async function listPageFiles(): Promise<PageFile[]> {
           .replace(/\.json$/, ""),
         mtime: blob.uploadedAt.getTime(),
       }));
+    listCache = { at: Date.now(), files };
+    return files;
   }
 
   try {
@@ -77,13 +101,19 @@ export async function listPageFiles(): Promise<PageFile[]> {
 /** Raw JSON text of a stored document, or null when it doesn't exist. */
 export async function readPageRaw(slug: string): Promise<string | null> {
   if (shouldUseBlobStore()) {
+    const hit = freshRead(slug);
+    if (hit) return hit.raw;
     const { get } = await import("@vercel/blob");
     const result = await get(blobPath(slug), {
       access: "private",
       useCache: false,
     });
-    if (!result || result.statusCode === 304 || !result.stream) return null;
-    return await new Response(result.stream).text();
+    const raw =
+      !result || result.statusCode === 304 || !result.stream
+        ? null
+        : await new Response(result.stream).text();
+    cacheRead(slug, raw);
+    return raw;
   }
 
   try {
@@ -125,6 +155,8 @@ export async function writePageDesign(slug: string, design: PageDesign) {
       contentType: "application/json",
       cacheControlMaxAge: 60,
     });
+    cacheRead(slug, json);
+    listCache = null;
     return;
   }
 
@@ -135,14 +167,11 @@ export async function writePageDesign(slug: string, design: PageDesign) {
 /** Delete a stored document. Returns false when it didn't exist. */
 export async function deletePage(slug: string): Promise<boolean> {
   if (shouldUseBlobStore()) {
-    const { head, del, BlobNotFoundError } = await import("@vercel/blob");
-    try {
-      await head(blobPath(slug));
-    } catch (error) {
-      if (error instanceof BlobNotFoundError) return false;
-      throw error;
-    }
+    if (!(await pageExists(slug))) return false;
+    const { del } = await import("@vercel/blob");
     await del(blobPath(slug));
+    cacheRead(slug, null);
+    listCache = null;
     return true;
   }
 
@@ -157,6 +186,11 @@ export async function deletePage(slug: string): Promise<boolean> {
 
 export async function pageExists(slug: string): Promise<boolean> {
   if (shouldUseBlobStore()) {
+    const hit = freshRead(slug);
+    if (hit) return hit.raw !== null;
+    if (listCache && Date.now() - listCache.at < CACHE_TTL_MS) {
+      return listCache.files.some((file) => file.slug === slug);
+    }
     const { head, BlobNotFoundError } = await import("@vercel/blob");
     try {
       await head(blobPath(slug));
@@ -175,10 +209,13 @@ export async function pageExists(slug: string): Promise<boolean> {
   }
 }
 
-/** First free slug among base, base-2, base-3, … */
+/** First free slug among base, base-2, base-3, … One fresh listing instead
+    of a head call per candidate — and no stale cache right before a write. */
 export async function uniqueSlug(base: string): Promise<string> {
-  if (!(await pageExists(base))) return base;
+  listCache = null;
+  const taken = new Set((await listPageFiles()).map((file) => file.slug));
+  if (!taken.has(base)) return base;
   let n = 2;
-  while (await pageExists(`${base}-${n}`)) n++;
+  while (taken.has(`${base}-${n}`)) n++;
   return `${base}-${n}`;
 }

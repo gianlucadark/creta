@@ -15,30 +15,46 @@ export function DocHeader({
   slug?: string;
 }) {
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [progress, setProgress] = useState(0);
   const lastSaved = useRef(-1);
+  const lastY = useRef(0);
+  const ticking = useRef(false);
 
   useEffect(() => {
-    function onScroll() {
-      const top = window.scrollY;
+    function measure() {
+      ticking.current = false;
+      const top = Math.max(0, window.scrollY);
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const pct = max > 0 ? Math.min(1, top / max) : 0;
       setScrolled(top > 80);
       setProgress(pct);
+      /* hide while reading down, reveal as soon as the reader scrolls up */
+      const delta = top - lastY.current;
+      if (delta > 4 && top > 360) setHidden(true);
+      else if (delta < -4 || top <= 360) setHidden(false);
+      lastY.current = top;
       /* persist where the reader got to, but only on meaningful movement */
       if (slug && Math.abs(pct - lastSaved.current) > 0.02) {
         lastSaved.current = pct;
         saveReading(slug, pct);
       }
     }
-    onScroll();
+    function onScroll() {
+      if (ticking.current) return;
+      ticking.current = true;
+      requestAnimationFrame(measure);
+    }
+    measure();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [slug]);
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-30 transition-colors duration-500 ${
+      className={`fixed inset-x-0 top-0 z-30 transition-[transform,background-color,border-color] duration-300 ease-out ${
+        hidden ? "-translate-y-[calc(100%-2px)]" : "translate-y-0"
+      } ${
         scrolled
           ? "border-b border-navy-200/70 bg-white/92 backdrop-blur-md"
           : "border-b border-transparent bg-transparent"
