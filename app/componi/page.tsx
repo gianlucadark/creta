@@ -1,10 +1,7 @@
-import { readdirSync, readFileSync, statSync } from "fs";
-import { join } from "path";
 import type { Metadata } from "next";
 import { PageDesignSchema } from "@/lib/schema";
+import { listPageFiles, readPageRaw } from "@/lib/pagesStore";
 import { ComposerClient } from "@/components/ComposerClient";
-
-const PAGES_DIR = join(process.cwd(), "content", "pages");
 
 export const dynamic = "force-dynamic";
 
@@ -22,21 +19,24 @@ export type ComposerDoc = {
   sectionCount: number;
 };
 
-function loadDocs(): ComposerDoc[] {
-  let files: string[] = [];
+async function loadDocs(): Promise<ComposerDoc[]> {
+  let files: { slug: string; mtime: number }[] = [];
   try {
-    files = readdirSync(PAGES_DIR).filter((f) => f.endsWith(".json"));
+    files = await listPageFiles();
   } catch {
     return [];
   }
 
+  const contents = await Promise.all(
+    files.map((file) => readPageRaw(file.slug).catch(() => null))
+  );
+
   const docs: (ComposerDoc & { mtime: number })[] = [];
-  for (const file of files) {
+  for (const [i, file] of files.entries()) {
+    const raw = contents[i];
+    if (raw === null) continue;
     try {
-      const path = join(PAGES_DIR, file);
-      const parsed = PageDesignSchema.safeParse(
-        JSON.parse(readFileSync(path, "utf8"))
-      );
+      const parsed = PageDesignSchema.safeParse(JSON.parse(raw));
       if (!parsed.success) continue; // legacy v1: not composable
 
       const chapters: string[] = [];
@@ -47,11 +47,11 @@ function loadDocs(): ComposerDoc[] {
       }
 
       docs.push({
-        slug: file.replace(/\.json$/, ""),
+        slug: file.slug,
         title: parsed.data.page.title,
         chapters,
         sectionCount: parsed.data.sections.length,
-        mtime: statSync(path).mtimeMs,
+        mtime: file.mtime,
       });
     } catch {
       // skip unreadable files
@@ -67,6 +67,6 @@ function loadDocs(): ComposerDoc[] {
   }));
 }
 
-export default function ComponiPage() {
-  return <ComposerClient docs={loadDocs()} />;
+export default async function ComponiPage() {
+  return <ComposerClient docs={await loadDocs()} />;
 }

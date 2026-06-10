@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { PageDesign } from "@/lib/schema";
-import { PAGES_DIR, readPageDesign, writePageDesign } from "@/lib/pagesStore";
-import { isValidSlug, slugify, uniqueSlug } from "@/lib/slug";
+import { readPageDesign, uniqueSlug, writePageDesign } from "@/lib/pagesStore";
+import { isValidSlug, slugify } from "@/lib/slug";
 import { authorizeEditor } from "@/lib/editors";
 
 const BodySchema = z.object({
@@ -40,7 +40,7 @@ export async function POST(
   const { chapter, removeFromSource } = body.data;
 
   try {
-    const source = readPageDesign(slug);
+    const source = await readPageDesign(slug);
     if (source.status === "not-found") {
       return Response.json({ error: "Documento non trovato." }, { status: 404 });
     }
@@ -80,11 +80,11 @@ export async function POST(
       sections: extracted,
     };
 
-    const newSlug = uniqueSlug(slugify(chapter), PAGES_DIR);
+    const newSlug = await uniqueSlug(slugify(chapter));
     // Write the new document first: a failure rewriting the source never loses content.
-    writePageDesign(newSlug, newDesign);
+    await writePageDesign(newSlug, newDesign);
     if (removeFromSource) {
-      writePageDesign(slug, { ...design, sections: remaining });
+      await writePageDesign(slug, { ...design, sections: remaining });
     }
 
     return Response.json({

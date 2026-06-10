@@ -1,7 +1,5 @@
-import { unlinkSync } from "fs";
-import { join } from "path";
 import { z } from "zod";
-import { PAGES_DIR, readPageDesign, writePageDesign } from "@/lib/pagesStore";
+import { deletePage, readPageDesign, writePageDesign } from "@/lib/pagesStore";
 import { isValidSlug } from "@/lib/slug";
 import { authorizeEditor } from "@/lib/editors";
 
@@ -19,18 +17,12 @@ export async function DELETE(
   }
 
   try {
-    unlinkSync(join(PAGES_DIR, `${slug}.json`));
-    return Response.json({ ok: true });
-  } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    const deleted = await deletePage(slug);
+    if (!deleted) {
       return Response.json({ error: "Documento non trovato." }, { status: 404 });
     }
-
+    return Response.json({ ok: true });
+  } catch (error) {
     console.error("[creta] delete failed:", error);
     return Response.json(
       { error: "Eliminazione non riuscita." },
@@ -72,7 +64,7 @@ export async function PATCH(
   }
 
   try {
-    const source = readPageDesign(slug);
+    const source = await readPageDesign(slug);
     if (source.status === "not-found") {
       return Response.json({ error: "Documento non trovato." }, { status: 404 });
     }
@@ -113,7 +105,7 @@ export async function PATCH(
       design.sections = order.map((i) => design.sections[i]);
     }
 
-    writePageDesign(slug, design);
+    await writePageDesign(slug, design);
     return Response.json({ ok: true });
   } catch (error) {
     console.error("[creta] patch failed:", error);

@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
    returns the whole library (used by the palette as the starting list). */
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams.get("q") ?? "";
-  return Response.json(searchLibrary(q));
+  return Response.json(await searchLibrary(q));
 }

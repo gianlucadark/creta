@@ -1,5 +1,3 @@
-import { readdirSync, readFileSync, statSync } from "fs";
-import { join } from "path";
 import {
   PageDesignSchema,
   DocumentTreeSchema,
@@ -7,11 +5,11 @@ import {
   type PageDesignBlock,
 } from "./schema";
 import { sectionAnchor } from "./anchors";
-import { PAGES_DIR } from "./pagesStore";
+import { listPageFiles, readPageRaw } from "./pagesStore";
 
-/* Server-only full-text index over content/pages. Built lazily and cached
-   in module scope, keyed on the directory listing + file mtimes, so it
-   costs one fs scan per request and re-reads JSON only when files change.
+/* Server-only full-text index over the document store. Built lazily and
+   cached in module scope, keyed on the listing + last-modified times, so it
+   costs one store scan per request and re-reads JSON only when files change.
    No database: the JSON store *is* the database. */
 
 export type LibraryDoc = {
@@ -138,30 +136,32 @@ function collectStrings(value: unknown): string[] {
 
 let cache: { key: string; index: LibraryIndex } | null = null;
 
-export function getLibraryIndex(): LibraryIndex {
-  let files: { name: string; mtime: number }[] = [];
+export async function getLibraryIndex(): Promise<LibraryIndex> {
+  let files: { slug: string; mtime: number }[] = [];
   try {
-    files = readdirSync(PAGES_DIR)
-      .filter((f) => f.endsWith(".json"))
-      .map((name) => ({
-        name,
-        mtime: statSync(join(PAGES_DIR, name)).mtimeMs,
-      }));
+    files = await listPageFiles();
   } catch {
     return { docs: [], sections: [] };
   }
 
-  const key = files.map((f) => `${f.name}:${f.mtime}`).join("|");
+  const key = files.map((f) => `${f.slug}:${f.mtime}`).join("|");
   if (cache && cache.key === key) return cache.index;
 
   const docs: LibraryDoc[] = [];
   const sections: SectionEntry[] = [];
 
-  for (const file of files) {
-    const slug = file.name.replace(/\.json$/, "");
+  // Parallel reads: under the Blob backend each read is a network fetch.
+  const contents = await Promise.all(
+    files.map((file) => readPageRaw(file.slug).catch(() => null))
+  );
+
+  for (const [i, file] of files.entries()) {
+    const slug = file.slug;
+    const raw = contents[i];
+    if (raw === null) continue;
     let json: unknown;
     try {
-      json = JSON.parse(readFileSync(join(PAGES_DIR, file.name), "utf8"));
+      json = JSON.parse(raw);
     } catch {
       continue;
     }
@@ -255,8 +255,10 @@ const pickDoc = (doc: LibraryDoc) => ({
   readingMinutes: doc.readingMinutes,
 });
 
-export function searchLibrary(rawQuery: string): SearchResponse {
-  const { docs, sections } = getLibraryIndex();
+export async function searchLibrary(
+  rawQuery: string
+): Promise<SearchResponse> {
+  const { docs, sections } = await getLibraryIndex();
   const query = rawQuery.trim().slice(0, 120);
   const terms = normalize(query).split(/\s+/).filter(Boolean);
 

@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   },
   description:
     "Spazio interno aziendale per news, strumenti, documenti e risorse operative.",
+  // Sito interno condiviso via URL: fuori dai motori di ricerca.
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({

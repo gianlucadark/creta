@@ -1,9 +1,15 @@
-import { writeFileSync, mkdirSync } from "fs";
-import { join, extname } from "path";
+import { extname } from "path";
 import { EmptyDocumentError, ingestDocxBuffer } from "@/lib/ingestDocx";
+import { writePageDesign } from "@/lib/pagesStore";
 import { authorizeEditor } from "@/lib/editors";
 
-const MAX_FILE_BYTES = 12 * 1024 * 1024;
+/* The Gemini map-reduce can take minutes on long documents: allow the
+   full Fluid Compute window on Vercel instead of the default timeout. */
+export const maxDuration = 300;
+
+/* Vercel rejects request bodies over ~4.5 MB before the function runs,
+   so the limit must stay under that (with margin for multipart overhead). */
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
 function slugify(fileName: string) {
   return (
@@ -36,7 +42,7 @@ export async function POST(req: Request) {
 
     if (file.size > MAX_FILE_BYTES) {
       return Response.json(
-        { error: "Il file supera il limite di 12 MB." },
+        { error: "Il file supera il limite di 4 MB." },
         { status: 413 }
       );
     }
@@ -51,13 +57,7 @@ export async function POST(req: Request) {
     );
 
     const slug = slugify(file.name);
-    const outDir = join(process.cwd(), "content", "pages");
-    mkdirSync(outDir, { recursive: true });
-    writeFileSync(
-      join(outDir, `${slug}.json`),
-      JSON.stringify(design, null, 2),
-      "utf8"
-    );
+    await writePageDesign(slug, design);
 
     return Response.json({ slug, title: design.page.title, engine });
   } catch (error) {

@@ -1,36 +1,24 @@
-import { readFileSync, readdirSync } from "fs";
-import { join } from "path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { StoredPageSchema, DocumentTreeSchema, BlockSchema } from "@/lib/schema";
 import { designReadingMinutes } from "@/lib/searchIndex";
+import { readPageRaw } from "@/lib/pagesStore";
 import { renderBlock } from "@/components/registry";
 import { PageDesignRenderer } from "@/components/PageDesignRenderer";
 import { DocHeader } from "@/components/DocHeader";
 
 export const dynamic = "force-dynamic";
 
-const PAGES_DIR = join(process.cwd(), "content", "pages");
-
-function loadPage(slug: string) {
+async function loadPage(slug: string) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
   try {
-    const raw = readFileSync(join(PAGES_DIR, `${slug}.json`), "utf8");
+    const raw = await readPageRaw(slug);
+    if (raw === null) return null;
     const parsed = StoredPageSchema.safeParse(JSON.parse(raw));
     return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
-}
-
-export async function generateStaticParams() {
-  let files: string[] = [];
-  try {
-    files = readdirSync(PAGES_DIR).filter((f) => f.endsWith(".json"));
-  } catch {
-    // content/pages not yet populated
-  }
-  return files.map((f) => ({ slug: f.replace(/\.json$/, "") }));
 }
 
 export async function generateMetadata({
@@ -39,7 +27,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const page = loadPage(slug);
+  const page = await loadPage(slug);
   if (!page || !("version" in page)) return {};
   return {
     title: page.page.title,
@@ -53,7 +41,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = loadPage(slug);
+  const page = await loadPage(slug);
 
   if (!page) notFound();
 

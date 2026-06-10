@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { PageDesign } from "@/lib/schema";
-import { PAGES_DIR, readPageDesign, writePageDesign } from "@/lib/pagesStore";
-import { isValidSlug, slugify, uniqueSlug } from "@/lib/slug";
+import { readPageDesign, uniqueSlug, writePageDesign } from "@/lib/pagesStore";
+import { isValidSlug, slugify } from "@/lib/slug";
 import { authorizeEditor } from "@/lib/editors";
 
 const BodySchema = z.object({
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      const source = readPageDesign(item.slug);
+      const source = await readPageDesign(item.slug);
       if (source.status !== "ok") {
         return Response.json(
           { error: `Documento non trovato o non supportato: ${item.slug}` },
@@ -83,8 +83,8 @@ export async function POST(req: Request) {
       sections,
     };
 
-    const slug = uniqueSlug(slugify(design.page.title), PAGES_DIR);
-    writePageDesign(slug, design);
+    const slug = await uniqueSlug(slugify(design.page.title));
+    await writePageDesign(slug, design);
 
     return Response.json({ slug, title: design.page.title });
   } catch (error) {

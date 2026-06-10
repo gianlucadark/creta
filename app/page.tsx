@@ -5,6 +5,7 @@ export type PageMeta = LibraryDoc;
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  return <HomeClient pages={getLibraryIndex().docs} />;
+export default async function Home() {
+  const { docs } = await getLibraryIndex();
+  return <HomeClient pages={docs} />;
 }

@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 const ACCEPTED_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
+/* Must match MAX_FILE_BYTES in app/api/ingest/route.ts (Vercel caps request
+   bodies at ~4.5 MB, so the server can never accept more anyway). */
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
+
 const LOADING_STEPS = [
   "Lettura del documento…",
   "Analisi della struttura…",
@@ -40,6 +44,11 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
   async function handleFile(file: File) {
     if (!file.name.toLowerCase().endsWith(".docx") && file.type !== ACCEPTED_MIME) {
       setState({ phase: "error", message: "Carica un file Word in formato .docx." });
+      return;
+    }
+
+    if (file.size > MAX_FILE_BYTES) {
+      setState({ phase: "error", message: "Il file supera il limite di 4 MB." });
       return;
     }
 
@@ -179,7 +188,7 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
             </div>
             <p className="font-semibold text-navy-900">Trascina qui il tuo .docx</p>
             <p className="mt-1 text-sm text-navy-500">oppure clicca per selezionarlo</p>
-            <p className="mt-3 text-xs text-navy-400">Solo .docx · max 12 MB</p>
+            <p className="mt-3 text-xs text-navy-400">Solo .docx · max 4 MB</p>
           </div>
         )}
 

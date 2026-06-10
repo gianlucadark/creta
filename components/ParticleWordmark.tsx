@@ -44,7 +44,7 @@ export function ParticleWordmark({ className = "" }: { className?: string }) {
     let raf = 0;
     let visible = true;
     let disposed = false;
-    let particles: Particle[] = [];
+    const particles: Particle[] = [];
     let wordIndex = 0;
     let lastSwap = performance.now();
 

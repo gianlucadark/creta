@@ -45,7 +45,8 @@ creta/
 │   ├── extractJson.ts         — estrazione/riparazione del JSON dall'output LLM
 │   ├── schema.ts              — schema Zod (PageDesign v2 + DocumentTree legacy) + normalizzatori tolleranti
 │   ├── pageDesignPrompt.ts    — chapterSystemPrompt (singolo/multi-capitolo ± page header) + PAGE_META_PROMPT di fallback
-│   ├── searchIndex.ts         — indice full-text in memoria su content/pages (cache su mtime) + tempo di lettura
+│   ├── pagesStore.ts          — adapter async dello store documenti: filesystem in dev, Vercel Blob quando c'è BLOB_READ_WRITE_TOKEN
+│   ├── searchIndex.ts         — indice full-text in memoria sullo store (cache su mtime/uploadedAt) + tempo di lettura
 │   ├── anchors.ts             — sectionAnchor condiviso tra renderer e indice (deep link coerenti)
 │   ├── readingProgress.ts     — progresso di lettura in localStorage (client, adapter useSyncExternalStore)
 │   ├── editors.ts             — allowlist editor DORMIENTE: guard authorizeEditor su tutte le route di scrittura
@@ -61,9 +62,28 @@ creta/
 │   ├── registry.tsx           — registry legacy v1
 │   └── doc/                   — componenti legacy v1
 ├── scripts/reingest.ts        — CLI: rigenera content/pages/<slug>.json con report di copertura
+├── scripts/seed-blob.ts       — CLI: carica content/pages/*.json sul Blob store di Vercel (seeding una tantum)
 ├── scripts/ingest.ts          — CLI legacy
 └── .env.local                 — GOOGLE_GENERATIVE_AI_API_KEY (mai nel codice)
 ```
+
+## Storage dei documenti (lib/pagesStore.ts)
+
+Tutto l'accesso ai documenti passa dall'adapter async `lib/pagesStore.ts` (`listPageFiles`, `readPageRaw`, `readPageDesign`, `writePageDesign`, `deletePage`, `pageExists`, `uniqueSlug`). Lo switch è per chiamata:
+
+- **senza `BLOB_READ_WRITE_TOKEN`** (dev locale): filesystem in `content/pages/` come sempre
+- **con `BLOB_READ_WRITE_TOKEN`** (Vercel, dove il filesystem è effimero): Vercel Blob, pathname `pages/<slug>.json`, `access: "public"` (unico modo del Blob; chi ha l'URL del blob legge il JSON grezzo — accettabile, il sito è aperto)
+
+Attenzione: col token in `.env.local` il dev locale legge/scrive lo store di **produzione**. Regola: **mai `fs` diretto su content/pages fuori da pagesStore.ts** (gli script CLI sono l'eccezione, girano solo in locale).
+
+## Deploy su Vercel
+
+1. push su GitHub → import del repo su Vercel (preset Next.js, nessuna config extra)
+2. Project → Storage → store **Blob** (`creta-blob`) connesso al progetto → inietta `BLOB_READ_WRITE_TOKEN`
+3. env var `GOOGLE_GENERATIVE_AI_API_KEY` (serve solo all'ingest)
+4. seeding una tantum dei documenti già in repo: token in `.env.local` (o `vercel env pull .env.local`), poi `npx tsx scripts/seed-blob.ts`
+
+Vincoli piattaforma già gestiti nel codice: upload limitato a **4 MB** (Vercel taglia i body a ~4,5 MB — limite sia client in `UploadModal` sia server in `app/api/ingest/route.ts`, da tenere allineati), `maxDuration = 300` sulla route di ingest, `robots: noindex` nel layout (sito condiviso via URL, fuori dai motori di ricerca).
 
 ## Comandi
 

@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
     "@ai-sdk/react": "^3.0.200",
+    "@vercel/blob": "^2.4.0",
     "ai": "^6.0.198",
     "cheerio": "^1.2.0",
     "mammoth": "^1.12.0",
