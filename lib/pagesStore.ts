@@ -6,7 +6,7 @@ import { PageDesignSchema, type PageDesign } from "./schema";
    Two interchangeable backends behind the same async API:
    - local filesystem (content/pages) when no Blob credentials are configured
    - Vercel Blob (pathname pages/<slug>.json) with either a read-write token
-     or Vercel's OIDC runtime credentials (VERCEL_OIDC_TOKEN + BLOB_STORE_ID).
+     or Vercel's OIDC runtime credentials for the connected BLOB_STORE_ID.
    The switch is per-call: normal local dev stays on files, while Vercel uses
    the persistent private Blob store. */
 
@@ -16,7 +16,7 @@ const BLOB_PREFIX = "pages/";
 function shouldUseBlobStore() {
   return Boolean(
     process.env.BLOB_READ_WRITE_TOKEN ||
-      (process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN)
+      (process.env.BLOB_STORE_ID && process.env.VERCEL)
   );
 }
 
