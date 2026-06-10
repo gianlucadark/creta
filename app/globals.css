@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FFFFFF;
+  --foreground: #113250;
 }
 
 @theme inline {
@@ -10,17 +10,228 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-playfair);
+
+  /* Surface */
+  --color-surface:      #F7FAFD;
+  --color-surface-dark: #EEF4FA;
+
+  /* Navy — primary */
+  --color-navy-50:  #EFF5FB;
+  --color-navy-100: #DCE9F5;
+  --color-navy-200: #B4D3EC;
+  --color-navy-300: #7BAFD9;
+  --color-navy-400: #3B82C4;
+  --color-navy-500: #2468AD;
+  --color-navy-600: #1D5490;
+  --color-navy-700: #174475;
+  --color-navy-800: #113250;
+  --color-navy-900: #0D2540;
+  --color-navy-950: #0A1E30;
+
+  /* Gold — secondary accent */
+  --color-gold-50:  #FEFAE8;
+  --color-gold-100: #FBF4D1;
+  --color-gold-200: #F7E79E;
+  --color-gold-300: #F3DA72;
+  --color-gold-400: #ECC93C;
+  --color-gold-500: #D4A820;
+  --color-gold-600: #C4A020;
+  --color-gold-700: #A07818;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #ECC93C;
+  color: #113250;
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+}
+::-webkit-scrollbar-track {
+  background: #EEF4FA;
+}
+::-webkit-scrollbar-thumb {
+  background: #B4D3EC;
+  border: 3px solid #EEF4FA;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ECC93C;
+}
+
+/* ── Animations ───────────────────────────────────────────── */
+
+@keyframes loading {
+  0%   { transform: translateX(-120%); }
+  50%  { transform: translateX(70%); }
+  100% { transform: translateX(220%); }
+}
+
+@keyframes creta-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(4%, -6%) scale(1.08); }
+  66%  { transform: translate(-5%, 4%) scale(0.96); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes creta-pan {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes creta-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+@keyframes creta-bob {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50%      { transform: translateY(8px); opacity: 1; }
+}
+
+@keyframes creta-marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* ── Reusable pieces ──────────────────────────────────────── */
+
+.creta-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  will-change: transform;
+  animation: creta-drift 22s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Endless horizontal ticker: two identical copies side by side, shifted
+   by half their total width per loop. */
+.creta-marquee {
+  display: flex;
+  width: max-content;
+  animation: creta-marquee 36s linear infinite;
+  will-change: transform;
+}
+
+.creta-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* White → gold shimmer on dark backgrounds */
+.creta-gradient-text {
+  background-image: linear-gradient(
+    100deg,
+    #FFFFFF 0%,
+    #F3DA72 40%,
+    #ECC93C 60%,
+    #FFFFFF 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: creta-pan 9s ease-in-out infinite;
+}
+
+/* Gold accent hairline on cards */
+.creta-rule {
+  background-image: linear-gradient(90deg, #ECC93C, #F3DA72, transparent);
+}
+
+/* Navy gradient for badges / icons / step numbers */
+.creta-badge-grad {
+  background-image: linear-gradient(135deg, #1D5490, #113250);
+}
+.creta-num-grad {
+  background-image: linear-gradient(160deg, #1D5490, #0D2540);
+}
+
+/* Gold gradient for the reading-progress bar */
+.creta-progress-grad {
+  background-image: linear-gradient(90deg, #ECC93C, #F3DA72, #ECC93C);
+}
+
+/* Gold gradient clipped to text (section numbers, stats) */
+.creta-stat-grad {
+  background-image: linear-gradient(140deg, #ECC93C 0%, #D4A820 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Deep navy for quote blocks */
+.creta-quote-grad {
+  background-image: linear-gradient(140deg, #174475, #0D2540);
+}
+
+/* Hero background — deep navy with subtle depth */
+.creta-hero-bg {
+  background-color: #0D2540;
+  background-image:
+    radial-gradient(60% 60% at 18% 12%, rgba(59, 130, 196, 0.28) 0%, transparent 60%),
+    radial-gradient(50% 50% at 92% 18%, rgba(236, 201, 60, 0.10) 0%, transparent 58%),
+    radial-gradient(70% 70% at 75% 100%, rgba(29, 84, 144, 0.32) 0%, transparent 60%);
+}
+
+/* Code block background */
+.creta-code-bg {
+  background-color: #0A1E30;
+  background-image: linear-gradient(180deg, #0D2540 0%, #0A1E30 100%);
+}
+
+.creta-grid-bg {
+  background-color: #EDF3F8;
+  background-image:
+    linear-gradient(rgba(17, 50, 80, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 50, 80, 0.075) 1px, transparent 1px),
+    linear-gradient(rgba(17, 50, 80, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 50, 80, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px;
+}
+
+.creta-scanline {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(236, 201, 60, 0.75),
+    rgba(123, 175, 217, 0.75),
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*) {
+    animation-duration: 350ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .creta-orb,
+  .creta-gradient-text,
+  .creta-marquee,
+  [class*="animate-"] {
+    animation: none !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

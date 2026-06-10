@@ -1,0 +1,151 @@
+{
+  "version": 2,
+  "page": {
+    "title": "Configurazione Claude Code Aziendale",
+    "summary": "Il presente documento descrive la procedura operativa per configurare Claude Code su postazioni Windows aziendali, instradando tutte le richieste verso un gateway che reindirizza verso diversi providers (AWS Bedrock, Azure, etc.). L’obiettivo è consentire agli utenti dell’Organizzazione di utilizzare Claude Code usando una chiave API personale per ciascun utente/gruppo.",
+    "eyebrow": "Documentazione Tecnica",
+    "audience": "Utenti dell’Organizzazione"
+  },
+  "sections": [
+    {
+      "title": "Premessa",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "L’obiettivo è consentire agli utenti dell’Organizzazione di utilizzare Claude Code usando una chiave API personale per ciascun utente/gruppo, così da permettere il monitoraggio dei consumi, l’attribuzione dei costi e l’applicazione di un limite settimanale di utilizzo."
+        }
+      ]
+    },
+    {
+      "title": "Prerequisiti",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "checklist",
+          "title": "Prima di configurare la postazione Windows, verificare che siano disponibili:",
+          "items": [
+            "Claude Code installato sulla macchina Windows.",
+            "URL aziendale del gateway.",
+            "API key personale dell’utente."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Verifica installazione Claude Code",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "steps",
+          "title": "Aprire PowerShell come utente normale ed eseguire:",
+          "items": [
+            {
+              "title": "Verifica versione",
+              "text": "claude --version"
+            },
+            {
+              "title": "Diagnostica",
+              "text": "claude doctor"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Nota importante",
+          "text": "Se il comando claude non viene riconosciuto, Claude Code non è installato o non è nel PATH. Non procedere finché `claude --version` non funziona."
+        }
+      ]
+    },
+    {
+      "title": "Creazione della directory di configurazione",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Claude Code su Windows usa la directory utente: `C:\\Users\\<utente>\\.claude`"
+        },
+        {
+          "type": "code",
+          "title": "Comandi per la creazione e verifica",
+          "code": "New-Item -ItemType Directory -Force -Path \"$env:USERPROFILE\\.claude\"\nTest-Path \"$env:USERPROFILE\\.claude\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Il risultato deve essere: True"
+        }
+      ]
+    },
+    {
+      "title": "Salvataggio della API key personale",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "L’amministratore deve fornire all’utente una API key personale. Esempio: `sk-xxxxxxxxxxxxxxxxxxxxxxxx`"
+        },
+        {
+          "type": "code",
+          "title": "Salvataggio e verifica",
+          "code": "Set-Content -Path \"$env:USERPROFILE\\.claude\\llm.key\" -Value \"sk-KEY-PERSONALE-UTENTE\" -NoNewline\nGet-Content \"$env:USERPROFILE\\.claude\\llm.key\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Il comando deve stampare la key personale dell’utente."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Attenzione",
+          "text": "questo file non deve contenere spazi, righe vuote o virgolette."
+        }
+      ]
+    },
+    {
+      "title": "Creazione dello script apiKeyHelper",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "code",
+          "title": "Configurazione script",
+          "code": "New-Item -ItemType Directory -Force -Path \"$env:USERPROFILE\\.claude\\scripts\"\npowershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$env:USERPROFILE\\.claude\\scripts\\get-llm-key.ps1\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Copiare lo script “get-llm-key.ps1” in allegato nella nuova cartella creata. Risultato atteso: `sk-KEY-PERSONALE-UTENTE`"
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Errore di autenticazione",
+          "text": "Se lo script non stampa la key, Claude Code non potrà autenticarsi."
+        }
+      ]
+    },
+    {
+      "title": "Creazione automatica del file settings.json",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Il file da creare è: `C:\\Users\\<utente>\\.claude\\settings.json`. Per evitare errori di escape nei path Windows, usare il seguente comando PowerShell. Il comando genera automaticamente il path assoluto dello script apiKeyHelper. Sostituire solo: https://llmgateway.company.it con l’URL reale del gateway."
+        },
+        {
+          "type": "code",
+          "title": "Comando di generazione",
+          "code": "powershell.exe -ExecutionPolicy Bypass -File \"path-to-claude-code-settings-bedrock.ps1\" -GatewayUrl \"SOSTITUIRE CON L’URL INVIATO IN PRIVATO\""
+        },
+        {
+          "type": "code",
+          "title": "Contenuto atteso del settings.json",
+          "code": "{\n  \"apiKeyHelper\": \"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \\\"C:\\\\Users\\\\nomeutente\\\\.claude\\\\scripts\\\\get-llm-key.ps1\\\"\",\n  \"env\": {\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"claude-haiku-4-5\",\n    \"ANTHROPIC_BEDROCK_BASE_URL\": \"https://llm.company.it/bedrock\",\n    \"ANTHROPIC_MODEL\": \"claude-sonnet-4-6\",\n    \"CLAUDE_CODE_SKIP_BEDROCK_AUTH\": \"1\",\n    \"AWS_REGION\": \"eu-west-1\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"claude-sonnet-4-6\",\n    \"CLAUDE_CODE_API_KEY_HELPER_TTL_MS\": \"3600000\",\n    \"CLAUDE_CODE_USE_BEDROCK\": \"1\"\n  }\n}"
+        },
+        {
+          "type": "paragraph",
+          "text": "Avviare Claude Code in un terminale usando il comando “claude”."
+        }
+      ]
+    }
+  ]
+}

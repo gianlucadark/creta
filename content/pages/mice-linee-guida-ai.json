@@ -1,0 +1,1834 @@
+{
+  "version": 2,
+  "page": {
+    "title": "Linee Guida per un utilizzo efficace, controllato e sostenibile degli strumenti di Intelligenza Artificiale generativa",
+    "eyebrow": "Documento Ufficiale 2026",
+    "summary": "Le presenti linee guida definiscono i criteri aziendali per utilizzare in modo efficace, controllato e sostenibile gli strumenti di Intelligenza Artificiale generativa adottati dall’Organizzazione, con particolare riferimento a Claude Code e ChatGPT (Web Interface)."
+  },
+  "sections": [
+    {
+      "title": "Obiettivo del documento",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "L’obiettivo non è sostituire le competenze professionali interne, ma aumentare la produttività, ridurre attività ripetitive, migliorare la qualità degli output e standardizzare il modo in cui sviluppatori, personale amministrativo, project manager e funzioni di governance utilizzano strumenti AI nel lavoro quotidiano."
+        },
+        {
+          "type": "cards",
+          "title": "Strumenti e Ambiti di Applicazione",
+          "items": [
+            {
+              "title": "Claude Code",
+              "text": "Strumento agentico per attività di **sviluppo software**. La documentazione ufficiale **Anthropic** lo descrive come uno strumento in grado di leggere codebase, modificare file, eseguire comandi e integrarsi con strumenti di sviluppo in terminale, IDE, desktop app e browser."
+            },
+            {
+              "title": "ChatGPT (Web Interface)",
+              "text": "Strumento general purpose per lavoro conoscitivo, documentale, analitico e collaborativo. **OpenAI** descrive i “Projects” come spazi di lavoro che raggruppano chat, file e istruzioni personalizzate per attività ricorrenti o continuative come scrittura, ricerca e pianificazione."
+            }
+          ]
+        },
+        {
+          "type": "quote",
+          "text": "La regola di fondo è semplice: ChatGPT serve a pensare, cercare, sintetizzare, scrivere e organizzare conoscenza; Claude Code serve a leggere, modificare, testare e automatizzare codice."
+        },
+        {
+          "type": "paragraph",
+          "text": "In considerazione della chiara suddivisione delle capacità operative tra i diversi strumenti, si raccomanda una consultazione mirata del presente documento in funzione del ruolo aziendale ricoperto. Tale approccio consente di ottimizzare i tempi di apprendimento (warm-up) e di favorire una più rapida adozione degli strumenti di interesse:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Ruolo",
+            "Sezione di riferimento"
+          ],
+          "rows": [
+            [
+              "Amministrazione, Project Management e Direzione",
+              "ChatGPT (Web Interface)"
+            ],
+            [
+              "Sviluppatori Software e DevOps",
+              "Claude Code"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Regola primaria di scelta dello strumento",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "L’adozione disciplinata di **Claude Code** e **ChatGPT (Web Interface)** deve produrre benefici misurabili su quattro assi principali:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "**riduzione del tempo operativo**, soprattutto su attività ripetitive, boilerplate, analisi preliminari, scrittura di test, sintesi documentale e preparazione di materiali.",
+            "**miglioramento della qualità**, tramite maggiore standardizzazione di prompt, output, checklist, test, revisioni e documentazione. Per Claude Code, Anthropic indica che fornire criteri di verifica come test, screenshot o output attesi è una delle pratiche a più alto impatto, perché permette allo strumento di controllare autonomamente il proprio lavoro.",
+            "**riduzione del costo di warm-up**, cioè il tempo necessario per spiegare ogni volta contesto, regole, struttura del progetto e obiettivo. Per Claude Code questo avviene tramite contesto di progetto, file CLAUDE.md, istruzioni e configurazione dell’ambiente; per ChatGPT tramite Projects, file caricati, istruzioni personalizzate e memoria di progetto.",
+            "**riuso della conoscenza aziendale**, evitando chat isolate, istruzioni duplicate, documentazione dispersa e output non tracciabili. I Projects di ChatGPT sono particolarmente utili per attività condivise come reportistica, ricerca, contenuti e collaborazione su materiali di lavoro."
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Questi benefici si realizzano solo se gli strumenti vengono usati con disciplina. L’AI non compensa requisiti confusi, contesto disordinato o assenza di revisione umana."
+        }
+      ]
+    },
+    {
+      "title": "Policy di trattamento dati e privacy",
+      "chapter": "Premessa",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Nel rispetto delle normative vigenti in materia di **protezione dei dati personali (GDPR)** e delle **policy di sicurezza delle informazioni** dell’Organizzazione, si stabilisce una disciplina rigorosa per l'inserimento di dati all'interno dei prompt utilizzati in **ChatGPT (Web Interface)** e **Claude Code**."
+        },
+        {
+          "type": "paragraph",
+          "text": "L’utente è, pertanto, tenuto a includere esclusivamente le informazioni strettamente necessarie allo svolgimento dell’attività, previa adeguata **anonimizzazione** o **mascheramento** dei dati sensibili."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Divieto assoluto",
+          "text": "Si applica il divieto assoluto di inserire nei prompt di sistemi di Intelligenza Artificiale le seguenti categorie di informazioni:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Tipologia di dato",
+            "Elementi specifici vietati"
+          ],
+          "rows": [
+            [
+              "Credenziali e Accessi",
+              "Password, token di autenticazione, API key, stringhe di connessione ai database."
+            ],
+            [
+              "Dati Tecnici Riservati",
+              "Codice sorgente proprietario protetto da non-disclosure agreement (NDA), segreti industriali."
+            ],
+            [
+              "Dati Personali (GDPR)",
+              "Nominativi di clienti o colleghi, codici fiscali, dati sanitari, giudiziari o opinioni politiche."
+            ],
+            [
+              "Informazioni di Business",
+              "Dati finanziari aziendali non ancora pubblici, bozze di bilancio, dettagli economici o contrattuali riservati."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "ChatGPT (Web Interface)",
+      "chapter": "ChatGPT (Web Interface)",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "**ChatGPT (Web Interface)** rappresenta un ambiente di lavoro per la gestione di attività conoscitive, documentali e collaborative all’interno del contesto aziendale. Il suo utilizzo si basa sulla capacità di integrare istruzioni, file e contesto operativo in uno spazio controllato, in cui la qualità dell’output dipende direttamente dalla strutturazione del prompt e dalla corretta gestione delle fonti."
+        }
+      ]
+    },
+    {
+      "title": "Setup dello spazio di lavoro: l’utilizzo dei \"Projects\"",
+      "chapter": "ChatGPT (Web Interface)",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Nel contesto aziendale, preparare il contesto per ChatGPT significa creare uno spazio di lavoro coerente nel quale siano disponibili esclusivamente le informazioni necessarie allo svolgimento dell’attività richiesta: obiettivi, destinatari dell’output, documentazione aggiornata, vincoli aziendali, formato atteso, livello di dettaglio e criteri di verifica."
+        },
+        {
+          "type": "paragraph",
+          "text": "Per evitare la dispersione delle informazioni e la frammentazione del contesto in conversazioni separate, l’operatore deve organizzare l’attività mediante la funzionalità <strong><em>Projects</em></strong> di ChatGPT."
+        },
+        {
+          "type": "paragraph",
+          "text": "OpenAI definisce i Projects come <em>workspace</em> (spazi di lavoro) dedicati che consentono di raccogliere in un unico contesto conversazioni, file di riferimento ed istruzioni personalizzate sotto un unico scope. Questa organizzazione permette al modello di mantenere il focus sugli obiettivi del progetto e di valorizzare il contesto accumulato nel tempo, favorendo la continuità delle attività e la coerenza dei risultati. I Projects, quindi, risultano particolarmente adatti per attività quali redazione documentale, ricerca, studio, pianificazione, analisi di materiali e sviluppo progressivo di bozze e contenuti."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "ll Project deve contenere esclusivamente informazioni pertinenti agli obiettivi di lavoro. L’accumulo indiscriminato di file, appunti o materiali non aggiornati può compromettere la qualità delle risposte e aumentare il rischio di risultati imprecisi. Il contesto del Project deve pertanto essere selezionato, aggiornato e gestito in modo continuativo. Pertanto, è necessario rimuovere periodicamente i contenuti obsoleti, duplicati o non più rilevanti per le attività in corso."
+        },
+        {
+          "type": "paragraph",
+          "text": "La gestione dei file richiede particolare attenzione. OpenAI prevede limiti specifici relativi al caricamento, alle dimensioni dei file, ai tempi di conservazione dei dati e alle capacità di analisi dei contenuti. Inoltre, nei documenti e nei PDF che contengono immagini, tabelle acquisite tramite scansione o impaginazioni complesse, l’estrazione delle informazioni potrebbe risultare parziale o imprecisa. Quando è necessario garantire la massima accuratezza dei dati, è consigliabile fornire contenuti in formato strutturato, quali fogli di calcolo, dataset o contenuti testuali in formato digitale."
+        },
+        {
+          "type": "paragraph",
+          "text": "I Projects devono essere utilizzati quando l’attività richiede continuità operativa e riutilizzo del contesto, con la necessità di aggregare conversazioni correlate, condividere materiali e mantenere una base documentale stabile e interrogabile nel tempo."
+        },
+        {
+          "type": "list",
+          "items": [
+            "In particolare, un Project è appropriato per attività che si sviluppano su un unico dominio nel medio-lungo periodo, come linee guida aziendali, documenti di compliance, proposte tecniche, ricerche strutturate, knowledge base di progetto, raccolte di template o processi ricorrenti di reportistica.",
+            "In questi casi, l’utilizzo dei Projects consente di ridurre il costo di “<em>warm-up</em>” tra le interazioni, grazie alla possibilità di centralizzare chat, file e istruzioni in un unico ambiente coerente. OpenAI sottolinea infatti che i Projects sono progettati per supportare workflow ripetibili o attività estese nel tempo, mantenendo insieme contesto, documenti e conversazioni."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Istruzioni del Project: la regola R.O.C.V.F.",
+      "chapter": "ChatGPT (Web Interface)",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Le istruzioni stabili rappresentano il meccanismo principale per stabilizzare e standardizzare il comportamento di ChatGPT all'interno di un <em>Project</em>."
+        },
+        {
+          "type": "list",
+          "title": "Regola R.O.C.V.F. (Ruolo, Obiettivo, Contesto, Vincoli, Formato)",
+          "items": [
+            "<strong>Ruolo (R): </strong>ruolo professionale che ChatGPT deve impersonare;",
+            "<strong>Obiettivo (O)</strong>: cosa deve essere prodotto o analizzato;",
+            "<strong>Contesto (C)</strong>: indicazione delle fonti documentali da considerare all'interno dello spazio di lavoro per interpretare correttamente la richiesta;",
+            "<strong>Vincoli (V)</strong>: limiti tecnici, normativi, stilistici, temporali o organizzativi;",
+            "<strong>Formato di output (F)</strong>: definizione del formato e della struttura dell’output atteso (ad es: testo, tabella, checklist, JSON, piano operativo, patch, elenco puntato, documento strutturato, …) insieme ai criteri di verifica e accettazione necessari a valutarne completezza, coerenza e conformità ai requisiti."
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "Le <strong>istruzioni di progetto</strong> sono chiaramente distinte dalle <strong>Custom Instructions personali</strong>, che rappresentano invece indicazioni generali applicate a tutte le conversazioni dell’utente e caratterizzate da un perimetro più ampio e non specifico rispetto ai singoli Projects."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Le istruzioni di progetto devono essere sottoposte a revisione ogni volta che cambia il perimetro del Project, vengono aggiornate le fonti documentali o emergono errori ricorrenti nelle risposte del modello. Un’istruzione non aggiornata può risultare più dannosa della sua assenza, poiché rischia di orientare il modello su informazioni obsolete o non più coerenti con il contesto operativo attuale."
+        }
+      ]
+    },
+    {
+      "title": "Delimitazione del contesto documentale",
+      "chapter": "ChatGPT (Web Interface)",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Quando un’attività richiede l’utilizzo di documenti caricati nel <em>Project</em>, è necessario delimitare in modo esplicito il contesto documentale di riferimento."
+        },
+        {
+          "type": "paragraph",
+          "text": "Il caricamento dei file non è sufficiente a garantire un utilizzo corretto delle fonti: è necessario specificare quali documenti devono essere utilizzati, con quale priorità e per quale finalità."
+        },
+        {
+          "type": "steps",
+          "title": "Definizione del prompt operativo",
+          "items": [
+            {
+              "title": "Fonte principale",
+              "text": "i file da considerare come fonte principale per l’elaborazione;"
+            },
+            {
+              "title": "Supporto",
+              "text": "i file da utilizzare esclusivamente come supporto o riferimento secondario;"
+            },
+            {
+              "title": "Sezioni rilevanti",
+              "text": "le sezioni, capitoli o pagine rilevanti per l’attività richiesta;"
+            },
+            {
+              "title": "Output atteso",
+              "text": "la tipologia e il formato dell’output atteso, inclusi stile e livello di dettaglio;"
+            },
+            {
+              "title": "Conoscenza esterna",
+              "text": "l’eventuale possibilità di integrazione con conoscenza esterna (es. web search, …), se consentita;"
+            },
+            {
+              "title": "Gestione incertezze",
+              "text": "la possibilità di evidenziare incertezze, assunzioni o informazioni non coperte dalle fonti disponibili."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Casi d'uso pratici e prompt template pronti all'uso",
+      "chapter": "ChatGPT (Web Interface)",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Questa sezione raccoglie una serie di <strong>template operativi standard</strong> utilizzabili per la costruzione di <strong>richieste one-shot</strong> in ChatGPT. I template hanno l’obiettivo di supportare la redazione di prompt completi, strutturati e riutilizzabili, riducendo ambiguità e garantendo coerenza nell’output generato."
+        },
+        {
+          "type": "paragraph",
+          "text": "Ogni template rappresenta uno schema di riferimento adattabile al contesto specifico dell’attività e deve essere compilato mantenendo la struttura logica definita nelle sezioni precedenti (ruolo, obiettivo, contesto, vincoli e formato)."
+        },
+        {
+          "type": "paragraph",
+          "text": "Le richieste verso ChatGPT devono essere progettate in modo completo e autosufficiente, in particolare quando il compito è circoscritto e richiede un output definito in un’unica interazione. Questo approccio, definito come <strong>richiesta one-shot</strong>, consente di ridurre ambiguità, migliorare la qualità della risposta e garantire maggiore controllo sull’output generato."
+        },
+        {
+          "type": "code",
+          "title": "Struttura consigliata per una richiesta one-shot efficace",
+          "code": "Agisci come [ruolo].\n\nObiettivo: [risultato atteso].\n\nContesto: [informazioni essenziali].\n\nMateriali: [testo/file/sezioni].\n\nVincoli: [stile, policy, limiti, fonti, dati da non usare].\n\nOutput: [formato richiesto].\n\nCriteri di qualità: [come verificare se va bene].\n\nGestione delle incertezze: in assenza di informazioni, il modello non deve inventare dati ma esplicitare assunzioni o formulare domande di chiarimento"
+        },
+        {
+          "type": "code",
+          "title": "Esempio",
+          "code": "Agisci come consulente ISO/IEC 42001. \n\nDevo revisionare una procedura interna MICE. \n\nObiettivo: rendere il testo più chiaro e auditabile senza cambiare il significato. \n\nUsa tono formale e operativo. \n\nRestituisci: testo revisionato, tabella modifiche principali, punti da verificare. \n\nNon introdurre requisiti non presenti nel testo."
+        },
+        {
+          "type": "paragraph",
+          "text": "In generale, le istruzioni del prompt devono essere sempre formulate in modo esplicito e strutturato, separando chiaramente ruolo, contesto e risultato atteso."
+        },
+        {
+          "type": "paragraph",
+          "text": "Per i template pronti all’uso per ChatGPT, far riferimento all’Appendice “Template per ChatGPT”."
+        }
+      ]
+    },
+    {
+      "title": "Claude Code",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "**Claude Code** rappresenta un ambiente di lavoro specializzato per **attività di sviluppo software**, manutenzione del codice e automazione operativa all'interno del ciclo di vita applicativo. Il suo utilizzo si basa sulla capacità di operare direttamente sul codice sorgente e di integrarsi con terminali, ambienti di sviluppo integrati (IDE) e altri strumenti di sviluppo. A differenza delle interfacce conversazionali *general-purpose*, la sua efficacia dipende dalla corretta definizione del contesto operativo, dalla gestione delle autorizzazioni e dalla strutturazione delle attività da eseguire, al fine di massimizzare la produttività e ridurre il rischio di modifiche indesiderate."
+        }
+      ]
+    },
+    {
+      "title": "Setup iniziale",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "**Claude Code** deve essere configurato in modo da comprendere rapidamente il progetto sui cui opera, evitando la necessità di reiterare le stesse informazioni a ogni sessione. Questa predisposizione si realizza mediante la formalizzazione del contesto, inteso come un insieme di istruzione operative che consentono a Claude Code di lavorare in modo coerente con la codebase e con gli standard tecnici e aziendali."
+        },
+        {
+          "type": "paragraph",
+          "text": "### Il file “CLAUDE.md”"
+        },
+        {
+          "type": "paragraph",
+          "text": "La stabilità delle direttive operative è interamente delegata al file di configurazione principale del progetto: il file “*CLAUDE.md*” è il principale meccanismo per fornire a Claude Code istruzioni **persistenti** di progetto."
+        },
+        {
+          "type": "paragraph",
+          "text": "Questo file è letto da Claude Code all’inizio di ogni sessione. Al fine di garantire la condivisione delle regole operative all'interno del team di sviluppo, nel contesto aziendale, ogni repository rilevante dovrebbe avere un file “*CLAUDE.md*” di progetto, versionato insieme al codice, in continua evoluzione."
+        },
+        {
+          "type": "paragraph",
+          "text": "La stesura di questo documento richiede estrema sintesi e focalizzazione operativa. Anziché fungere da manuale esaustivo o da archivio destrutturato di annotazioni informali, il file deve fornire una descrizione sintetica dell'applicativo e delineare chiaramente la struttura del repository, indicando le cartelle principali e le responsabilità dei moduli."
+        },
+        {
+          "type": "list",
+          "title": "Si consiglia di riportare nel file “CLAUDE.md” i seguenti elementi:",
+          "items": [
+            "**Descrizione sintetica** del modulo o dell'applicativo di riferimento;",
+            "**Struttura del repository**, contenente le cartelle principali e responsabilità dei vari moduli;",
+            "I **comandi standard** di build, test, lint, ecc…, necessari all'esecuzione e alla verifica del progetto;",
+            "Le **convenzioni tecniche**, come ad esempio naming, code style, pattern architetturali, DTO, mapper, ecc…, adottate dal team di sviluppo;",
+            "I **vincoli aziendali** di sicurezza, gestione dati, regole di commit, branch policy;",
+            "Una mappatura costantemente aggiornata degli **errori ricorrenti**: problemi già noti che **Claude Code** deve evitare o controllare."
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "### Inizializzazione di un nuovo progetto: il comando “/init”"
+        },
+        {
+          "type": "paragraph",
+          "text": "In fase di avvio di un nuovo progetto, la definizione iniziale del contesto operativo può essere supportata dal **comando** “**/init**”, che consente la generazione o la proposta di una prima versione del file “**CLAUDE.md**” tramite analisi automatica della codebase."
+        },
+        {
+          "type": "paragraph",
+          "text": "Il contenuto generato automaticamente deve essere considerato esclusivamente come base iniziale. Il comando non è in grado di inferire in modo completo priorità aziendali, vincoli progettuali impliciti o eccezioni non esplicitamente rappresentate nel codice."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Di conseguenza, il **file generato richiede sempre revisione e validazione** da parte del team di progetto prima della sua adozione."
+        },
+        {
+          "type": "steps",
+          "title": "Il processo di inizializzazione deve essere eseguito secondo i seguenti passaggi:",
+          "items": [
+            {
+              "title": "Avvio",
+              "text": "Avviare **Claude Code** dalla root del repository;"
+            },
+            {
+              "title": "Comando",
+              "text": "Eseguire il comando “**/init**”;"
+            },
+            {
+              "title": "Revisione",
+              "text": "Revisionare il file “**CLAUDE.md**” generato, rimuovendo informazioni ridondanti, ambigue o non rilevanti;"
+            },
+            {
+              "title": "Integrazione comandi",
+              "text": "Integrare i comandi ufficiali di build, test ed esecuzione;"
+            },
+            {
+              "title": "Integrazione vincoli",
+              "text": "Integrare eventuali vincoli e standard aziendali;"
+            },
+            {
+              "title": "Commit",
+              "text": "Effettuare il commit del file “**CLAUDE.md**” nel repository per garantirne la disponibilità a tutto il team di sviluppo."
+            }
+          ]
+        },
+        {
+          "type": "checklist",
+          "title": "Per garantire efficacia operativa e limitare il sovraccarico del contesto, il file “CLAUDE.md” deve rispettare i seguenti criteri:",
+          "items": [
+            "struttura sintetica e orientata all’operatività;",
+            "istruzioni chiare, specifiche e non ambigue;",
+            "organizzazione per sezioni funzionali;",
+            "dimensione contenuta (indicativamente fino a ~200 righe);",
+            "esclusione di contenuti descrittivi non funzionali all’utilizzo operativo."
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Documenti eccessivamente estesi o non strutturati riducono l’efficacia del contesto operativo e devono essere evitati."
+        }
+      ]
+    },
+    {
+      "title": "Componente agentica",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "La natura agentica di **Claude Code** gli consente di agire in modo proattivo sull'ambiente ospitante. Tale capacità, pur velocizzando la scrittura del software, richiede una precisa regolamentazione dei permessi e un monitoraggio costante per escludere rischi di danneggiamento o perdita di dati."
+        },
+        {
+          "type": "paragraph",
+          "text": "### Livelli di autonomia e controllo dell'agente"
+        },
+        {
+          "type": "paragraph",
+          "text": "**Claude Code** richiede normalmente autorizzazioni per azioni che modificano il sistema, come la scrittura di file, l'esecuzione di **comandi Bash** e l'interazione con i **tool MCP**."
+        },
+        {
+          "type": "paragraph",
+          "text": "La gestione di permessi, whitelist e sandbox deve essere coerente con le policy aziendali e può essere altresì configurata dall’utente attraverso il comando “**/permissions**” in **Claude Code**."
+        },
+        {
+          "type": "checklist",
+          "title": "L'interazione quotidiana con lo strumento deve sottostare alle seguenti regole minime di sicurezza:",
+          "items": [
+            "usare branch dedicati per task non banali;",
+            "verificare il **git diff** prima di effettuare il **commit**;",
+            "vietare refactoring globali non richiesti;",
+            "chiedere sempre la lista dei file modificati;",
+            "chiedere sempre i test eseguiti e il relativo risultato;",
+            "non consentire comandi distruttivi senza una preventiva **revisione umana**;",
+            "non inserire mai credenziali, token o secret key nel prompt."
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "### Gestione dei rischi"
+        },
+        {
+          "type": "paragraph",
+          "text": "L'adozione di **Claude Code** comporta l'**insorgere di minacce** specifiche che devono essere mitigate dallo sviluppatore, seguendo le indicazioni operative riportate di seguito:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Rischio",
+            "Impatto",
+            "Mitigazione"
+          ],
+          "rows": [
+            [
+              "Modifiche eccessive",
+              "Differenze difficili da revisionare",
+              "Limitare rigorosamente il perimetro d'azione (**scope**) e il numero di file coinvolti, richiedendo sempre all'agente la generazione di un piano preventivo prima di autorizzare qualsiasi modifica diretta sul filesystem"
+            ],
+            [
+              "Refactoring non richiesto",
+              "Regressioni o aumento dei tempi di review",
+              "Bloccare le iniziative autonome non necessarie inserendo nel prompt istruzioni inibitorie esplicite, quali \"non fare refactoring non richiesti\""
+            ],
+            [
+              "Soluzione plausibile ma errata",
+              "Bug mascherati",
+              "Fornire a **Claude Code** criteri di successo inequivocabili, come test, output attesi e casi limite. Senza metriche di verifica esplicite, lo strumento rischia di produrre codice apparentemente corretto ma funzionalmente invalido"
+            ],
+            [
+              "Perdita di contesto",
+              "Errori in sessioni lunghe",
+              "Utilizzare il comando “**/clear**” nel passaggio tra task non collegati, assicurandosi contestualmente che il contesto persistente del progetto sia sempre ben mantenuto"
+            ],
+            [
+              "Allucinazioni su API o librerie",
+              "Codice non compilabile",
+              "Fornire la documentazione ufficiale o chiedere una verifica diretta su codice già esistente e funzionante"
+            ],
+            [
+              "Comandi rischiosi",
+              "Perdita di dati o modifiche distruttive dell'ambiente",
+              "Operare in condizioni di sicurezza tramite l'utilizzo di sandbox, l'assegnazione di permessi limitati al terminale e l'uso esclusivo di branch dedicati, al fine di proteggere i sistemi di produzione e sviluppo"
+            ],
+            [
+              "Mancata tracciabilità",
+              "Difficoltà nelle fasi di audit e code review",
+              "Richiedere a **Claude Code** la produzione di un riepilogo finale contenente l'elenco esatto dei file modificati, le motivazioni tecniche adottate ed i risultati dei test eseguiti"
+            ],
+            [
+              "Dipendenza cieca dallo strumento",
+              "Abbassamento della qualità del codice generato",
+              "Review umana obbligatoria del codice prodotto prima di qualsiasi merge o rilascio in produzione"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Regole Path-Specific (.claude/rules)",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Nei repository di grandi dimensioni, il file “**CLAUDE.md**” non è sufficiente a gestire in modo scalabile tutte le istruzioni di contesto. Per questo motivo è possibile introdurre una struttura modulare tramite la directory “**.claude/rules/**”, che consente di definire regole più granulari e mantenibili."
+        },
+        {
+          "type": "paragraph",
+          "text": "Tutti i file Markdown presenti in questa directory vengono rilevati automaticamente (anche in sottocartelle) e possono essere organizzati per dominio funzionale (es. backend/, frontend/, api/, ecc.). Questa suddivisione consente di mantenere le regole più vicine al contesto del codice a cui si riferiscono."
+        },
+        {
+          "type": "code",
+          "code": "your-project/\n├── .claude/\n│   ├── CLAUDE.md           # Main project instructions\n│   └── rules/\n│       ├── code-style.md   # Code style guidelines\n│       ├── testing.md      # Testing conventions\n│       └── security.md     # Security requirements"
+        },
+        {
+          "type": "paragraph",
+          "text": "Il sistema gestisce queste regole secondo **due modalità**:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "**Regole globali modulari**: i file **.md** presenti in “**.claude/rules/**” privi di frontmatter YAML vengono caricati automaticamente all’avvio di ogni sessione insieme al file “**CLAUDE.md**”. Si raccomanda questo approccio per separare in modo ordinato le regole trasversali del progetto (es. testing-guidelines.md, security-rules.md), mantenendo il contesto principale più pulito e leggibile.",
+            "**Regole con ambito di percorso** (**Path-Scoped Rules**): per garantire un contesto operativo minimale e pertinente, le istruzioni altamente specifiche devono essere attivate solo quando necessario. Questo avviene tramite l’utilizzo di un **frontmatter YAML** all’inizio del file Markdown, contenente la chiave “**paths**”, che definisce i pattern di file su cui la regola deve essere applicata automaticamente."
+          ]
+        },
+        {
+          "type": "code",
+          "title": "Esempio di regola path-specific:",
+          "code": "---\npaths:\n  - \"src/api/**/*.ts\"\n---\n\n# API Development Rules\n- All API endpoints must include input validation\n- Use the standard error response format\n- Include OpenAPI documentation comments"
+        },
+        {
+          "type": "paragraph",
+          "text": "Questa configurazione definisce una regola che viene applicata **esclusivamente ai file TypeScript presenti nel percorso “src/api/” e relative sottocartelle**. Le istruzioni contenute entrano quindi in vigore solo quando **Claude Code** opera su questi file, permettendo di mantenere il resto del progetto non influenzato da vincoli specifici dell’area API."
+        },
+        {
+          "type": "paragraph",
+          "text": "Attraverso questa configurazione, l'agente assimila il contesto tecnico avanzato solo ed esclusivamente quando le attività di sviluppo incrociano i percorsi dichiarati, azzerando il \"rumore\" informativo durante i task non pertinenti."
+        }
+      ]
+    },
+    {
+      "title": "Workflow di sviluppo: Explore → Plan → Implement → Verify",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Per ridurre errori logici e modifiche non controllate, **Claude Code** non deve procedere direttamente con la scrittura o modifica del codice senza una fase preliminare di analisi, in particolare per task non banali. Questo approccio è coerente con il pattern raccomandato da **Anthropic**: “***explore first, then plan, then code***”."
+        },
+        {
+          "type": "steps",
+          "title": "Il flusso operativo è strutturato nelle seguenti fasi:",
+          "items": [
+            {
+              "title": "Explore (Esplorare il codice)",
+              "text": "**Claude Code** analizza la codebase rilevante, ricostruisce i flussi applicativi e identifica i componenti coinvolti, senza apportare modifiche. Prompt raccomandato: *“Leggi questi file e spiegami il flusso. Non modificare nulla.”*"
+            },
+            {
+              "title": "Plan (Proporre una soluzione e chiedere approvazione)",
+              "text": "**Claude Code** propone un piano di intervento dettagliato includendo file coinvolti, impatti, alternative e strategie di test. Prompt raccomandato: “*Proponi un piano di intervento. Evidenzia rischi e assunzioni. Attendi approvazione.*” NOTA: la modalità di pianificazione può essere forzata anche utilizzando il comando “**/plan**” su **Claude Code**."
+            },
+            {
+              "title": "Implement (Implementare)",
+              "text": "Solo dopo approvazione esplicita del piano, **Claude Code** può procedere con le modifiche. Non sono consentite variazioni non incluse nel piano approvato né refactoring non richiesti. Prompt raccomandato: “*Implementa solo il piano approvato. Non fare refactoring non richiesti.*”"
+            },
+            {
+              "title": "Verify (Testare)",
+              "text": "**Claude Code** esegue test, lint, build o comandi concordati per validare le modifiche introdotte e identificare regressioni. Prompt raccomandato: “*Esegui i test indicati, mostra esito e correggi solo gli errori collegati alla modifica.*”"
+            },
+            {
+              "title": "Sintesi tracciabile",
+              "text": "Al termine dell'attività, Claude Code deve produrre un riepilogo strutturato delle operazioni eseguite, includendo almeno i file modificati, le motivazioni delle modifiche apportate, i test eseguiti e i relativi risultati. Prompt raccomandato: “*Produci un riepilogo finale delle modifiche apportate. A tal proposito, restituisci: l’obiettivo iniziale, l'elenco dei file modificati, le modifiche apportate per ciascun file, i test eseguiti ed i relativi risultati, i rischi residui e i punti da verificare manualmente*”."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Estensioni ed integrazioni avanzate",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Le estensioni di **Claude Code** consentono di ampliare le capacità operative del sistema attraverso l’integrazione con fonti informative esterne, strumenti aziendali e procedure tecniche formalizzate. Tali meccanismi permettono di trasformare attività ricorrenti in componenti riutilizzabili, contribuendo a migliorare coerenza, tracciabilità e scalabilità dei workflow."
+        },
+        {
+          "type": "callout",
+          "tone": "info",
+          "text": "L’adozione di estensioni deve essere valutata come un intervento architetturale che incide sul comportamento del sistema e sulla gestione del contesto operativo. Se da un lato tali strumenti possono **ridurre il costo di contesto** e **aumentare la qualità e ripetibilità delle risposte**, dall’altro introducono **dipendenze aggiuntive** e **potenziali margini di rischio**, in particolare in relazione a sicurezza, governance degli accessi e affidabilità delle integrazioni; pertanto, deve essere adottata esclusivamente quando apporta un beneficio operativo concreto e verificabile."
+        },
+        {
+          "type": "list",
+          "title": "Tra i meccanismi di estensione attualmente rilevanti, si considerano in particolare:",
+          "items": [
+            "l’utilizzo del **Model Context Protocol (MCP)** per l’integrazione controllata con sistemi, servizi e fonti dati esterne;",
+            "l’utilizzo delle **Skills** di progetto per la formalizzazione di procedure operative standard e riusabili."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Model Context Protocol (MCP) ed integrazione “context7”",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Il **Model Context Protocol (MCP)** è lo standard open-source adottato per collegare in modo strutturato **Claude Code** a sistemi esterni che non fanno parte direttamente della codebase, come ad esempio:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "database utilizzati a fini di consultazione;",
+            "sistemi documentali aziendali;",
+            "piattaforme di ticketing o knowledge base;",
+            "servizi di osservabilità e monitoraggio;",
+            "repository documentali tecnici;",
+            "server specializzati come **context7**."
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "L'utilizzo di MCP è consigliato quando l'attività richiede l'accesso ricorrente a informazioni esterne che non possono essere mantenute in modo efficace all'interno del file “**CLAUDE.md**” o delle regole di progetto."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Rischi di sicurezza",
+          "text": "L'utilizzo di un server MCP offre vantaggi in termini di automazione e consistenza delle informazioni, ma espone l'ambiente a rischi di sicurezza, tra cui la **prompt injection** derivante da contenuti esterni non controllati. Di conseguenza, si stabiliscono i seguenti vincoli operativi:"
+        },
+        {
+          "type": "checklist",
+          "items": [
+            "**Necessità verificabile**: l'MCP deve essere configurato solo per abilitare un accesso ricorrente e controllato a una fonte esterna. Se l'attività è occasionale, è sufficiente fornire il contesto tramite prompt o file allegati.",
+            "**Priorità alle CLI**: è vietato introdurre un MCP per replicare funzioni già coperte in modo efficiente da una **Command-Line Interface (CLI)** ufficiale e matura (es. Git, Docker).",
+            "**Principio del privilegio minimo**: i server MCP devono essere configurati con i permessi minimi indispensabili (es. accesso in sola lettura ai database)."
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "Particolare rilevanza assume **context7**, un server MCP specializzato nel recupero di documentazione tecnica aggiornata relativa a librerie, framework, SDK e API. L'integrazione consente a **Claude Code** di consultare documentazione corrente durante l'esecuzione delle attività, riducendo il rischio di utilizzare esempi obsoleti, API deprecate o configurazioni non più valide."
+        },
+        {
+          "type": "paragraph",
+          "text": "Nel contesto aziendale si raccomanda l'utilizzo di **context7** ogniqualvolta si operi su framework o librerie soggetti a frequenti aggiornamenti."
+        },
+        {
+          "type": "quote",
+          "text": "Dal punto di vista concettuale, l'MCP deve essere considerato come un meccanismo di collegamento tra **Claude Code** e documentazione esterna ufficiale, mentre le istruzioni operative e le regole di comportamento continuano a essere governate dal contesto di progetto."
+        },
+        {
+          "type": "steps",
+          "title": "Setup di context7",
+          "items": [
+            {
+              "title": "Configurazione",
+              "text": "Dopo aver ottenuto l’**API Key** dal [sito ufficiale di context7](https://context7.com/), il server può essere registrato nell'ambiente **Claude Code** tramite il comando:"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "code": "claude mcp add --scope user \\\n  --header \"CONTEXT7_API_KEY: YOUR_API_KEY\" \\\n  --transport http \\\n  context7 \\\n  https://mcp.context7.com/mcp"
+        },
+        {
+          "type": "list",
+          "title": "Verifica della configurazione",
+          "items": [
+            "il comando “**/mcp**” all'interno della sessione interattiva di **Claude Code**;",
+            "la verifica diretta all'interno del file di configurazione “**~/.claude.json**”, accertandosi della presenza delle chiavi che descrivono il server MCP. Un esempio della struttura è riportato di seguito:"
+          ]
+        },
+        {
+          "type": "code",
+          "code": "{\n  \"mcpServers\": {\n    \"context7\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.context7.com/mcp\",\n      \"headers\": {\n        \"CONTEXT7_API_KEY\": \"LA_TUA_API_KEY\"\n      }\n    }\n  }\n}"
+        },
+        {
+          "type": "paragraph",
+          "text": "L'astrazione fondamentale da ricordare è che la **descrizione associata al tool MCP** rappresenta il protocollo con cui Claude comprende quando utilizzarlo. Tuttavia, Anthropic sottolinea che, qualora l'agente non selezioni autonomamente il tool appropriato basandosi sulla sola descrizione (o se si affida a supposizioni errate), l'utente deve indicare esplicitamente il nome dello strumento e subordinare l'azione successiva al suo utilizzo. Il pattern operativo raccomandato è il seguente:"
+        },
+        {
+          "type": "quote",
+          "text": "\"Usa il tool [nome-tool-mcp] per interrogare [risorsa/database/documentazione] riguardo a [argomento]. Non procedere con l'implementazione e non generare codice finché non hai analizzato i risultati restituiti dal tool.\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Operativamente, lo schema sopra indicato può essere declinato in un caso d'uso concreto come segue:"
+        },
+        {
+          "type": "paragraph",
+          "text": "\" Usa context7 per interrogare la documentazione ufficiale di FastAPI. Non procedere con l'implementazione e non generare codice finché non hai analizzato i risultati restituiti dal tool.\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Questa forzatura può essere applicata alla singola richiesta, oppure può essere istituzionalizzata come regola stabile all'interno del file “**CLAUDE.md**” del progetto:"
+        },
+        {
+          "type": "quote",
+          "text": "“Quando il task richiede documentazione tecnica su librerie, framework, SDK o API, usa context7 prima di proporre codice o istruzioni operative. Se Context7 non restituisce informazioni sufficienti, dichiaralo esplicitamente, non inventare API ed integra con ricerche alternative.”"
+        },
+        {
+          "type": "paragraph",
+          "text": "Questo costrutto linguistico autoritario vincola l'agente a eseguire la chiamata al server MCP (es. context7) come prerequisito bloccante per la stesura del codice."
+        }
+      ]
+    },
+    {
+      "title": "Le Skills",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Le **Skills** consentono di trasformare procedure tecniche ricorrenti in componenti riutilizzabili e condivisibili all'interno del team di sviluppo."
+        },
+        {
+          "type": "paragraph",
+          "text": "A differenza dell'MCP, che collega sistemi esterni, le Skills guidano l'agente nel ragionamento e nell'esecuzione di attività ripetibili direttamente sulla codebase (es. script di deploy locale, regole di linting specifiche, procedure di test)."
+        },
+        {
+          "type": "paragraph",
+          "text": "Il **vantaggio** architetturale delle Skills risiede nella “**progressive disclosure**”: per evitare di saturare la **context window**, **Claude Code** non carica indiscriminatamente tutto il contenuto della Skill all'avvio della sessione. L'agente legge inizialmente solo il **frontmatter YAML** (nome e descrizione); il contenuto operativo completo viene caricato solo quando il modello valuta che la Skill sia rilevante per il task in corso, o quando l'utente la richiama esplicitamente nel prompt."
+        },
+        {
+          "type": "steps",
+          "title": "Definizione e struttura di una Skill",
+          "items": [
+            {
+              "title": "Requisiti",
+              "text": "Una **Skill** è rappresentata da una cartella dedicata all'interno del file system che deve contenere obbligatoriamente un file denominato “**SKILL.md**”."
+            },
+            {
+              "title": "Struttura logica",
+              "text": "La **struttura logica** raccomandata per organizzare una Skill complessa è la seguente:\n\n**nome-skill**/\n├── SKILL.md         # File di istruzioni principale (obbligatorio)\n├── scripts/         # Script d'appoggio eseguibili dall'agente (opzionale)\n├── references/      # Documentazione tecnica o standard di riferimento (opzionale)\n└── assets/          # Eventuali file statici o template di input (opzionale)"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "title": "Frontmatter YAML",
+          "code": "---\nname: nome-skill\ndescription: Descrizione breve e precisa dell'attività risolta dalla Skill e di quando deve essere utilizzata.\n---\n\n# Nome della Skill\n## Instructions\n[Fornire qui la guida passo-passo che Claude Code deve seguire rigorosamente]\n## Examples\n[Inserire esempi concreti di utilizzo e di output attesi]"
+        },
+        {
+          "type": "callout",
+          "tone": "info",
+          "title": "Regola fondamentale",
+          "text": "La cartella che ospita la Skill e il valore del campo name dichiarato all'interno del frontmatter YAML devono coincidere in modo esatto."
+        },
+        {
+          "type": "paragraph",
+          "text": "Il campo **description** all'interno del frontmatter YAML rappresenta un campo critico di sicurezza e performance: analogamente alle descrizioni dei tool MCP, essa costituisce il \"**protocollo**\" **semantico** con cui Claude valuta se la procedura descritta sia adatta al problema corrente. Una descrizione vaga o errata può causare attivazioni non necessarie o, al contrario, il mancato utilizzo della/e skill/s."
+        },
+        {
+          "type": "list",
+          "title": "Posizionamento e Scope di installazione",
+          "items": [
+            "**Project Scope (Consigliato per il team)**: La cartella della Skill viene inserita nel percorso “**.claude/skills/**” nella root di progetto oppure alla radice del repository, se si tratta di un repository **Git**. Questo approccio consente di versionare le procedure operative tramite Git, distribuendole automaticamente a tutti i membri del team di sviluppo, in modo tale da garantire l'allineamento degli standard di sviluppo.",
+            "**User Scope (Personale)**: La cartella viene inserita nel percorso globale dell'utente “**~/.claude/skills/**”. Questo approccio è consigliato per utilità personali, preferenze di formattazione o script di automazione slegati dalle logiche dello specifico progetto."
+          ]
+        },
+        {
+          "type": "list",
+          "title": "Modalità di utilizzo ed esecuzione",
+          "items": [
+            "**Attivazione implicita (Rilevamento automatico)**: Grazie alla “**progressive disclosure**”, se l'utente richiede un task che coincide semanticamente con la descrizione della Skill, Claude ne carica autonomamente le istruzioni dettagliate ed esegue i passaggi.",
+            "**Attivazione esplicita (Raccomandata)**: Per garantire la massima determinazione dei flussi ed evitare che l'agente proceda per tentativi o supposizioni errate, l'operatore è tenuto a richiamare la Skill in modo esplicito nel prompt."
+          ]
+        },
+        {
+          "type": "quote",
+          "text": "Il **pattern operativo** per l'invocazione di una Skill è il seguente: \"Usa la skill [nome-skill] per eseguire [procedura/task] su [file/modulo]. Segui rigorosamente le istruzioni operative e non procedere con modifiche non coperte dalla skill senza preventiva autorizzazione.\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Questo costrutto linguistico autoritario vincola l'agente a operare esclusivamente all'interno del perimetro definito dalla Skill, impedendo deviazioni o estensioni non autorizzate dello scope d'intervento."
+        },
+        {
+          "type": "paragraph",
+          "text": "Laddove una Skill debba essere utilizzata ricorrentemente all'interno di uno specifico dominio progettuale, è possibile istituzionalizzarne l'attivazione come regola stabile all'interno del file “**CLAUDE.md**” del progetto:"
+        },
+        {
+          "type": "quote",
+          "text": "“Quando il task richiede [descrizione attività], usa la skill [nome-skill] e segui rigorosamente le istruzioni operative in essa contenute. Non procedere con modifiche non coperte dalla skill senza preventiva autorizzazione dell'utente.”"
+        },
+        {
+          "type": "paragraph",
+          "text": "Le due modalità non si escludono reciprocamente: l'**attivazione implicita** è ammessa per task circoscritti e a basso impatto; l'**attivazione esplicita** costituisce invece il riferimento operativo standard per ogni attività ad alto impatto o soggetta a requisiti di tracciabilità e conformità ai processi aziendali."
+        },
+        {
+          "type": "table",
+          "title": "Risorse pubbliche di riferimento",
+          "headers": [
+            "Risorsa",
+            "Uso Consigliato"
+          ],
+          "rows": [
+            [
+              "Andrej-karpathy skills",
+              "Repository community ispirato ai principi di sviluppo agentico sicuro di Andrej Karpathy. Utile come riferimento per l'adozione di pratiche quali modifiche chirurgiche, verifica del risultato e controllo dello scope d'intervento."
+            ],
+            [
+              "mattpopock/skills",
+              "Repository community con Skills operative orientate alla governance del flusso di sviluppo. Include la Skill grill-me, utile per forzare una fase esplicita di chiarimento di piano, design e decisioni prima di autorizzare qualsiasi implementazione."
+            ],
+            [
+              "VoltAgent/awesome-agent-skills",
+              "Catalogo esteso di Skills ufficiali e community, organizzato per categoria e caso d'uso. Da utilizzare esclusivamente come fonte di ispirazione per la progettazione di Skills interne; i contenuti non sono da considerarsi approvati per uso diretto in contesti aziendali."
+            ],
+            [
+              "JuliusBrusse/caveman",
+              "Skill orientata alla riduzione della verbosità e del consumo di token, utile come esempio di progettazione di istruzioni operative concise ed efficienti dal punto di vista del contesto."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Template pronti all'uso",
+      "chapter": "Claude Code",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Per i template pronti all’uso per **Claude Code**, far riferimento all’Appendice “Template per Claude Code”."
+        }
+      ]
+    },
+    {
+      "title": "Errori da evitare",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "L’adozione di sistemi di intelligenza artificiale generativa nei processi aziendali richiede l’implementazione di adeguati presidi di governance, finalizzati a garantire l’affidabilità delle informazioni prodotte, la tracciabilità delle fonti e il controllo delle azioni eseguite dagli strumenti."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Regole di utilizzo",
+          "text": "Considerata la natura probabilistica di sistemi quali `ChatGPT` e `Claude Code`, l’assenza di vincoli espliciti nei prompt può determinare la generazione di contenuti non verificabili, interpretazioni non corrette o comportamenti non coerenti con il contesto operativo aziendale. È, pertanto, obbligatoria l’adozione di regole di utilizzo formalizzate e verificabili."
+        }
+      ]
+    },
+    {
+      "title": "Allucinazioni e grounding delle fonti",
+      "intro": "La corretta formulazione dei prompt costituisce il presupposto fondamentale per la sicurezza e la conformità delle informazioni aziendali: **un prompt scritto male non è un dettaglio operativo, è una causa diretta di output non controllati**.",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Questo errore sistematico determina l'insorgere di \"**allucinazioni**\", fenomeni in cui il modello genera risposte apparentemente coerenti e plausibili, ma prive di riscontro oggettivo o non verificabili rispetto al contesto di riferimento."
+        },
+        {
+          "type": "paragraph",
+          "text": "Al fine di mitigare questo rischio, si rende indispensabile vincolare i sistemi in modo esclusivo alle sole fonti fornite o autorizzate, applicando regole di **grounding** (ancoraggio informativo) universali."
+        },
+        {
+          "type": "paragraph",
+          "text": "A tal fine, si presuppone che l'interfaccia operi all'interno di un perimetro ermetico, all'interno del quale non è ammessa alcuna speculazione o interpolazione derivante dalla conoscenza generica pregressa dei modelli. Qualora le basi informative o i contesti di partenza presentino lacune, ambiguità o incoerenze, lo strumento ha l'obbligo di arrestare l'elaborazione ed evidenziare esplicitamente l'assenza del dato, anziché procedere per via ipotetica."
+        },
+        {
+          "type": "cards",
+          "title": "Istruzioni di sbarramento",
+          "items": [
+            {
+              "title": "Gestione dei task di natura documentale e analitica",
+              "text": "Qualora il materiale di partenza a disposizione per l'analisi sia incompleto o parziale, si deve impedire al sistema di completare le risposte ricorrendo alla propria conoscenza generale del web o a supposizioni esterne. L'operatore ha l'obbligo di circoscrivere l'analisi imponendo un comportamento conservativo: **se mancano informazioni, non inventare: indica le assunzioni o fai domande di chiarimento**. A livello operativo, questa restrizione deve essere forzata nel prompt inserendo la direttiva: “*Se mancano dati, non inventare. Inserisci ‘Da verificare’. *”"
+            },
+            {
+              "title": "Gestione dei task di natura logica e tecnica",
+              "text": "Per evitare la generazione di output non conformi o strutturalmente incoerenti, si deve escludere l'applicazione di modifiche o elaborazioni dirette qualora si riscontrino ambiguità logiche nel contesto di partenza. A tal fine, si deve imporre come vincolo assoluto la direttiva di sbarramento da inserire nel prompt: “**Se trovi ambiguità, segnala ‘Da verificare’ invece di fare assunzioni.**” Il sistema non deve procedere autonomamente nell'elaborazione se non dopo aver formulato e sottoposto a convalida un piano di lavoro preliminare e dettagliato; richieste formulate in modo generico o ambiguo generano infatti elaborazioni estese che rischiano di compromettere l'integrità del risultato finale. Si rende inoltre necessario **vietare refactoring** **globali non richiesti** e imporre la regola di **non fare refactoring non richiesti** per preservare l'architettura logica preesistente."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Prevenzione della deriva del contesto",
+          "text": "Nelle sessioni di lavoro prolungate, si rende necessario monitorare con attenzione il fenomeno denominato \"**deriva del contesto**\". Questo problema si manifesta quando il volume di messaggi e dati scambiati all'interno della stessa conversazione supera la capacità ottimale di attenzione del modello linguistico. Con il progredire della chat, l'accumulo di informazioni obsolete satura la memoria temporanea, provocando una graduale perdita di coerenza e un decadimento della precisione logica o tecnica delle risposte dello strumento."
+        },
+        {
+          "type": "steps",
+          "title": "Procedure di reset",
+          "items": [
+            {
+              "title": "Avvio nuova conversazione",
+              "text": "Quando si passa a un'attività differente da quella appena conclusa, si deve avviare una nuova conversazione (nel caso di interfacce web, come `ChatGPT Web Interface`)."
+            },
+            {
+              "title": "Azzeramento sessione interattiva",
+              "text": "Nel caso di strumenti agentici da terminale come `Claude Code`, si ha l'obbligo di usare `/clear` tra task non collegati e contesto persistente ben mantenuto."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Tracciabilità e validazione dei riferimenti",
+      "intro": "La difendibilità di qualsiasi attività di fronte a clienti o auditor esterni dipende in modo diretto dal livello di verificabilità delle informazioni e dell'elaborato generato.",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "quote",
+          "text": "In sede di controllo, si deve escludere l'adozione di output privi di un nesso documentato con le fonti di origine. Per questo motivo, l'organizzazione impone il rispetto sistematico del principio della **tracciabilità**: **richiedere fonti, riferimenti ai file, motivazioni sintetiche e modifiche evidenziate**."
+        },
+        {
+          "type": "list",
+          "title": "Vincoli formali per la tracciabilità",
+          "items": [
+            "**Esempio di tracciabilità in ambito documentale e analitico**: in sede di audit, di conformità SGI o di stesura di relazioni tecniche, l'accettazione di affermazioni normative o tecniche senza riferimenti rende l'**output non difendibile**. Si impone l'obbligo di vincolare lo strumento a non formulare asseverazioni prive di fondamento formale, inserendo nel prompt la richiesta: “**Cita solo fonti ufficiali e indica riferimento per ogni affermazione normativa.**” Si deve ricordare che, per attività di conformità, audit o documenti SGI, è obbligatorio chiedere riferimenti puntuali alle fonti utilizzate. Un output senza riferimenti può essere utile come bozza, ma non deve essere trattato come evidenza.",
+            "**Esempio di tracciabilità in ambito logico e di sviluppo**: nello sviluppo o nella modifica di flussi complessi, l'agente non deve limitarsi ad applicare le variazioni, ma deve essere istruito a documentare in modo analitico l'esito del proprio operato. È fatto obbligo allo sviluppatore di richiedere **riepilogo finale con file, motivazioni e test** eseguiti prima di considerare concluso il task. Questa misura garantisce la piena comprensibilità delle modifiche e l'auditabilità dell'elaborato, riducendo i tempi di revisione ed escludendo l'inserimento di regressioni silenti all'interno della codebase."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Human oversight",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "La responsabilità professionale e legale di ogni attività risiede unicamente in capo alle persone che ne convalidano il risultato finale. Poiché i sistemi generativi operano secondo logiche probabilistiche, si rende indispensabile l'adozione del paradigma “**Human-in-the-Loop**”."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Policy aziendale",
+          "text": "Tale principio esclude qualsiasi delega incondizionata del processo decisionale o autorizzativo all'Intelligenza Artificiale, operazione che costituirebbe una violazione delle procedure interne di sicurezza. Si stabilisce pertanto come policy aziendale inderogabile che **nessun output AI deve essere usato verso clienti, produzione o audit senza revisione umana**."
+        },
+        {
+          "type": "accordion",
+          "title": "Protocolli di controllo",
+          "items": [
+            {
+              "title": "Validazione in ambito documentale e analitico",
+              "text": "Nella stesura o revisione di testi amministrativi, relazioni o documenti di conformità, l'operatore ha l'obbligo di effettuare una revisione critica dell'elaborato basata su: Accuratezza (correttezza rispetto a fonti), Completezza (assenza di lacune), Coerenza (stile aziendale), Difendibilità (giustificabilità in audit) e Tracciabilità (presenza di fonti)."
+            },
+            {
+              "title": "Validazione in ambito logico e tecnico",
+              "text": "Nella generazione o modifica di flussi logici, calcoli o script, il paradigma Human-in-the-Loop impone di verificare: Sicurezza (assenza di dati riservati o credenziali fisse) e Azionabilità (concretezza e verificabilità del flusso). Si rende inoltre obbligatoria l'esecuzione manuale dei test di verifica o dei controlli locali."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Protocollo di sicurezza per interazione operativa",
+          "text": "Qualora si utilizzino funzionalità in grado di interagire direttamente con l'ambiente operativo, si deve **non consentire comandi distruttivi senza revisione** e si ha l'obbligo di applicare il protocollo di sicurezza standard: usare `sandbox`, `permessi limitati`, `branch dedicate` per isolare l'azione dell'agente."
+        }
+      ]
+    },
+    {
+      "title": "APPENDICE",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "I template riportati di seguito sono modelli riutilizzabili per formulare prompt operativi in modo coerente, verificabile e conforme all’uso aziendale degli strumenti AI."
+        },
+        {
+          "type": "list",
+          "title": "Per facilitare la consultazione, i template sono distinti in due gruppi:",
+          "items": [
+            "template per **Claude Code**, destinati principalmente ad attività di sviluppo software, analisi codice, refactoring, debugging, test e review tecnica;",
+            "template per **ChatGPT**, destinati principalmente ad attività documentali, analitiche, direzionali, di conformità e supporto organizzativo."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Template per Claude Code",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "I template di questa sezione devono essere utilizzati quando l’attività riguarda codice sorgente, repository, test, build, refactoring, debugging o documentazione tecnica derivata dal codice."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Regola generale",
+          "text": "nei task non banali Claude Code non deve essere mandato subito in modifica. Il prompt deve chiedere prima analisi e piano, poi autorizzare l’implementazione solo dopo revisione del piano."
+        },
+        {
+          "type": "table",
+          "title": "Template 1: sviluppo controllato di una funzionalità",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Implementare una nuova funzionalità o estendere una funzionalità esistente."
+            ],
+            [
+              "Struttura del prompt",
+              "“Agisci come senior developer [stack]. Obiettivo: implementare [funzionalità] nel modulo [modulo/repository]. Prima analizza i file rilevanti e proponi un piano. Non modificare file finché il piano non è approvato. Vincoli: [vincoli tecnici e aziendali]. Dopo approvazione, modifica solo i file necessari, esegui [test/comando] e restituisci riepilogo finale.”"
+            ],
+            [
+              "Campi da compilare",
+              "Stack, funzionalità, modulo, file coinvolti, vincoli, test, criteri di accettazione."
+            ],
+            [
+              "Esempio sintetico",
+              "“Implementa il filtro SURGERY_YEAR nel report Mongo. Non modificare DTO pubblici. Non introdurre nuove dipendenze. Aggiungi test mirati.”"
+            ],
+            [
+              "Note operative",
+              "Usare branch dedicato. Chiedere sempre piano, file coinvolti e test da eseguire."
+            ],
+            [
+              "Errori da evitare",
+              "“Aggiungi questa feature” senza indicare perimetro, vincoli e criteri di verifica."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 2: analisi di codice esistente",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Comprendere flussi, classi, servizi, DAO, controller, endpoint o componenti legacy."
+            ],
+            [
+              "Struttura del prompt",
+              "“Analizza il flusso [funzionalità] partendo da [classe/metodo/endpoint]. Non modificare file. Restituisci: descrizione funzionale, componenti coinvolti, chiamate interne, query o servizi esterni, dati input/output, punti critici, domande aperte e suggerimenti di verifica.”"
+            ],
+            [
+              "Campi da compilare",
+              "Funzionalità, punto di ingresso, profondità dell’analisi, formato richiesto."
+            ],
+            [
+              "Esempio sintetico",
+              "“Analizza il metodo gestioneInvioCompletoBeneficiario e mappa servizi EJB, DAO, DTO, query e output.”"
+            ],
+            [
+              "Note operative",
+              "Usare questo template prima di chiedere modifiche su codice non pienamente compreso."
+            ],
+            [
+              "Errori da evitare",
+              "Chiedere analisi e modifica nello stesso prompt senza una fase intermedia di pianificazione."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 3: refactoring controllato",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Migliorare leggibilità, struttura o duplicazioni senza cambiare comportamento funzionale."
+            ],
+            [
+              "Struttura del prompt",
+              "“Esegui un refactoring controllato di [file/classe/modulo]. Obiettivo: [obiettivo]. Vincoli: non cambiare comportamento, firme pubbliche, API, contratti, schema dati o dipendenze. Prima proponi piano, rischi e file coinvolti. Dopo approvazione applica modifiche minime e verifica con [test/comando].”"
+            ],
+            [
+              "Campi da compilare",
+              "File, obiettivo, vincoli, test, limiti di modifica."
+            ],
+            [
+              "Esempio sintetico",
+              "“Refactoring di SurgeryFilterCriteriaBuilder per ridurre duplicazioni senza cambiare l’output dei Criteria Mongo.”"
+            ],
+            [
+              "Note operative",
+              "Il diff deve restare piccolo e revisionabile."
+            ],
+            [
+              "Errori da evitare",
+              "“Pulisci il codice” o “migliora tutto” senza vincoli espliciti."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 4: generazione di test",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Creare unit test, integration test o regression test."
+            ],
+            [
+              "Struttura del prompt",
+              "“Aggiungi test per [classe/funzione/endpoint]. Prima analizza i test esistenti e replica stile, framework e naming convention. Copri: caso positivo, caso negativo, boundary case, errore atteso e regressione [ID/ticket]. Non modificare codice produttivo salvo necessità motivata. Esegui [comando test] e mostra risultato.”"
+            ],
+            [
+              "Campi da compilare",
+              "Oggetto del test, casi da coprire, framework, comando test, comportamento atteso."
+            ],
+            [
+              "Esempio sintetico",
+              "“Aggiungi test JUnit per buildCriteria, coprendo filtri attivi, template inattivo e valori null.”"
+            ],
+            [
+              "Note operative",
+              "I test devono verificare comportamento, non solo assenza di eccezioni."
+            ],
+            [
+              "Errori da evitare",
+              "Generare test che si limitano a coprire righe senza validare il risultato."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 5: debugging",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Correggere errori di build, runtime, test falliti o comportamenti anomali."
+            ],
+            [
+              "Struttura del prompt",
+              "“Errore: [stack trace/log completo]. Comando eseguito: [comando]. Passi per riprodurre: [passi]. Comportamento atteso: [atteso]. Ambiente: [ambiente]. Analizza la causa radice, indica file coinvolti e ipotesi. Non sopprimere l’errore. Proponi fix minimo e test di verifica.”"
+            ],
+            [
+              "Campi da compilare",
+              "Errore, comando, passi, atteso, ambiente, modifiche recenti."
+            ],
+            [
+              "Esempio sintetico",
+              "“Il test fallisce con NullPointerException in ReportService. Analizza causa radice e proponi una correzione minima.”"
+            ],
+            [
+              "Note operative",
+              "Allegare log completo, non solo frammenti o screenshot parziali."
+            ],
+            [
+              "Errori da evitare",
+              "“Non funziona, aggiusta” senza errore, contesto e comportamento atteso."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 6: review tecnica",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Revisionare codice prodotto da sviluppatori o da strumenti AI."
+            ],
+            [
+              "Struttura del prompt",
+              "“Esegui una review tecnica delle modifiche in [branch/diff/file]. Non modificare file. Valuta correttezza funzionale, regressioni, sicurezza, performance, gestione errori, leggibilità, test e coerenza architetturale. Restituisci una tabella con severità, file, problema, impatto e proposta di fix.”"
+            ],
+            [
+              "Campi da compilare",
+              "Branch, diff, file, criteri di review, scala di severità."
+            ],
+            [
+              "Esempio sintetico",
+              "“Review del diff relativo al filtro Mongo. Evidenzia regressioni, test mancanti e incoerenze con il pattern esistente.”"
+            ],
+            [
+              "Note operative",
+              "Per review importanti usare preferibilmente una sessione separata da quella che ha prodotto il codice."
+            ],
+            [
+              "Errori da evitare",
+              "Chiedere “ti sembra ok?” senza criteri di valutazione."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 7: documentazione tecnica derivata dal codice",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Generare o aggiornare documentazione tecnica coerente con il codice reale."
+            ],
+            [
+              "Struttura del prompt",
+              "“Aggiorna la documentazione tecnica di [modulo/API/funzionalità] sulla base del codice esistente. Non inventare funzionalità. Indica endpoint, parametri, DTO, vincoli, errori gestiti, comportamento effettivo e punti da verificare. Se trovi ambiguità, segnala ‘Da verificare’.”"
+            ],
+            [
+              "Campi da compilare",
+              "Modulo, API, file, destinatario, formato documentale."
+            ],
+            [
+              "Esempio sintetico",
+              "“Documenta il flusso /report/execute indicando request, filtri supportati, validazioni e criteri Mongo generati.”"
+            ],
+            [
+              "Note operative",
+              "Utile dopo analisi o refactoring."
+            ],
+            [
+              "Errori da evitare",
+              "Far generare documentazione senza vincolare Claude Code al codice effettivo."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 8: sintesi finale delle modifiche",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Chiudere un’attività di sviluppo svolta con Claude Code."
+            ],
+            [
+              "Struttura del prompt",
+              "“Produci una sintesi finale dell’intervento. Restituisci: obiettivo iniziale, file modificati, modifica effettuata per ciascun file, test eseguiti, esito dei test, rischi residui, punti da verificare manualmente e suggerimento di messaggio commit.”"
+            ],
+            [
+              "Campi da compilare",
+              "Obiettivo, branch, test, formato commit."
+            ],
+            [
+              "Esempio sintetico",
+              "“Riepiloga le modifiche al filtro SURGERY_YEAR e proponi un commit message conforme allo stile del progetto.”"
+            ],
+            [
+              "Note operative",
+              "Deve essere eseguito prima di commit o pull request."
+            ],
+            [
+              "Errori da evitare",
+              "Chiudere la sessione senza sapere esattamente cosa è stato modificato."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Template per ChatGPT",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "I template di questa sezione devono essere utilizzati quando l’attività riguarda documenti aziendali, analisi, sintesi, conformità, governance, materiali direzionali, checklist, piani di azione o confronto tra alternative."
+        },
+        {
+          "type": "callout",
+          "tone": "info",
+          "title": "Regola generale",
+          "text": "ChatGPT deve essere guidato indicando obiettivo, contesto, fonti, destinatario, formato e livello di verificabilità richiesto."
+        },
+        {
+          "type": "table",
+          "title": "Template 1: redazione documentale aziendale",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Scrivere sezioni di procedure, policy, manuali, verbali, linee guida o documenti SGI."
+            ],
+            [
+              "Struttura del prompt",
+              "“Agisci come redattore senior di documentazione aziendale. Redigi [sezione/documento] per [destinatario]. Contesto: [contesto]. Vincoli: tono formale, operativo, coerente con SGI MICE, nessuna affermazione non supportata. Output: testo pronto da inserire, più tabella con assunzioni e punti da verificare.”"
+            ],
+            [
+              "Campi da compilare",
+              "Documento, sezione, destinatario, contesto, vincoli, fonti."
+            ],
+            [
+              "Esempio sintetico",
+              "“Redigi una sezione sulle regole di revisione umana degli output AI per le linee guida aziendali.”"
+            ],
+            [
+              "Note operative",
+              "Separare sempre testo inseribile e note redazionali."
+            ],
+            [
+              "Errori da evitare",
+              "Lasciare libero lo stile senza indicare destinatario e documento di destinazione."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 2: analisi di documenti di conformità",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Analizzare procedure, policy, audit report, piani di azione o documenti normativi."
+            ],
+            [
+              "Struttura del prompt",
+              "“Analizza il documento [nome] rispetto a [standard/requisito]. Usa solo il materiale fornito e le fonti ufficiali indicate. Restituisci: evidenze, gap, impatti, azioni consigliate, priorità e riferimenti puntuali. Distingui evidenza documentale da inferenza.”"
+            ],
+            [
+              "Campi da compilare",
+              "Documento, standard, requisiti, fonti ammesse, formato output."
+            ],
+            [
+              "Esempio sintetico",
+              "“Analizza la procedura fornitori rispetto alle osservazioni audit ISO/IEC 42001.”"
+            ],
+            [
+              "Note operative",
+              "Obbligatorio chiedere riferimenti puntuali quando l’output è usato per audit o conformità."
+            ],
+            [
+              "Errori da evitare",
+              "Chiedere “è conforme?” senza specificare requisito, criterio e fonte."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 3: gap analysis",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Confrontare stato attuale e requisito atteso."
+            ],
+            [
+              "Struttura del prompt",
+              "“Esegui una gap analysis tra [documento/stato attuale] e [requisito/obiettivo]. Restituisci tabella con: requisito, evidenza presente, gap, rischio, azione correttiva, owner suggerito, priorità ed evidenza attesa.”"
+            ],
+            [
+              "Campi da compilare",
+              "Stato attuale, requisito target, scala priorità, fonte, output richiesto."
+            ],
+            [
+              "Esempio sintetico",
+              "“Esegui gap analysis tra il Registro Rischi AI e le richieste dell’auditor nello stage 1 ISO/IEC 42001.”"
+            ],
+            [
+              "Note operative",
+              "Distinguere gap documentale, gap operativo e gap di evidenza."
+            ],
+            [
+              "Errori da evitare",
+              "Mescolare osservazioni, raccomandazioni e azioni senza una tabella strutturata."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 4: revisione di procedure o policy",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Migliorare testi aziendali esistenti senza alterarne il significato."
+            ],
+            [
+              "Struttura del prompt",
+              "“Revisiona il testo seguente mantenendo invariato il significato. Migliora chiarezza, coerenza terminologica, verificabilità e tono formale. Non aggiungere obblighi nuovi. Restituisci: testo revisionato, tabella delle modifiche principali e punti da verificare.”"
+            ],
+            [
+              "Campi da compilare",
+              "Testo, obiettivo revisione, stile, vincoli, destinatario."
+            ],
+            [
+              "Esempio sintetico",
+              "“Revisiona il paragrafo sul miglioramento continuo dei sistemi AI rendendolo più auditabile.”"
+            ],
+            [
+              "Note operative",
+              "Utile per procedure, policy, manuali e documenti SGI."
+            ],
+            [
+              "Errori da evitare",
+              "“Riscrivi meglio” senza indicare cosa non deve cambiare."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 5: creazione di checklist",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Creare checklist operative, di controllo, audit o validazione interna."
+            ],
+            [
+              "Struttura del prompt",
+              "“Crea una checklist per [processo]. Ogni punto deve essere verificabile. Inserisci: attività, responsabile, frequenza, evidenza attesa, esito e note. Usa linguaggio operativo e non generico.”"
+            ],
+            [
+              "Campi da compilare",
+              "Processo, destinatario, frequenza, evidenze richieste, livello di dettaglio."
+            ],
+            [
+              "Esempio sintetico",
+              "“Crea una checklist per la revisione umana di output AI prima dell’invio al cliente.”"
+            ],
+            [
+              "Note operative",
+              "Ogni voce deve produrre una evidenza controllabile."
+            ],
+            [
+              "Errori da evitare",
+              "Checklist con voci astratte come “verificare qualità” o “controllare documento”."
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Template 6: sintesi direzionale",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Preparare sintesi per Direzione, cliente, project manager o comitato interno."
+            ],
+            [
+              "Struttura del prompt",
+              "“Produci una sintesi direzionale di [materiale] per [destinatario]. Massimo [lunghezza]. Evidenzia: decisioni richieste, rischi, benefici, scadenze, impatti economici/organizzativi e azioni successive. Evita dettagli tecnici non necessari.”"
+            ],
+            [
+              "Campi da compilare",
+              "Materiale, destinatario, lunghezza, focus, decisioni attese."
+            ],
+            [
+              "Esempio sintetico",
+              "“Produci una sintesi direzionale del piano di governance AI cloud, massimo 12 righe.”"
+            ],
+            [
+              "Note operative",
+              "Scrivere per supportare una decisione, non per riassumere tutto."
+            ],
+            [
+              "Errori da evitare",
+              "Produrre una sintesi lunga quanto il documento originale."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Template 7: confronto tra alternative tecniche o organizzative",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Valutare soluzioni, strumenti, fornitori, architetture o modelli operativi."
+            ],
+            [
+              "Struttura del prompt",
+              "“Confronta [alternativa A], [alternativa B], [alternativa C] rispetto a questi criteri: [criteri]. Restituisci tabella con pro, contro, rischi, prerequisiti, costi/complessità, vincoli e raccomandazione motivata. Dichiara assunzioni e informazioni mancanti.”"
+            ],
+            [
+              "Campi da compilare",
+              "Alternative, criteri, contesto, vincoli, destinatario."
+            ],
+            [
+              "Esempio sintetico",
+              "“Confronta AWS Bedrock e Azure AI Foundry per data residency, governance dei costi e integrazione enterprise.”"
+            ],
+            [
+              "Note operative",
+              "Separare fatti, assunzioni e raccomandazioni."
+            ],
+            [
+              "Errori da evitare",
+              "Chiedere “qual è meglio?” senza criteri di confronto."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Template 8: produzione di output tabellari",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Trasformare testo, requisiti, rischi, controlli o evidenze in tabella."
+            ],
+            [
+              "Struttura del prompt",
+              "“Trasforma il contenuto seguente in una tabella con colonne: [colonne]. Mantieni il significato. Non inventare dati mancanti: usa [Da completare]. Ordina per [criterio]. Evidenzia incoerenze o duplicati a parte.”"
+            ],
+            [
+              "Campi da compilare",
+              "Testo input, colonne, ordinamento, gestione campi mancanti."
+            ],
+            [
+              "Esempio sintetico",
+              "“Trasforma i rilievi audit in tabella con: requisito, osservazione, impatto, azione, owner, priorità.”"
+            ],
+            [
+              "Note operative",
+              "Utile per Excel, piani di azione, audit, registri e checklist."
+            ],
+            [
+              "Errori da evitare",
+              "Tabelle senza regole per campi mancanti o con colonne non definite."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Template 9: richiesta di fonti, citazioni e tracciabilità",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Lavorare su normative, documenti ufficiali, fonti tecniche, compliance o audit."
+            ],
+            [
+              "Struttura del prompt",
+              "“Rispondi usando solo fonti ufficiali o documenti allegati. Per ogni affermazione rilevante indica fonte o riferimento puntuale. Se una fonte non è disponibile, scrivi ‘fonte non verificata’. Distingui: fatti, interpretazioni e raccomandazioni. Alla fine inserisci elenco fonti usate.”"
+            ],
+            [
+              "Campi da compilare",
+              "Tema, fonti ammesse, livello citazioni, formato output."
+            ],
+            [
+              "Esempio sintetico",
+              "“Verifica le indicazioni su ChatGPT Business usando solo fonti OpenAI ufficiali.”"
+            ],
+            [
+              "Note operative",
+              "Obbligatorio per contenuti normativi, sicurezza, compliance e audit."
+            ],
+            [
+              "Errori da evitare",
+              "Accettare riferimenti generici, blog non autorevoli o affermazioni non verificabili."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Template 10: piano di azione",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Campo",
+            "Contenuto"
+          ],
+          "rows": [
+            [
+              "Caso d’uso",
+              "Definire azioni correttive, attività progettuali, remediation plan o piano operativo."
+            ],
+            [
+              "Struttura del prompt",
+              "“Crea un piano di azione per [obiettivo/problema]. Restituisci tabella con: azione, descrizione, owner suggerito, priorità, scadenza indicativa, evidenza attesa, dipendenze e rischio residuo. Mantieni le azioni concrete e verificabili.”"
+            ],
+            [
+              "Campi da compilare",
+              "Obiettivo, problema, vincoli, owner, priorità, evidenze richieste."
+            ],
+            [
+              "Esempio sintetico",
+              "“Crea un piano di trattamento per una non conformità ISO/IEC 42001 relativa alla gestione dei rischi AI.”"
+            ],
+            [
+              "Note operative",
+              "Ogni azione deve essere assegnabile e verificabile."
+            ],
+            [
+              "Errori da evitare",
+              "Piani generici con azioni come “migliorare il processo” senza evidenza attesa."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Regole di scelta rapida",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Per evitare ambiguità, l’utente deve scegliere il template in base all’oggetto dell’attività."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Se l’attività riguarda",
+            "Usare"
+          ],
+          "rows": [
+            [
+              "Codice sorgente, repository, test, build, debug, refactoring",
+              "Template Claude Code"
+            ],
+            [
+              "Documenti aziendali, procedure, policy, verbali, sintesi, analisi, compliance",
+              "Template ChatGPT"
+            ],
+            [
+              "Documentazione tecnica generata dal codice",
+              "Preferire Claude Code se serve leggere il repository; usare ChatGPT solo per revisione redazionale successiva"
+            ],
+            [
+              "Analisi normativa o di conformità",
+              "Preferire ChatGPT con fonti ufficiali e citazioni"
+            ],
+            [
+              "Piano tecnico di modifica software",
+              "Claude Code per piano tecnico, ChatGPT solo per sintesi direzionale o documento di supporto"
+            ],
+            [
+              "Output verso cliente o auditor",
+              "ChatGPT per redazione, con revisione umana obbligatoria e fonti tracciate"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Errori comuni nei prompt",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "La tabella seguente riassume gli errori più frequenti e le mitigazioni da applicare. Gli errori non sono solo formali: producono costi, rilavorazioni, output non difendibili e rischi di sicurezza."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Errore",
+            "Descrizione",
+            "Impatto operativo",
+            "Mitigazione",
+            "Prompt migliorato"
+          ],
+          "rows": [
+            [
+              "Prompt troppo generico",
+              "Richieste come “sistemalo”, “miglioralo”, “analizza tutto”.",
+              "Output non focalizzato, difficile da usare.",
+              "Specificare obiettivo, contesto e formato.",
+              "“Revisiona questo paragrafo per renderlo formale, sintetico e auditabile. Non cambiare il significato.”"
+            ],
+            [
+              "Assenza di contesto",
+              "Mancano progetto, documento, destinatario o vincoli.",
+              "Risposta basata su assunzioni arbitrarie.",
+              "Fornire contesto minimo necessario.",
+              "“Il testo va inserito in una procedura SGI destinata ad audit ISO/IEC 42001.”"
+            ],
+            [
+              "Obiettivi non dichiarati",
+              "Lo strumento non sa se deve sintetizzare, correggere, confrontare o produrre output finale.",
+              "Output fuori bersaglio.",
+              "Dichiarare il risultato atteso.",
+              "“Obiettivo: produrre una checklist operativa per il team qualità.”"
+            ],
+            [
+              "Vincoli mancanti",
+              "Non sono indicati limiti tecnici, normativi, stilistici o di sicurezza.",
+              "Output non applicabile o rischioso.",
+              "Inserire vincoli espliciti.",
+              "“Non introdurre nuove dipendenze. Non modificare API pubbliche.”"
+            ],
+            [
+              "Formato di output non specificato",
+              "Lo strumento sceglie struttura e livello di dettaglio.",
+              "Rilavorazione manuale.",
+              "Chiedere formato preciso.",
+              "“Restituisci una tabella con colonne: requisito, evidenza, gap, azione.”"
+            ],
+            [
+              "Troppe attività in un unico prompt",
+              "Si chiede analisi, modifica, test, documentazione e review insieme.",
+              "Perdita di controllo e bassa qualità.",
+              "Spezzare in fasi.",
+              "“Prima analizza e proponi un piano. Attendi approvazione prima di modificare.”"
+            ],
+            [
+              "Pubblico destinatario non indicato",
+              "Non è chiaro se l’output è per sviluppatori, cliente, direzione o auditor.",
+              "Tono e dettaglio sbagliati.",
+              "Specificare destinatario.",
+              "“Scrivi per la Direzione, massimo 10 righe, senza dettagli implementativi.”"
+            ],
+            [
+              "Uso di dati non necessari o sensibili",
+              "Si inseriscono credenziali, dati personali o dati cliente non pertinenti.",
+              "Rischio privacy, sicurezza e compliance.",
+              "Minimizzazione dei dati e anonimizzazione.",
+              "“Analizza questo caso usando dati anonimizzati. Non includere nominativi.”"
+            ],
+            [
+              "Fiducia cieca nell’output",
+              "L’output viene usato senza revisione.",
+              "Errori verso clienti, produzione o audit.",
+              "Revisione umana obbligatoria.",
+              "“Alla fine indica punti da verificare manualmente.”"
+            ],
+            [
+              "Mancata verifica delle fonti",
+              "Si accettano affermazioni normative o tecniche senza riferimenti.",
+              "Output non difendibile.",
+              "Chiedere fonti puntuali.",
+              "“Cita solo fonti ufficiali e indica riferimento per ogni affermazione normativa.”"
+            ],
+            [
+              "Mancata revisione umana",
+              "L’utente delega decisione o approvazione allo strumento.",
+              "Responsabilità non presidiata.",
+              "Mantenere ownership umana.",
+              "“Prepara una bozza da sottoporre a revisione del responsabile.”"
+            ],
+            [
+              "Richieste ambigue a strumenti agentici",
+              "Claude Code può modificare file senza perimetro chiaro.",
+              "Diff incontrollato o regressioni.",
+              "Limitare autonomia e file modificabili.",
+              "“Non modificare nulla. Prima proponi piano e file coinvolti.”"
+            ],
+            [
+              "Assenza di criteri di accettazione",
+              "Non è chiaro quando il task è completato.",
+              "Output apparentemente corretto ma non verificato.",
+              "Indicare test, output atteso, checklist.",
+              "“Il task è completo solo se mvn test passa e il filtro copre i tre casi indicati.”"
+            ],
+            [
+              "Mancato tracciamento modifiche",
+              "Non viene chiesto cosa è stato cambiato e perché.",
+              "Review difficile, audit debole.",
+              "Richiedere riepilogo finale.",
+              "“Elenca file modificati, motivo della modifica e test eseguiti.”"
+            ],
+            [
+              "Prompt con istruzioni conflittuali",
+              "Il prompt chiede sintesi breve ma anche dettaglio completo, oppure vieta e chiede modifiche.",
+              "Output incoerente.",
+              "Rimuovere conflitti e dare priorità.",
+              "“Priorità: correttezza e tracciabilità. Sintesi massima 15 righe.”"
+            ],
+            [
+              "Mancata gestione delle assunzioni",
+              "Lo strumento riempie i vuoti inventando.",
+              "Decisioni basate su informazioni false.",
+              "Chiedere esplicitamente di dichiarare assunzioni.",
+              "“Se mancano dati, non inventare. Inserisci ‘Da verificare’.”"
+            ],
+            [
+              "Prompt non riutilizzabile",
+              "Ogni utente scrive richieste diverse per lo stesso task.",
+              "Bassa standardizzazione.",
+              "Usare template approvati.",
+              "“Usa il template aziendale di gap analysis con le colonne previste.”"
+            ]
+          ]
+        },
+        {
+          "type": "quote",
+          "text": "Regola conclusiva: la qualità del prompt è parte della qualità del processo. Un prompt scritto male non è un dettaglio operativo, è una causa diretta di output non controllati."
+        }
+      ]
+    },
+    {
+      "title": "Configurazione Claude Code",
+      "chapter": "APPENDICE",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "[Rif: MICE_Configurazione_Claude_Code]"
+        },
+        {
+          "type": "list",
+          "title": "Riferimenti",
+          "items": [
+            "https://help.openai.com/en/articles/10169521-projects-in-chatgpt",
+            "https://help.openai.com/en/articles/8555545-file-uploads-faq",
+            "https://help.openai.com/en/articles/8437071-data-analysis-with-chatgpt",
+            "https://help.openai.com/en/articles/8798634-managing-data-sharing-and-privacy-in-chatgpt-business",
+            "https://help.openai.com/en/articles/7730893-data-controls-faq",
+            "Claude Code Best Practices - Write an Effective CLAUDE.md: https://code.claude.com/docs/en/best-practices?utm_source=chatgpt.com#write-an-effective-claude-md",
+            "Claude Code Memory Documentation: https://code.claude.com/docs/en/memory?utm_source=chatgpt.com",
+            "Claude Code Documentation - Organize rules with .claude/rules/: https://code.claude.com/docs/en/memory#organize-rules-with-claude/rules/",
+            "Best Practices for Claude Code: https://code.claude.com/docs/it/best-practices"
+          ]
+        }
+      ]
+    }
+  ]
+}

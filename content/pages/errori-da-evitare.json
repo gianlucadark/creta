@@ -1,0 +1,138 @@
+{
+  "version": 2,
+  "page": {
+    "title": "Errori da evitare",
+    "eyebrow": "Linee Guida per un utilizzo efficace, controllato e sostenibile degli strumenti di Intelligenza Artificiale generativa nell’Organizzazione",
+    "summary": "L’adozione di sistemi di intelligenza artificiale generativa nei processi aziendali richiede l’implementazione di adeguati presidi di governance, finalizzati a garantire l’affidabilità delle informazioni prodotte, la tracciabilità delle fonti e il controllo delle azioni eseguite dagli strumenti.",
+    "source": {
+      "slug": "mice-linee-guida-ai",
+      "title": "Linee Guida per un utilizzo efficace, controllato e sostenibile degli strumenti di Intelligenza Artificiale generativa nell’Organizzazione"
+    }
+  },
+  "sections": [
+    {
+      "title": "Errori da evitare",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "L’adozione di sistemi di intelligenza artificiale generativa nei processi aziendali richiede l’implementazione di adeguati presidi di governance, finalizzati a garantire l’affidabilità delle informazioni prodotte, la tracciabilità delle fonti e il controllo delle azioni eseguite dagli strumenti."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Regole di utilizzo",
+          "text": "Considerata la natura probabilistica di sistemi quali `ChatGPT` e `Claude Code`, l’assenza di vincoli espliciti nei prompt può determinare la generazione di contenuti non verificabili, interpretazioni non corrette o comportamenti non coerenti con il contesto operativo aziendale. È, pertanto, obbligatoria l’adozione di regole di utilizzo formalizzate e verificabili."
+        }
+      ]
+    },
+    {
+      "title": "Allucinazioni e grounding delle fonti",
+      "intro": "La corretta formulazione dei prompt costituisce il presupposto fondamentale per la sicurezza e la conformità delle informazioni aziendali: **un prompt scritto male non è un dettaglio operativo, è una causa diretta di output non controllati**.",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Questo errore sistematico determina l'insorgere di \"**allucinazioni**\", fenomeni in cui il modello genera risposte apparentemente coerenti e plausibili, ma prive di riscontro oggettivo o non verificabili rispetto al contesto di riferimento."
+        },
+        {
+          "type": "paragraph",
+          "text": "Al fine di mitigare questo rischio, si rende indispensabile vincolare i sistemi in modo esclusivo alle sole fonti fornite o autorizzate, applicando regole di **grounding** (ancoraggio informativo) universali."
+        },
+        {
+          "type": "paragraph",
+          "text": "A tal fine, si presuppone che l'interfaccia operi all'interno di un perimetro ermetico, all'interno del quale non è ammessa alcuna speculazione o interpolazione derivante dalla conoscenza generica pregressa dei modelli. Qualora le basi informative o i contesti di partenza presentino lacune, ambiguità o incoerenze, lo strumento ha l'obbligo di arrestare l'elaborazione ed evidenziare esplicitamente l'assenza del dato, anziché procedere per via ipotetica."
+        },
+        {
+          "type": "cards",
+          "title": "Istruzioni di sbarramento",
+          "items": [
+            {
+              "title": "Gestione dei task di natura documentale e analitica",
+              "text": "Qualora il materiale di partenza a disposizione per l'analisi sia incompleto o parziale, si deve impedire al sistema di completare le risposte ricorrendo alla propria conoscenza generale del web o a supposizioni esterne. L'operatore ha l'obbligo di circoscrivere l'analisi imponendo un comportamento conservativo: **se mancano informazioni, non inventare: indica le assunzioni o fai domande di chiarimento**. A livello operativo, questa restrizione deve essere forzata nel prompt inserendo la direttiva: “*Se mancano dati, non inventare. Inserisci ‘Da verificare’. *”"
+            },
+            {
+              "title": "Gestione dei task di natura logica e tecnica",
+              "text": "Per evitare la generazione di output non conformi o strutturalmente incoerenti, si deve escludere l'applicazione di modifiche o elaborazioni dirette qualora si riscontrino ambiguità logiche nel contesto di partenza. A tal fine, si deve imporre come vincolo assoluto la direttiva di sbarramento da inserire nel prompt: “**Se trovi ambiguità, segnala ‘Da verificare’ invece di fare assunzioni.**” Il sistema non deve procedere autonomamente nell'elaborazione se non dopo aver formulato e sottoposto a convalida un piano di lavoro preliminare e dettagliato; richieste formulate in modo generico o ambiguo generano infatti elaborazioni estese che rischiano di compromettere l'integrità del risultato finale. Si rende inoltre necessario **vietare refactoring** **globali non richiesti** e imporre la regola di **non fare refactoring non richiesti** per preservare l'architettura logica preesistente."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Prevenzione della deriva del contesto",
+          "text": "Nelle sessioni di lavoro prolungate, si rende necessario monitorare con attenzione il fenomeno denominato \"**deriva del contesto**\". Questo problema si manifesta quando il volume di messaggi e dati scambiati all'interno della stessa conversazione supera la capacità ottimale di attenzione del modello linguistico. Con il progredire della chat, l'accumulo di informazioni obsolete satura la memoria temporanea, provocando una graduale perdita di coerenza e un decadimento della precisione logica o tecnica delle risposte dello strumento."
+        },
+        {
+          "type": "steps",
+          "title": "Procedure di reset",
+          "items": [
+            {
+              "title": "Avvio nuova conversazione",
+              "text": "Quando si passa a un'attività differente da quella appena conclusa, si deve avviare una nuova conversazione (nel caso di interfacce web, come `ChatGPT Web Interface`)."
+            },
+            {
+              "title": "Azzeramento sessione interattiva",
+              "text": "Nel caso di strumenti agentici da terminale come `Claude Code`, si ha l'obbligo di usare `/clear` tra task non collegati e contesto persistente ben mantenuto."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Tracciabilità e validazione dei riferimenti",
+      "intro": "La difendibilità di qualsiasi attività di fronte a clienti o auditor esterni dipende in modo diretto dal livello di verificabilità delle informazioni e dell'elaborato generato.",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "quote",
+          "text": "In sede di controllo, si deve escludere l'adozione di output privi di un nesso documentato con le fonti di origine. Per questo motivo, l'organizzazione impone il rispetto sistematico del principio della **tracciabilità**: **richiedere fonti, riferimenti ai file, motivazioni sintetiche e modifiche evidenziate**."
+        },
+        {
+          "type": "list",
+          "title": "Vincoli formali per la tracciabilità",
+          "items": [
+            "**Esempio di tracciabilità in ambito documentale e analitico**: in sede di audit, di conformità SGI o di stesura di relazioni tecniche, l'accettazione di affermazioni normative o tecniche senza riferimenti rende l'**output non difendibile**. Si impone l'obbligo di vincolare lo strumento a non formulare asseverazioni prive di fondamento formale, inserendo nel prompt la richiesta: “**Cita solo fonti ufficiali e indica riferimento per ogni affermazione normativa.**” Si deve ricordare che, per attività di conformità, audit o documenti SGI, è obbligatorio chiedere riferimenti puntuali alle fonti utilizzate. Un output senza riferimenti può essere utile come bozza, ma non deve essere trattato come evidenza.",
+            "**Esempio di tracciabilità in ambito logico e di sviluppo**: nello sviluppo o nella modifica di flussi complessi, l'agente non deve limitarsi ad applicare le variazioni, ma deve essere istruito a documentare in modo analitico l'esito del proprio operato. È fatto obbligo allo sviluppatore di richiedere **riepilogo finale con file, motivazioni e test** eseguiti prima di considerare concluso il task. Questa misura garantisce la piena comprensibilità delle modifiche e l'auditabilità dell'elaborato, riducendo i tempi di revisione ed escludendo l'inserimento di regressioni silenti all'interno della codebase."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Human oversight",
+      "chapter": "Errori da evitare",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "La responsabilità professionale e legale di ogni attività risiede unicamente in capo alle persone che ne convalidano il risultato finale. Poiché i sistemi generativi operano secondo logiche probabilistiche, si rende indispensabile l'adozione del paradigma “**Human-in-the-Loop**”."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Policy aziendale",
+          "text": "Tale principio esclude qualsiasi delega incondizionata del processo decisionale o autorizzativo all'Intelligenza Artificiale, operazione che costituirebbe una violazione delle procedure interne di sicurezza. Si stabilisce pertanto come policy aziendale inderogabile che **nessun output AI deve essere usato verso clienti, produzione o audit senza revisione umana**."
+        },
+        {
+          "type": "accordion",
+          "title": "Protocolli di controllo",
+          "items": [
+            {
+              "title": "Validazione in ambito documentale e analitico",
+              "text": "Nella stesura o revisione di testi amministrativi, relazioni o documenti di conformità, l'operatore ha l'obbligo di effettuare una revisione critica dell'elaborato basata su: Accuratezza (correttezza rispetto a fonti), Completezza (assenza di lacune), Coerenza (stile aziendale), Difendibilità (giustificabilità in audit) e Tracciabilità (presenza di fonti)."
+            },
+            {
+              "title": "Validazione in ambito logico e tecnico",
+              "text": "Nella generazione o modifica di flussi logici, calcoli o script, il paradigma Human-in-the-Loop impone di verificare: Sicurezza (assenza di dati riservati o credenziali fisse) e Azionabilità (concretezza e verificabilità del flusso). Si rende inoltre obbligatoria l'esecuzione manuale dei test di verifica o dei controlli locali."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Protocollo di sicurezza per interazione operativa",
+          "text": "Qualora si utilizzino funzionalità in grado di interagire direttamente con l'ambiente operativo, si deve **non consentire comandi distruttivi senza revisione** e si ha l'obbligo di applicare il protocollo di sicurezza standard: usare `sandbox`, `permessi limitati`, `branch dedicate` per isolare l'azione dell'agente."
+        }
+      ]
+    }
+  ]
+}
