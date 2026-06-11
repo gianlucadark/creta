@@ -108,7 +108,20 @@
       "PowerShell(npx tsx c:\\\\tmp\\\\test-creta-author.ts)",
       "PowerShell($ok = $false; for \\($i = 0; $i -lt 30; $i++\\) { try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/scrivi\" -UseBasicParsing -TimeoutSec 5; $ok = $true; break } catch { Start-Sleep -Seconds 2 } }; if \\($ok\\) { \"STATUS: $\\($r.StatusCode\\)\"; if \\($r.Content -match \"Scrivi un nuovo documento\"\\) { \"FORM OK\" } else { \"FORM MISSING\" }; if \\($r.Content -match \"Aggiungi capitolo\"\\) { \"CHAPTERS OK\" } else { \"CHAPTERS MISSING\" } } else { \"SERVER NOT REACHABLE\" })",
       "PowerShell(npx tsx c:\\\\tmp\\\\test-sanitize.ts)",
-      "PowerShell(npx tsx c:\\\\tmp\\\\test-readpage.ts)"
+      "PowerShell(npx tsx c:\\\\tmp\\\\test-readpage.ts)",
+      "Read(//c/c/Users/ACER/Desktop/Gianluca/Progetti/creta/**)",
+      "Bash(xargs wc -l)",
+      "Bash(npx eslint *)",
+      "Bash(curl -s \"http://localhost:3000/mice-linee-guida-ai/presenta?slide=3\")",
+      "Bash(curl -s -o //dev/null -w \"%{http_code}\" \"http://localhost:3000/slug-inesistente/presenta\")",
+      "Bash(taskkill //F //IM node.exe //FI \"WINDOWTITLE eq *\")",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(curl -s -o //dev/null -w \"%{http_code}\" --max-time 3 \"http://localhost:3000\")",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -Confirm:$false }; Start-Sleep -Seconds 1; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { \"ancora attivo\" } else { \"spento\" })",
+      "Bash(curl -s \"http://localhost:3000/mice-configurazione-claude-code\")",
+      "Bash(curl -s -X PATCH -H \"Content-Type: application/json\" -d '{\"related\":[]}' \"http://localhost:3000/api/documents/mice-configurazione-claude-code\")",
+      "Bash(curl -s -X PATCH -H \"Content-Type: application/json\" -d '{\"related\":[\"mice-linee-guida-ai\"]}' \"http://localhost:3000/api/documents/mice-configurazione-claude-code\")",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -Confirm:$false }; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { \"ancora attivo\" } else { \"spento\" })"
     ],
     "additionalDirectories": [
       "c:\\Users\\ACER\\.claude\\projects\\c--Users-ACER-Desktop-Gianluca-Progetti-creta\\memory"

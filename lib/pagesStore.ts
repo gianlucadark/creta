@@ -18,17 +18,29 @@ const BLOB_PREFIX = "pages/";
    already fetched. Mutations update the cache in place, so reads after a
    write/delete on the same instance are always fresh; staleness across
    instances is bounded by the TTL. The filesystem backend stays uncached
-   (local dev must see files changed on disk, e.g. by scripts/reingest.ts). */
+   (local dev must see files changed on disk, e.g. by scripts/reingest.ts).
+
+   The cache lives on globalThis: in dev the bundler compiles route handlers
+   and pages into separate module graphs, each with its own module instance —
+   a write through one instance must be visible to reads through the others,
+   or a just-saved change stays invisible for a whole TTL. */
 const CACHE_TTL_MS = 60_000;
-let listCache: { at: number; files: PageFile[] } | null = null;
-const readCache = new Map<string, { at: number; raw: string | null }>();
+
+type StoreCache = {
+  list: { at: number; files: PageFile[] } | null;
+  reads: Map<string, { at: number; raw: string | null }>;
+};
+
+const storeCache: StoreCache = ((
+  globalThis as typeof globalThis & { __cretaPagesCache?: StoreCache }
+).__cretaPagesCache ??= { list: null, reads: new Map() });
 
 function cacheRead(slug: string, raw: string | null) {
-  readCache.set(slug, { at: Date.now(), raw });
+  storeCache.reads.set(slug, { at: Date.now(), raw });
 }
 
 function freshRead(slug: string) {
-  const hit = readCache.get(slug);
+  const hit = storeCache.reads.get(slug);
   return hit && Date.now() - hit.at < CACHE_TTL_MS ? hit : null;
 }
 
@@ -57,8 +69,8 @@ export type PageFile = { slug: string; mtime: number };
 /** List the stored documents with their last-modified time. */
 export async function listPageFiles(): Promise<PageFile[]> {
   if (shouldUseBlobStore()) {
-    if (listCache && Date.now() - listCache.at < CACHE_TTL_MS) {
-      return listCache.files;
+    if (storeCache.list && Date.now() - storeCache.list.at < CACHE_TTL_MS) {
+      return storeCache.list.files;
     }
     const { list } = await import("@vercel/blob");
     const blobs: Awaited<ReturnType<typeof list>>["blobs"] = [];
@@ -78,7 +90,7 @@ export async function listPageFiles(): Promise<PageFile[]> {
           .replace(/\.json$/, ""),
         mtime: blob.uploadedAt.getTime(),
       }));
-    listCache = { at: Date.now(), files };
+    storeCache.list = { at: Date.now(), files };
     return files;
   }
 
@@ -156,7 +168,7 @@ export async function writePageDesign(slug: string, design: PageDesign) {
       cacheControlMaxAge: 60,
     });
     cacheRead(slug, json);
-    listCache = null;
+    storeCache.list = null;
     return;
   }
 
@@ -171,7 +183,7 @@ export async function deletePage(slug: string): Promise<boolean> {
     const { del } = await import("@vercel/blob");
     await del(blobPath(slug));
     cacheRead(slug, null);
-    listCache = null;
+    storeCache.list = null;
     return true;
   }
 
@@ -188,8 +200,8 @@ export async function pageExists(slug: string): Promise<boolean> {
   if (shouldUseBlobStore()) {
     const hit = freshRead(slug);
     if (hit) return hit.raw !== null;
-    if (listCache && Date.now() - listCache.at < CACHE_TTL_MS) {
-      return listCache.files.some((file) => file.slug === slug);
+    if (storeCache.list && Date.now() - storeCache.list.at < CACHE_TTL_MS) {
+      return storeCache.list.files.some((file) => file.slug === slug);
     }
     const { head, BlobNotFoundError } = await import("@vercel/blob");
     try {
@@ -212,7 +224,7 @@ export async function pageExists(slug: string): Promise<boolean> {
 /** First free slug among base, base-2, base-3, … One fresh listing instead
     of a head call per candidate — and no stale cache right before a write. */
 export async function uniqueSlug(base: string): Promise<string> {
-  listCache = null;
+  storeCache.list = null;
   const taken = new Set((await listPageFiles()).map((file) => file.slug));
   if (!taken.has(base)) return base;
   let n = 2;

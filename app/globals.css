@@ -106,6 +106,18 @@ body {
   to { transform: translateX(-50%); }
 }
 
+/* Presentation deck: incoming slide drifts in from the travel direction.
+   Used via animate-[…] utilities, so prefers-reduced-motion disables it. */
+@keyframes creta-slide-fwd {
+  from { opacity: 0; transform: translateX(36px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes creta-slide-back {
+  from { opacity: 0; transform: translateX(-36px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 /* ── Reusable pieces ──────────────────────────────────────── */
 
 .creta-orb {

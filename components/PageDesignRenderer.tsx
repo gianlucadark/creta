@@ -8,6 +8,18 @@ import { EditDocButton } from "./EditDocButton";
 import { tryFormatJson } from "@/lib/jsonText";
 import { sectionAnchor } from "@/lib/anchors";
 import { SectionNav } from "./SectionNav";
+import { RelatedDocsButton } from "./RelatedDocsButton";
+
+/** Library metadata of a related document, resolved by the page from the
+    stored slugs so deleted documents silently drop out. */
+export type RelatedDocMeta = {
+  slug: string;
+  title: string;
+  eyebrow: string;
+  summary: string;
+  sectionCount: number;
+  readingMinutes: number;
+};
 
 /* ── Icons (inline, no dependency) ──────────────────────────── */
 
@@ -444,7 +456,7 @@ function AccordionBlock({
 
 /* ── Block dispatcher ───────────────────────────────────────── */
 
-function renderDesignBlock(block: PageDesignBlock, index: number) {
+export function renderDesignBlock(block: PageDesignBlock, index: number) {
   switch (block.type) {
     case "paragraph":
       return <ParagraphBlock key={index} text={block.text} />;
@@ -495,7 +507,15 @@ function groupByChapter(sections: PageDesign["sections"]) {
   return groups;
 }
 
-export function PageDesignRenderer({ design, slug }: { design: PageDesign; slug: string }) {
+export function PageDesignRenderer({
+  design,
+  slug,
+  related = [],
+}: {
+  design: PageDesign;
+  slug: string;
+  related?: RelatedDocMeta[];
+}) {
   const chapterGroups = groupByChapter(design.sections);
   const showChapters = chapterGroups.filter((group) => group.chapter).length > 1;
   const navItems = design.sections.map((section, index) => ({
@@ -553,6 +573,17 @@ export function PageDesignRenderer({ design, slug }: { design: PageDesign; slug:
                 <span>{design.sections.length} sezioni</span>
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
+                <Link
+                  href={`/${slug}/presenta`}
+                  className="flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-sm font-medium text-white transition hover:border-white/70"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                    <path d="M2 3h20" />
+                    <path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" />
+                    <path d="m7 21 5-5 5 5" />
+                  </svg>
+                  Presenta
+                </Link>
                 <EditDocButton
                   slug={slug}
                   page={design.page}
@@ -675,6 +706,65 @@ export function PageDesignRenderer({ design, slug }: { design: PageDesign; slug:
         </div>
       </div>
       </div>
+
+      {/* Related documents — hand-picked links stored in design.related */}
+      <section className="border-t border-navy-200/70 bg-surface">
+        <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14 lg:px-6">
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+            <div>
+              <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-navy-400">
+                Vedi anche
+              </p>
+              <h2 className="mt-2 font-display text-3xl font-bold text-navy-950">
+                Altri documenti utili
+              </h2>
+            </div>
+            <RelatedDocsButton slug={slug} selected={design.related ?? []} />
+          </div>
+
+          {related.length > 0 ? (
+            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((doc) => (
+                <Link
+                  key={doc.slug}
+                  href={`/${doc.slug}`}
+                  transitionTypes={["nav-forward"]}
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-navy-200 bg-white px-5 py-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-gold-300 hover:shadow-lg hover:shadow-navy-900/10"
+                >
+                  <div className="creta-rule absolute inset-x-0 top-0 h-0.5 scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
+                  <p className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-navy-400">
+                    {doc.eyebrow}
+                  </p>
+                  <p className="mt-2 font-display text-xl font-bold leading-tight text-navy-950 transition-colors group-hover:text-navy-700">
+                    {doc.title}
+                  </p>
+                  {doc.summary && (
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-navy-500">
+                      {doc.summary}
+                    </p>
+                  )}
+                  <p className="mt-auto flex items-center gap-2.5 pt-4 font-mono text-[0.65rem] font-medium uppercase tracking-wide text-navy-400">
+                    <span>{doc.sectionCount} sezioni</span>
+                    <span className="h-0.5 w-0.5 rounded-full bg-navy-300" />
+                    <span>{doc.readingMinutes} min</span>
+                    <span className="ml-auto grid h-7 w-7 place-items-center rounded-full border border-navy-200 text-navy-400 transition group-hover:border-gold-400 group-hover:text-gold-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-7 rounded-2xl border border-dashed border-navy-300/60 bg-white/70 px-6 py-10 text-center text-sm leading-7 text-navy-500">
+              Nessun collegamento ancora. Usa{" "}
+              <span className="font-semibold text-navy-700">“Collega documenti”</span>{" "}
+              per suggerire le prossime letture in fondo a questa pagina.
+            </p>
+          )}
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="border-t border-navy-200/70 bg-white">

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { deletePage, readPageDesign, writePageDesign } from "@/lib/pagesStore";
+import {
+  deletePage,
+  listPageFiles,
+  readPageDesign,
+  writePageDesign,
+} from "@/lib/pagesStore";
 import { isValidSlug } from "@/lib/slug";
 import { authorizeEditor } from "@/lib/editors";
 
@@ -41,10 +46,13 @@ const PatchSchema = z.object({
     })
     .optional(),
   order: z.array(z.number().int().nonnegative()).optional(),
+  /** Slugs of the hand-picked related documents ("Vedi anche").
+      An empty array clears the list. */
+  related: z.array(z.string()).max(8).optional(),
 });
 
-/* Update document metadata and/or reorder its sections.
-   Pure JSON manipulation: section content is never touched. */
+/* Update document metadata, reorder its sections and/or set its related
+   documents. Pure JSON manipulation: section content is never touched. */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ slug: string }> }
@@ -76,7 +84,7 @@ export async function PATCH(
     }
 
     const { design } = source;
-    const { page, order } = body.data;
+    const { page, order, related } = body.data;
 
     if (page) {
       const title = page.title?.trim();
@@ -103,6 +111,20 @@ export async function PATCH(
         );
       }
       design.sections = order.map((i) => design.sections[i]);
+    }
+
+    if (related !== undefined) {
+      const cleaned = [...new Set(related)].filter(
+        (s) => s !== slug && isValidSlug(s)
+      );
+      const existing = new Set((await listPageFiles()).map((f) => f.slug));
+      if (cleaned.some((s) => !existing.has(s))) {
+        return Response.json(
+          { error: "Uno dei documenti collegati non esiste più." },
+          { status: 400 }
+        );
+      }
+      design.related = cleaned.length > 0 ? cleaned : undefined;
     }
 
     await writePageDesign(slug, design);

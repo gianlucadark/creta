@@ -280,6 +280,11 @@ export const PageDesignSchema = z.object({
       updatedAt: z.string(),
     })
     .optional(),
+  /** Slugs of hand-picked related documents, rendered as cards at the
+      bottom of the page ("Vedi anche"). Declared here for the same reason
+      as `authoring`: mutation routes round-trip the JSON through this
+      schema, and Zod strips undeclared keys. */
+  related: z.array(z.string()).optional(),
 });
 
 export const StoredPageSchema = z.union([PageDesignSchema, DocumentTreeSchema]);
