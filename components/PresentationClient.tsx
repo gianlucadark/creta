@@ -413,11 +413,54 @@ function ChapterSlide({
 }
 
 function SectionSlide({ slide }: { slide: SectionSlide }) {
+  /* Sezioni leggere (poco testo, in una sola slide) usano un layout editoriale
+     centrato che riempie lo spazio invece di lasciare il vuoto del rail. Le
+     sezioni dense restano sul layout a due colonne con contenuto scrollabile. */
+  const weight = slide.blocks.reduce((sum, b) => sum + blockWeight(b), 0);
+  const light = slide.parts === 1 && weight <= 4;
+
+  if (light) {
+    return (
+      <div className="relative flex h-full flex-col justify-center overflow-hidden rounded-[1.75rem] border border-navy-900/5 bg-surface text-navy-900">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-6 top-1/2 -translate-y-1/2 select-none font-display text-[17rem] font-bold leading-none text-navy-900/[0.04] sm:text-[23rem] lg:text-[30rem]"
+        >
+          {String(slide.number).padStart(2, "0")}
+        </span>
+        <div className="creta-scanline absolute inset-x-0 bottom-0 h-1" />
+        <div className="relative mx-auto w-full max-w-3xl px-6 py-10 sm:px-12">
+          {slide.chapter && (
+            <p className="mb-4 break-words text-[0.72rem] font-bold uppercase tracking-[0.22em] text-gold-600">
+              {slide.chapter}
+            </p>
+          )}
+          <h2 className="break-words font-display text-4xl font-bold leading-[1.08] text-navy-900 sm:text-5xl lg:text-[3.4rem]">
+            {slide.title}
+          </h2>
+          <div className="creta-rule mt-6 h-1 w-20 rounded-full" />
+          {slide.intro && (
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-navy-600">
+              <InlineText text={slide.intro} />
+            </p>
+          )}
+          {slide.blocks.length > 0 && (
+            <div className="mt-8 space-y-6 [&_p]:text-[1.2rem] [&_p]:leading-9">
+              {slide.blocks.map((block, index) => (
+                <div key={index}>{renderDesignBlock(block, index)}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-full overflow-y-auto overflow-x-hidden rounded-[1.75rem] bg-surface text-navy-900 lg:overflow-hidden">
       <div className="grid min-h-full gap-6 p-5 sm:p-8 lg:h-full lg:grid-cols-[17rem_1fr] lg:gap-10 lg:p-10">
         {/* Rail sezioni */}
-        <div className="lg:flex lg:min-h-0 lg:flex-col">
+        <div className="lg:flex lg:min-h-0 lg:flex-col lg:justify-center">
           {slide.chapter && (
             <p className="mb-3 break-words text-[0.7rem] font-bold uppercase tracking-[0.18em] text-gold-600">
               {slide.chapter}
@@ -445,16 +488,10 @@ function SectionSlide({ slide }: { slide: SectionSlide }) {
         </div>
 
         {/* Contenuto */}
-        <div className="min-w-0 space-y-6 lg:min-h-0 lg:overflow-y-auto lg:pr-2">
-          {slide.blocks.length > 0 ? (
-            slide.blocks.map((block, index) => (
-              <div key={index}>{renderDesignBlock(block, index)}</div>
-            ))
-          ) : (
-            <p className="text-sm italic text-navy-400">
-              Questa sezione non ha contenuti.
-            </p>
-          )}
+        <div className="min-w-0 space-y-6 lg:min-h-0 lg:self-center lg:overflow-y-auto lg:pr-2">
+          {slide.blocks.map((block, index) => (
+            <div key={index}>{renderDesignBlock(block, index)}</div>
+          ))}
         </div>
       </div>
     </div>

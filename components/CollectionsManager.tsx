@@ -26,11 +26,14 @@ let draftSeq = 0;
 export function CollectionsManager({
   documents,
   collections,
+  initialOpenId = null,
   onClose,
   onSaved,
 }: {
   documents: PageMeta[];
   collections: DocCollection[];
+  /** Rubrica da espandere all'apertura (es. dal menu di una pill). */
+  initialOpenId?: string | null;
   onClose: () => void;
   onSaved: (collections: DocCollection[]) => void;
 }) {
@@ -44,7 +47,8 @@ export function CollectionsManager({
       ),
     }))
   );
-  const [openKey, setOpenKey] = useState<string | null>(null);
+  /* La key di una rubrica esistente coincide col suo id. */
+  const [openKey, setOpenKey] = useState<string | null>(initialOpenId);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CretaParticleTitle } from "@/components/CretaParticleTitle";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -97,7 +98,7 @@ export default function AboutCretaPage() {
   return (
     <main className="bg-surface text-navy-900">
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="creta-hero-bg relative flex min-h-[100svh] flex-col overflow-hidden text-white">
+      <section className="creta-hero-bg relative flex min-h-[108svh] flex-col overflow-hidden text-white">
         <span className="creta-orb left-[-8%] top-[-6%] h-[26rem] w-[26rem] bg-navy-400/30" />
         <span
           className="creta-orb right-[-10%] top-[20%] h-[30rem] w-[30rem] bg-gold-400/15"
@@ -107,6 +108,8 @@ export default function AboutCretaPage() {
           className="creta-orb bottom-[-12%] left-[30%] h-[28rem] w-[28rem] bg-navy-500/25"
           style={{ animationDelay: "-13s" }}
         />
+        <div className="pointer-events-none absolute inset-x-0 top-[18%] h-[34rem] bg-[radial-gradient(ellipse_at_center,rgba(236,201,60,0.16),rgba(123,175,217,0.08)_34%,transparent_68%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-navy-950/55 to-transparent" />
         <div className="creta-grain pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-soft-light" />
 
         <header className="relative z-20 flex items-center justify-between gap-3 px-5 py-5 sm:px-10">
@@ -122,22 +125,22 @@ export default function AboutCretaPage() {
           </Link>
         </header>
 
-        <div className="relative z-10 mx-auto flex w-full max-w-[88rem] flex-1 flex-col justify-center px-5 py-12 sm:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-[96rem] flex-1 flex-col items-center justify-center px-5 py-14 text-center sm:px-10">
           <Reveal>
-            <p className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
+            <p className="flex items-center justify-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
               <span className="h-px w-10 bg-gold-400/60" />
               Generative UI Engine
+              <span className="h-px w-10 bg-gold-400/60" />
             </p>
           </Reveal>
 
           <Reveal delay={80}>
-            <h1 className="mt-7 font-display text-[clamp(3.4rem,12vw,8.5rem)] font-bold leading-[0.9] tracking-tight">
-              <span className="creta-gradient-text">Creta</span>
-            </h1>
+            <h1 className="sr-only">Creta</h1>
+            <CretaParticleTitle className="mt-3 h-[12rem] w-[min(96vw,78rem)] sm:h-[17rem] lg:h-[24rem]" />
           </Reveal>
 
           <Reveal delay={160}>
-            <p className="mt-6 max-w-2xl text-[1.35rem] font-light leading-9 text-white/85 sm:text-[1.6rem] sm:leading-[2.8rem]">
+            <p className="-mt-2 max-w-3xl text-[1.35rem] font-light leading-9 text-white/85 sm:text-[1.72rem] sm:leading-[3rem] lg:-mt-6">
               Trasforma un documento in un&apos;interfaccia.{" "}
               <span className="text-white">
                 La struttura diventa design, il testo resta intatto.
@@ -146,7 +149,7 @@ export default function AboutCretaPage() {
           </Reveal>
 
           <Reveal delay={240}>
-            <div className="mt-10 flex flex-wrap items-center gap-2.5">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-2.5">
               {["Zero LLM a runtime", "Output deterministico", "Testo verbatim"].map(
                 (chip) => (
                   <span

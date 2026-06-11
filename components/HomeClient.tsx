@@ -19,9 +19,14 @@ import type { PageMeta } from "@/app/page";
 function Mark({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`creta-badge-grad grid h-9 w-9 place-items-center rounded-xl text-sm font-black text-white shadow-sm shadow-navy-900/20 ${className}`}
+      className={`creta-badge-grad grid h-9 w-9 place-items-center rounded-xl shadow-sm shadow-navy-900/20 ${className}`}
     >
-      M
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/LogoMice.svg"
+        alt="MICE"
+        className="h-5 w-5 [filter:brightness(0)_invert(1)]"
+      />
     </span>
   );
 }
@@ -168,6 +173,106 @@ function DocRow({
   );
 }
 
+/* Pill di rubrica nella navbar: apre un menu coi propri documenti (i
+   sottocapitoli). Una sola pill aperta per volta, gestita dal padre. */
+function CollectionPill({
+  collection,
+  docs,
+  open,
+  onToggle,
+  onClose,
+  onManage,
+}: {
+  collection: DocCollection;
+  docs: PageMeta[];
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onManage: () => void;
+}) {
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur transition ${
+          open
+            ? "border-white/60 bg-white/10 text-white"
+            : "border-white/20 bg-white/5 text-white/80 hover:border-white/60 hover:text-white"
+        }`}
+      >
+        <span className="max-w-[11rem] truncate">{collection.title}</span>
+        <span className="font-mono text-[0.65rem] font-semibold text-gold-300">
+          {docs.length}
+        </span>
+        <svg
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-hidden
+            tabIndex={-1}
+            onClick={onClose}
+            className="fixed inset-0 z-40 cursor-default"
+          />
+          <div className="absolute left-1/2 top-full z-50 mt-3 w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-navy-900/10 bg-white p-2 text-navy-900 shadow-2xl shadow-navy-950/40">
+            <div className="flex items-center justify-between gap-2 px-2.5 pb-1.5 pt-1">
+              <p className="min-w-0 truncate font-display text-base font-bold text-navy-950">
+                {collection.title}
+              </p>
+              <a
+                href={`#rubrica-${collection.id}`}
+                onClick={onClose}
+                className="shrink-0 font-mono text-[0.6rem] font-semibold uppercase tracking-wide text-gold-600 transition hover:text-gold-700"
+              >
+                Apri ↓
+              </a>
+            </div>
+            <div className="border-t border-navy-900/10 pt-1">
+              {docs.length > 0 ? (
+                docs.map((doc) => (
+                  <Link
+                    key={doc.slug}
+                    href={`/${doc.slug}`}
+                    onClick={onClose}
+                    transitionTypes={["nav-forward"]}
+                    className="block truncate rounded-lg px-2.5 py-2 text-sm text-navy-600 transition hover:bg-surface hover:text-navy-950"
+                  >
+                    {doc.title}
+                  </Link>
+                ))
+              ) : (
+                <p className="px-2.5 py-2 text-sm text-navy-400">
+                  Rubrica vuota
+                </p>
+              )}
+            </div>
+            <div className="mt-1 border-t border-navy-900/10 pt-1">
+              <button
+                type="button"
+                onClick={onManage}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-semibold text-navy-700 transition hover:bg-surface hover:text-gold-700"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-600">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Aggiungi o togli capitoli
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function HomeClient({
   pages,
   collections: initialCollections,
@@ -178,7 +283,14 @@ export function HomeClient({
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [managerOpen, setManagerOpen] = useState(false);
-  const [navMenuOpen, setNavMenuOpen] = useState(false);
+  const [managerFocus, setManagerFocus] = useState<string | null>(null);
+  const [openCol, setOpenCol] = useState<string | null>(null);
+
+  function openManager(focusId: string | null = null) {
+    setManagerFocus(focusId);
+    setOpenCol(null);
+    setManagerOpen(true);
+  }
   const [documents, setDocuments] = useState(pages);
   const [collections, setCollections] = useState(initialCollections);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
@@ -239,12 +351,13 @@ export function HomeClient({
     rows: group.docs.map((doc) => ({ doc, number: ++rowNumber })),
   }));
 
-  function collectionCount(collection: DocCollection) {
-    return collection.slugs.filter((slug) => bySlug.has(slug)).length;
+  /* Documenti (sottocapitoli) di una rubrica, dal piu' recente. */
+  function collectionDocs(collection: DocCollection) {
+    return collection.slugs
+      .map((slug) => bySlug.get(slug))
+      .filter((doc): doc is PageMeta => Boolean(doc))
+      .sort((a, b) => b.mtime - a.mtime);
   }
-
-  const sortedDocuments = [...documents].sort((a, b) => b.mtime - a.mtime);
-  const fallbackDocuments = sortedDocuments.slice(0, 4);
 
   function requestDeleteDocument(slug: string, title: string) {
     setDeleteRequest({ slug, title });
@@ -303,8 +416,8 @@ export function HomeClient({
     <div className="min-h-screen bg-surface text-navy-900">
       {/* ── Hero a schermo intero ─────────────────────────────── */}
       <section className="creta-hero-bg relative flex min-h-[100svh] flex-col overflow-hidden text-white">
-        {/* Wordmark particellare MICE: qui il segnale principale e' l'azienda,
-            mentre Creta resta la tecnologia che alimenta il portale. */}
+        {/* Logo MICE composto da particelle: qui il segnale principale e'
+            l'azienda, mentre Creta resta la tecnologia che alimenta il portale. */}
         <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] md:block">
           <ParticleWordmark className="h-full w-full opacity-100" />
         </div>
@@ -316,112 +429,52 @@ export function HomeClient({
             <span className="font-display text-lg font-bold tracking-tight">MICE AI Hub</span>
           </Link>
 
-          <div className="relative z-40 justify-self-center">
-            <button
-              type="button"
-              onClick={() => setNavMenuOpen((open) => !open)}
-              aria-expanded={navMenuOpen}
-              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur transition ${
-                navMenuOpen
-                  ? "border-white/60 bg-white/10 text-white"
-                  : "border-white/20 bg-white/5 text-white/80 hover:border-white/60 hover:text-white"
-              }`}
-            >
-              Rubriche
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`h-3 w-3 transition-transform ${navMenuOpen ? "rotate-180" : ""}`}>
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-            {navMenuOpen && (
+          <nav
+            aria-label="Rubriche"
+            className="relative z-40 hidden min-w-0 max-w-[min(56rem,60vw)] items-center gap-1.5 justify-self-center sm:flex"
+          >
+            {collections.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => openManager()}
+                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur transition hover:border-white/60 hover:text-white"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-300">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Crea una rubrica
+              </button>
+            ) : (
               <>
+                {collections.map((collection) => (
+                  <CollectionPill
+                    key={collection.id}
+                    collection={collection}
+                    docs={collectionDocs(collection)}
+                    open={openCol === collection.id}
+                    onToggle={() =>
+                      setOpenCol((cur) =>
+                        cur === collection.id ? null : collection.id
+                      )
+                    }
+                    onClose={() => setOpenCol(null)}
+                    onManage={() => openManager(collection.id)}
+                  />
+                ))}
                 <button
                   type="button"
-                  aria-hidden
-                  tabIndex={-1}
-                  onClick={() => setNavMenuOpen(false)}
-                  className="fixed inset-0 z-40 cursor-default"
-                />
-                <div className="absolute left-1/2 top-full z-50 mt-3 w-[min(34rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-navy-900/10 bg-white p-2 text-navy-900 shadow-2xl shadow-navy-950/40">
-                  {collections.length === 0 ? (
-                    <div className="p-2.5">
-                      <p className="text-sm leading-6 text-navy-500">
-                        Nessuna rubrica ancora. Intanto puoi aprire i documenti
-                        più recenti.
-                      </p>
-                      <div className="mt-3 divide-y divide-navy-900/10">
-                        {fallbackDocuments.map((doc) => (
-                          <Link
-                            key={doc.slug}
-                            href={`/${doc.slug}`}
-                            onClick={() => setNavMenuOpen(false)}
-                            transitionTypes={["nav-forward"]}
-                            className="block py-2.5 text-sm font-semibold text-navy-900 transition hover:text-gold-700"
-                          >
-                            {doc.title}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {collections.map((collection) => {
-                        const docs = collection.slugs
-                          .map((slug) => bySlug.get(slug))
-                          .filter((doc): doc is PageMeta => Boolean(doc))
-                          .sort((a, b) => b.mtime - a.mtime)
-                          .slice(0, 3);
-
-                        return (
-                          <div key={collection.id} className="rounded-xl border border-navy-900/10 bg-surface/70 p-3">
-                            <a
-                              href={`#rubrica-${collection.id}`}
-                              onClick={() => setNavMenuOpen(false)}
-                              className="block truncate font-display text-lg font-bold text-navy-950 transition hover:text-gold-700"
-                            >
-                              {collection.title}
-                            </a>
-                            <div className="mt-2 space-y-1">
-                              {docs.length > 0 ? (
-                                docs.map((doc) => (
-                                  <Link
-                                    key={doc.slug}
-                                    href={`/${doc.slug}`}
-                                    onClick={() => setNavMenuOpen(false)}
-                                    transitionTypes={["nav-forward"]}
-                                    className="block truncate rounded-lg px-2 py-1.5 text-sm text-navy-600 transition hover:bg-white hover:text-navy-950"
-                                  >
-                                    {doc.title}
-                                  </Link>
-                                ))
-                              ) : (
-                                <p className="px-2 py-1.5 text-sm text-navy-400">
-                                  Rubrica vuota
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div className="mx-2 my-2 border-t border-navy-900/10" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNavMenuOpen(false);
-                      setManagerOpen(true);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-navy-900 transition hover:bg-surface"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-600">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                    {collections.length === 0 ? "Crea una rubrica" : "Gestisci rubriche"}
-                  </button>
-                </div>
+                  onClick={() => openManager()}
+                  aria-label="Gestisci rubriche"
+                  title="Gestisci rubriche"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/5 text-white/70 backdrop-blur transition hover:border-white/60 hover:text-white"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </button>
               </>
             )}
-          </div>
+          </nav>
 
           <div className="flex items-center justify-end gap-2.5">
             <button
@@ -571,7 +624,7 @@ export function HomeClient({
             </div>
             <button
               type="button"
-              onClick={() => setManagerOpen(true)}
+              onClick={() => openManager()}
               className="flex shrink-0 items-center justify-center gap-2 rounded-full border border-navy-900/15 bg-white px-5 py-3 text-sm font-medium text-navy-700 transition hover:border-gold-500 hover:text-gold-700"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
@@ -653,8 +706,13 @@ export function HomeClient({
       <footer className="bg-navy-950 text-white">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-3 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-10">
           <p className="flex items-center gap-3 text-sm text-white/50">
-            <span className="creta-badge-grad grid h-7 w-7 place-items-center rounded-lg text-xs font-black text-white">
-              M
+            <span className="creta-badge-grad grid h-7 w-7 place-items-center rounded-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/LogoMice.svg"
+                alt="MICE"
+                className="h-4 w-4 [filter:brightness(0)_invert(1)]"
+              />
             </span>
             MICE AI Hub — portale interno realizzato con Creta.
           </p>
@@ -673,6 +731,7 @@ export function HomeClient({
         <CollectionsManager
           documents={documents}
           collections={collections}
+          initialOpenId={managerFocus}
           onClose={() => setManagerOpen(false)}
           onSaved={handleCollectionsSaved}
         />
