@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import type { PageDesign, PageDesignBlock } from "@/lib/schema";
 import { renderDesignBlock } from "./PageDesignRenderer";
@@ -31,30 +39,108 @@ type Slide =
   | SectionSlide
   | { kind: "end" };
 
-const SLIDE_BUDGET = 6;
+/* Il budget e i pesi sono calibrati perche' una slide piena stia nell'area
+   utile senza che AutoFit debba scendere sotto ~0.85: meglio una slide in
+   piu' che un corpo testo illeggibile. */
+const SLIDE_BUDGET = 5;
 
 function blockWeight(block: PageDesignBlock): number {
   switch (block.type) {
     case "paragraph":
-      return Math.max(1, Math.ceil(block.text.length / 420));
+      return Math.max(1, Math.ceil(block.text.length / 350));
     case "callout":
-      return 1;
+      return Math.max(1, Math.ceil(block.text.length / 400));
     case "quote":
     case "stats":
       return 2;
     case "code":
-      return Math.max(2, Math.ceil(block.code.split("\n").length / 8));
+      return Math.max(2, Math.ceil(block.code.split("\n").length / 6));
     case "table":
-      return Math.max(2, Math.ceil(block.rows.length / 3));
+      return Math.max(2, Math.ceil((block.rows.length + 1) / 2));
     case "checklist":
     case "list":
-      return Math.max(1, Math.ceil(block.items.length / 4));
+      return Math.max(
+        1,
+        Math.ceil(block.items.length / 3) +
+          Math.floor(block.items.join("").length / 800)
+      );
     case "steps":
     case "timeline":
     case "cards":
     case "feature":
+    case "accordion": {
+      const chars = block.items.reduce(
+        (sum, item) => sum + item.text.length + (item.title?.length ?? 0),
+        0
+      );
+      return Math.max(2, Math.ceil(block.items.length / 2) + Math.floor(chars / 700));
+    }
+  }
+}
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
+  return out;
+}
+
+/* Un singolo blocco piu' pesante di una slide intera (tabella lunga, lista
+   enorme, codice chilometrico) viene diviso in blocchi gemelli distribuiti
+   sulle slide successive: il contenuto resta verbatim, solo redistribuito.
+   La taglia dei pezzi e' l'inverso del peso effettivo, cosi' ogni pezzo
+   pesa al massimo SLIDE_BUDGET qualunque sia la formula del tipo. */
+function explodeBlock(block: PageDesignBlock): PageDesignBlock[] {
+  const weight = blockWeight(block);
+  if (weight <= SLIDE_BUDGET) return [block];
+  const per = (count: number) =>
+    Math.max(1, Math.floor((count * SLIDE_BUDGET) / weight));
+  switch (block.type) {
+    case "table":
+      return chunkArray(block.rows, per(block.rows.length)).map((rows, i) => ({
+        ...block,
+        rows,
+        title: i === 0 ? block.title : undefined,
+      }));
+    case "code": {
+      const lines = block.code.split("\n");
+      return chunkArray(lines, per(lines.length)).map((chunk, i) => ({
+        ...block,
+        code: chunk.join("\n"),
+        title: i === 0 ? block.title : undefined,
+      }));
+    }
+    case "list":
+    case "checklist":
+      return chunkArray(block.items, per(block.items.length)).map(
+        (items, i) => ({
+          ...block,
+          items,
+          title: i === 0 ? block.title : undefined,
+        })
+      );
+    case "steps":
+    case "timeline":
+    case "cards":
+    case "feature":
+      return chunkArray(block.items, per(block.items.length)).map(
+        (items, i) => ({
+          ...block,
+          items,
+          title: i === 0 ? block.title : undefined,
+        })
+      );
     case "accordion":
-      return Math.max(2, Math.ceil(block.items.length / 2));
+      return chunkArray(block.items, per(block.items.length)).map(
+        (items, i) => ({
+          ...block,
+          items,
+          title: i === 0 ? block.title : undefined,
+        })
+      );
+    default:
+      return [block];
   }
 }
 
@@ -62,7 +148,7 @@ function splitBlocks(blocks: PageDesignBlock[]): PageDesignBlock[][] {
   const chunks: PageDesignBlock[][] = [];
   let current: PageDesignBlock[] = [];
   let weight = 0;
-  for (const block of blocks) {
+  for (const block of blocks.flatMap(explodeBlock)) {
     const w = blockWeight(block);
     if (current.length > 0 && weight + w > SLIDE_BUDGET) {
       chunks.push(current);
@@ -412,55 +498,134 @@ function ChapterSlide({
   );
 }
 
+/* ── Auto-fit ────────────────────────────────────────────────
+   Il contenuto di una slide non scorre mai: se supera l'altezza disponibile
+   viene riscalato con compensazione della larghezza (il testo rifluisce su
+   righe piu' lunghe invece di rimpicciolirsi e basta), come l'adattamento
+   automatico di Keynote/PowerPoint. Poche iterazioni bastano a convergere
+   perche' l'altezza varia poco tra un tentativo e l'altro. */
+
+const MIN_FIT_SCALE = 0.45;
+
+function AutoFit({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const outer = outerRef.current;
+    const inner = innerRef.current;
+    if (!outer || !inner) return;
+
+    function fit() {
+      const available = outer!.clientHeight;
+      if (available <= 0) return;
+      let scale = 1;
+      let width = 100;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        /* La compensazione della larghezza fa rifluire il testo su righe
+           piu' lunghe, ma oltre il 135% le righe diventano scomode da
+           leggere: da li' in poi si riduce solo la scala. */
+        width = Math.min(100 / scale, 135);
+        inner!.style.width = `${width}%`;
+        inner!.style.transform = scale === 1 ? "none" : `scale(${scale})`;
+        const height = inner!.scrollHeight * scale;
+        if (height <= available + 0.5 || scale <= MIN_FIT_SCALE) break;
+        scale = Math.max(MIN_FIT_SCALE, scale * (available / height));
+      }
+      /* Centra lo spazio residuo (l'origine della scala resta in alto a
+         sinistra): in verticale sempre, in orizzontale quando il tetto
+         alla larghezza rende la resa scalata piu' stretta del contenitore. */
+      const offsetX = Math.max(
+        0,
+        (outer!.clientWidth * (1 - (width * scale) / 100)) / 2
+      );
+      inner!.style.transform =
+        scale === 1 ? "none" : `translateX(${offsetX}px) scale(${scale})`;
+      inner!.style.marginTop = `${Math.max(
+        0,
+        (available - inner!.scrollHeight * scale) / 2
+      )}px`;
+    }
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(outer);
+    /* I font web cambiano le metriche dopo il primo paint. */
+    document.fonts?.ready.then(fit).catch(() => {});
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={outerRef} className={`h-full min-h-0 overflow-hidden ${className}`}>
+      <div
+        ref={innerRef}
+        className="flow-root"
+        style={{ transformOrigin: "top left" }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function SectionSlide({ slide }: { slide: SectionSlide }) {
   /* Sezioni leggere (poco testo, in una sola slide) usano un layout editoriale
-     centrato che riempie lo spazio invece di lasciare il vuoto del rail. Le
-     sezioni dense restano sul layout a due colonne con contenuto scrollabile. */
+     centrato che riempie lo spazio invece di lasciare il vuoto del rail; le
+     sezioni dense restano sul layout a due colonne. In entrambi i casi
+     AutoFit garantisce che il contenuto rientri nella slide senza scroll. */
   const weight = slide.blocks.reduce((sum, b) => sum + blockWeight(b), 0);
   const light = slide.parts === 1 && weight <= 4;
 
   if (light) {
     return (
-      <div className="relative flex h-full flex-col justify-center overflow-hidden rounded-[1.75rem] border border-navy-900/5 bg-surface text-navy-900">
+      <div className="relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-navy-900/5 bg-surface text-navy-900">
         <span
           aria-hidden
           className="pointer-events-none absolute -right-6 top-1/2 -translate-y-1/2 select-none font-display text-[17rem] font-bold leading-none text-navy-900/[0.04] sm:text-[23rem] lg:text-[30rem]"
         >
           {String(slide.number).padStart(2, "0")}
         </span>
-        <div className="creta-scanline absolute inset-x-0 bottom-0 h-1" />
-        <div className="relative mx-auto w-full max-w-3xl px-6 py-10 sm:px-12">
-          {slide.chapter && (
-            <p className="mb-4 break-words text-[0.72rem] font-bold uppercase tracking-[0.22em] text-gold-600">
-              {slide.chapter}
-            </p>
-          )}
-          <h2 className="break-words font-display text-4xl font-bold leading-[1.08] text-navy-900 sm:text-5xl lg:text-[3.4rem]">
-            {slide.title}
-          </h2>
-          <div className="creta-rule mt-6 h-1 w-20 rounded-full" />
-          {slide.intro && (
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-navy-600">
-              <InlineText text={slide.intro} />
-            </p>
-          )}
-          {slide.blocks.length > 0 && (
-            <div className="mt-8 space-y-6 [&_p]:text-[1.2rem] [&_p]:leading-9">
-              {slide.blocks.map((block, index) => (
-                <div key={index}>{renderDesignBlock(block, index)}</div>
-              ))}
-            </div>
-          )}
+        <div className="creta-scanline absolute inset-x-0 bottom-0 h-1 z-10" />
+        <div className="relative mx-auto h-full w-full max-w-3xl px-6 py-10 sm:px-12">
+          <AutoFit>
+            {slide.chapter && (
+              <p className="mb-4 break-words text-[0.72rem] font-bold uppercase tracking-[0.22em] text-gold-600">
+                {slide.chapter}
+              </p>
+            )}
+            <h2 className="break-words font-display text-4xl font-bold leading-[1.08] text-navy-900 sm:text-5xl lg:text-[3.4rem]">
+              {slide.title}
+            </h2>
+            <div className="creta-rule mt-6 h-1 w-20 rounded-full" />
+            {slide.intro && (
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-navy-600">
+                <InlineText text={slide.intro} />
+              </p>
+            )}
+            {slide.blocks.length > 0 && (
+              <div className="mt-8 space-y-6 [&_p]:text-[1.2rem] [&_p]:leading-9">
+                {slide.blocks.map((block, index) => (
+                  <div key={index}>{renderDesignBlock(block, index)}</div>
+                ))}
+              </div>
+            )}
+          </AutoFit>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full overflow-y-auto overflow-x-hidden rounded-[1.75rem] bg-surface text-navy-900 lg:overflow-hidden">
-      <div className="grid min-h-full gap-6 p-5 sm:p-8 lg:h-full lg:grid-cols-[17rem_1fr] lg:gap-10 lg:p-10">
+    <div className="relative h-full overflow-hidden rounded-[1.75rem] bg-surface text-navy-900">
+      <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-6 p-5 sm:p-8 lg:grid-cols-[17rem_1fr] lg:grid-rows-none lg:gap-10 lg:p-10">
         {/* Rail sezioni */}
-        <div className="lg:flex lg:min-h-0 lg:flex-col lg:justify-center">
+        <div className="min-w-0 lg:flex lg:min-h-0 lg:flex-col lg:justify-center">
           {slide.chapter && (
             <p className="mb-3 break-words text-[0.7rem] font-bold uppercase tracking-[0.18em] text-gold-600">
               {slide.chapter}
@@ -488,11 +653,13 @@ function SectionSlide({ slide }: { slide: SectionSlide }) {
         </div>
 
         {/* Contenuto */}
-        <div className="min-w-0 space-y-6 lg:min-h-0 lg:self-center lg:overflow-y-auto lg:pr-2">
-          {slide.blocks.map((block, index) => (
-            <div key={index}>{renderDesignBlock(block, index)}</div>
-          ))}
-        </div>
+        <AutoFit className="min-w-0">
+          <div className="space-y-6">
+            {slide.blocks.map((block, index) => (
+              <div key={index}>{renderDesignBlock(block, index)}</div>
+            ))}
+          </div>
+        </AutoFit>
       </div>
     </div>
   );
