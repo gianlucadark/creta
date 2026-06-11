@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UploadModal } from "./UploadModal";
@@ -14,19 +14,12 @@ import {
 } from "@/lib/readingProgress";
 import type { PageMeta } from "@/app/page";
 
-/* I 13 blocchi tipizzati su cui puo' essere mappato un documento; usati
-   nella marquee della hero per dichiarare cosa produce davvero il motore. */
-const BLOCK_TYPES = [
-  "paragraph", "callout", "steps", "timeline", "table", "code", "cards",
-  "feature", "stats", "checklist", "list", "quote", "accordion",
-];
-
 function Mark({ className = "" }: { className?: string }) {
   return (
     <span
       className={`creta-badge-grad grid h-9 w-9 place-items-center rounded-xl text-sm font-black text-white shadow-sm shadow-navy-900/20 ${className}`}
     >
-      C
+      M
     </span>
   );
 }
@@ -59,23 +52,21 @@ function DeleteButton({
   );
 }
 
-/* I tre passaggi raccontati con la metafora che dà il nome al progetto:
-   il documento è argilla — la materia non si tocca, si modella la forma. */
-const HOW_IT_WORKS = [
+const PORTAL_SECTIONS = [
   {
-    metaphor: "L'argilla",
-    title: "Carica un .docx",
-    text: "Un file Word qualsiasi: è la materia prima. La struttura semantica viene estratta capitolo per capitolo, senza template da preparare.",
+    label: "News",
+    title: "Aggiornamenti AI",
+    text: "Novita, segnali e cambiamenti da seguire per capire cosa sta arrivando nel lavoro quotidiano.",
   },
   {
-    metaphor: "Il tornio",
-    title: "Mappato, mai riscritto",
-    text: "Ogni capitolo prende forma su blocchi tipizzati pre-approvati. La materia resta verbatim: parola per parola quella d'origine.",
+    label: "Guide",
+    title: "Procedure interne",
+    text: "Linee guida, configurazioni e indicazioni operative gia pronte da consultare quando servono.",
   },
   {
-    metaphor: "La cottura",
-    title: "Una pagina, per sempre",
-    text: "Il risultato è un JSON versionato, servito in modo deterministico a ogni visita: come argilla cotta, la forma non cambia più. Nessuna AI a runtime.",
+    label: "Archivio",
+    title: "Documenti navigabili",
+    text: "Ogni contenuto resta cercabile, leggibile per sezioni e riprendibile dal punto in cui era stato lasciato.",
   },
 ];
 
@@ -108,12 +99,6 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
           page.slug.includes(needle)
       )
     : documents;
-
-  const stats = useMemo(() => {
-    const sectionTotal = documents.reduce((sum, page) => sum + page.sectionCount, 0);
-    const minutesTotal = documents.reduce((sum, page) => sum + page.readingMinutes, 0);
-    return { sectionTotal, minutesTotal };
-  }, [documents]);
 
   function requestDeleteDocument(slug: string, title: string) {
     setDeleteRequest({ slug, title });
@@ -154,8 +139,8 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
       <section className="creta-hero-bg relative flex min-h-[100svh] flex-col overflow-hidden text-white">
         <div className="creta-grain pointer-events-none absolute inset-0 opacity-[0.05]" />
 
-        {/* sciame di particelle: la stessa materia si ricompone in MICE, poi
-            in Creta — la metafora del motore, in movimento */}
+        {/* Wordmark particellare MICE: qui il segnale principale e' l'azienda,
+            mentre Creta resta la tecnologia che alimenta il portale. */}
         <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] md:block">
           <ParticleWordmark className="h-full w-full opacity-100" />
         </div>
@@ -164,7 +149,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
         <header className="relative z-10 flex items-center justify-between gap-3 px-5 py-5 sm:px-10">
           <Link href="/" className="flex items-center gap-2.5">
             <Mark />
-            <span className="font-display text-lg font-bold tracking-tight">Creta</span>
+            <span className="font-display text-lg font-bold tracking-tight">MICE AI Hub</span>
           </Link>
           <div className="flex items-center gap-2.5">
             <button
@@ -178,6 +163,12 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
               <span className="hidden sm:block">Cerca</span>
               <kbd className="hidden font-mono text-[0.65rem] font-semibold text-white/50 sm:block">⌘K</kbd>
             </button>
+            <Link
+              href="/cos-e-creta"
+              className="hidden rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/60 hover:text-white sm:block"
+            >
+              Cos&apos;e Creta
+            </Link>
             <Link
               href="/scrivi"
               className="hidden rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/60 hover:text-white sm:block"
@@ -203,26 +194,23 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
         <div className="relative z-10 mx-auto flex w-full max-w-[88rem] flex-1 flex-col justify-center px-5 py-10 sm:px-10">
           <p className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
             <span className="h-px w-10 bg-gold-400/60" />
-            Generative UI — Portale interno
+            MICE internal intelligence
           </p>
           
           <h1 className="mt-7 font-display text-[clamp(2.9rem,9vw,5.5rem)] font-bold leading-[0.98] tracking-tight">
-            CRETA
+            Osservatorio
             <br />
-            il testo diventa{" "}
-            <em className="font-semibold italic text-gold-300">interfaccia</em>.
+            AI interno{" "}
+            <em className="font-semibold italic text-gold-300">MICE</em>.
           </h1>
 
           <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <p className="max-w-xl text-[1.02rem] leading-8 text-white/60">
-              Creta legge la struttura di un{" "}
-              <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[0.85em] text-gold-300">.docx</code>{" "}
-              e la ricompone in una pagina tipizzata e navigabile.
-              Il design è generato. Il testo, mai:{" "}
-              <strong className="font-semibold text-white/90">ogni parola resta quella d&apos;origine</strong>.
+              News, linee guida e documenti operativi per seguire l&apos;evoluzione
+              dell&apos;intelligenza artificiale in azienda.
               <span className="mt-3 block text-sm italic text-white/40">
-                Come l&apos;argilla da cui prende il nome: la materia non cambia
-                mai, è la forma a essere modellata.
+                Questo portale e&apos; realizzato con Creta: i documenti MICE
+                diventano pagine navigabili, cercabili e pronte da condividere.
               </span>
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -233,10 +221,10 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
                 Carica un documento
               </button>
               <Link
-                href="/scrivi"
+                href="/cos-e-creta"
                 className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
               >
-                Scrivi un documento
+                Cos&apos;e Creta
               </Link>
               <a
                 href="#archivio"
@@ -251,72 +239,32 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
           </div>
         </div>
 
-        {/* Marquee dei blocchi tipizzati, tenuta pronta ma non renderizzata */}
-        {/* <div className="relative z-10 overflow-hidden border-t border-white/10 py-3.5">
-          <div className="creta-marquee">
-            {[0, 1].map((copy) => (
-              <div
-                key={copy}
-                aria-hidden={copy === 1}
-                className="flex shrink-0 items-center font-mono text-[0.68rem] font-medium uppercase tracking-[0.25em] text-white/35"
-              >
-                {BLOCK_TYPES.map((name) => (
-                  <span key={name} className="flex items-center">
-                    <span className="px-6">{name}</span>
-                    <span className="h-1 w-1 rounded-full bg-gold-400/50" />
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div> */}
-
-        {/* Statistiche live, tenute pronte ma non renderizzate */}
-        {/* <div className="relative z-10 grid grid-cols-2 border-t border-white/10 sm:grid-cols-4">
-          {[
-            { value: documents.length, label: "Documenti" },
-            { value: stats.sectionTotal, label: "Sezioni" },
-            { value: stats.minutesTotal, label: "Minuti di lettura" },
-            { value: BLOCK_TYPES.length, label: "Blocchi tipizzati" },
-          ].map((stat, index) => (
-            <div
-              key={stat.label}
-              className={`px-5 py-5 sm:px-10 ${index > 0 ? "border-l border-white/10" : ""} ${index === 2 ? "max-sm:border-l-0" : ""}`}
-            >
-              <p className="font-display text-3xl font-bold tabular-nums sm:text-4xl">
-                {stat.value}
-              </p>
-              <p className="mt-1 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-white/40">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div> */}
       </section>
 
-      {/* ── Come funziona ────────────────────────────────────── */}
+      {/* ── Orientamento portale ─────────────────────────────── */}
       <section className="border-b border-navy-900/10 bg-white">
         <div className="mx-auto grid max-w-[88rem] gap-10 px-5 py-14 sm:px-10 lg:grid-cols-[16rem_1fr] lg:gap-16">
           <div>
             <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-navy-400">
-              Come funziona
+              Dentro il portale
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold leading-tight">
-              Tre passaggi.
+              Un punto unico.
               <br />
-              <em className="italic text-gold-600">Zero parole riscritte.</em>
+              <em className="italic text-gold-600">Per lavorare meglio con l&apos;AI.</em>
             </h2>
             <p className="mt-4 text-sm leading-7 text-navy-500">
-              Come al tornio: si modella la forma, mai la materia.
+              Il contenuto e&apos; aziendale; Creta cura la forma, la navigazione e
+              la leggibilita.
             </p>
           </div>
           <ol className="grid gap-8 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-navy-900/10">
-            {HOW_IT_WORKS.map((step, index) => (
+            {PORTAL_SECTIONS.map((step, index) => (
               <li key={step.title} className="sm:px-7 sm:first:pl-0 sm:last:pr-0">
                 <p className="font-mono text-[0.7rem] font-semibold text-gold-600">
                   {String(index + 1).padStart(2, "0")}
                   <span className="ml-2 font-medium uppercase tracking-[0.2em] text-navy-400">
-                    {step.metaphor}
+                    {step.label}
                   </span>
                 </p>
                 <p className="mt-3 font-display text-lg font-bold text-navy-950">
@@ -334,10 +282,10 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-navy-400">
-              Archivio · {documents.length}{" "}
+              Documenti e aggiornamenti · {documents.length}{" "}
               {documents.length === 1 ? "documento" : "documenti"}
             </p>
-            <h2 className="mt-2 font-display text-4xl font-bold">Indice</h2>
+            <h2 className="mt-2 font-display text-4xl font-bold">Archivio AI MICE</h2>
           </div>
           <div className="relative w-full sm:w-80">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400">
@@ -359,7 +307,8 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
             <Mark className="mx-auto" />
             <h3 className="mt-5 font-display text-3xl font-bold">L&apos;archivio è vuoto.</h3>
             <p className="mx-auto mt-3 max-w-sm text-sm leading-7 text-navy-500">
-              Carica il primo .docx: ci pensa Creta a trasformarlo in una pagina.
+              Carica il primo .docx: diventera una pagina interna MICE,
+              navigabile e pronta da condividere.
             </p>
             <button
               onClick={() => setModalOpen(true)}
@@ -469,9 +418,9 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
         <div className="mx-auto flex max-w-[88rem] flex-col gap-3 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-10">
           <p className="flex items-center gap-3 text-sm text-white/50">
             <span className="creta-badge-grad grid h-7 w-7 place-items-center rounded-lg text-xs font-black text-white">
-              C
+              M
             </span>
-            Creta — il testo è sacro, il design è generato.
+            MICE AI Hub — portale interno realizzato con Creta.
           </p>
           <button
             onClick={openPalette}
