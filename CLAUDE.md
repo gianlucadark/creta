@@ -61,7 +61,7 @@ creta/
 │   ├── PageDesignRenderer.tsx — renderer v2: hero, TOC, sezioni, footer, tutti i blocchi
 │   ├── CommandPalette.tsx     — palette ⌘K globale (montata nel layout, cerca via /api/search)
 │   ├── InlineText.tsx         — resa inline di `code`, **bold**, URL
-│   ├── HomeClient.tsx         — home: hero full-screen, archivio, riprendi-lettura, delete
+│   ├── HomeClient.tsx         — home: hero full-screen, archivio, delete
 │   ├── UploadModal.tsx        — upload con stati di avanzamento e avviso fallback
 │   ├── WriterClient.tsx       — editor fai-da-te: form a capitoli, cheat-sheet markdown, stati di avanzamento
 │   ├── DocHeader.tsx          — header sticky con progress di lettura (salvato in localStorage)

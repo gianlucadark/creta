@@ -1,6 +1,7 @@
 import {
   PageDesignSchema,
   DocumentTreeSchema,
+  sanitizePageDesign,
   type PageDesign,
   type PageDesignBlock,
 } from "./schema";
@@ -168,7 +169,8 @@ export async function getLibraryIndex(): Promise<LibraryIndex> {
 
     const design = PageDesignSchema.safeParse(json);
     if (design.success) {
-      const { page, sections: docSections } = design.data;
+      const sanitized = sanitizePageDesign(design.data);
+      const { page, sections: docSections } = sanitized;
       const chapters = new Set(
         docSections.map((s) => s.chapter).filter(Boolean)
       );
@@ -179,7 +181,7 @@ export async function getLibraryIndex(): Promise<LibraryIndex> {
         eyebrow: page.eyebrow ?? "Documento",
         sectionCount: docSections.length,
         chapterCount: chapters.size,
-        readingMinutes: designReadingMinutes(design.data),
+        readingMinutes: designReadingMinutes(sanitized),
         displayDate: formatDate(file.mtime),
         mtime: file.mtime,
       });

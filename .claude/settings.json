@@ -106,7 +106,9 @@
       "PowerShell(npx tsx c:\\\\tmp\\\\test-creta-markdown.ts)",
       "PowerShell(Get-Content .env.local | ForEach-Object { \\($_ -split '='\\)[0] })",
       "PowerShell(npx tsx c:\\\\tmp\\\\test-creta-author.ts)",
-      "PowerShell($ok = $false; for \\($i = 0; $i -lt 30; $i++\\) { try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/scrivi\" -UseBasicParsing -TimeoutSec 5; $ok = $true; break } catch { Start-Sleep -Seconds 2 } }; if \\($ok\\) { \"STATUS: $\\($r.StatusCode\\)\"; if \\($r.Content -match \"Scrivi un nuovo documento\"\\) { \"FORM OK\" } else { \"FORM MISSING\" }; if \\($r.Content -match \"Aggiungi capitolo\"\\) { \"CHAPTERS OK\" } else { \"CHAPTERS MISSING\" } } else { \"SERVER NOT REACHABLE\" })"
+      "PowerShell($ok = $false; for \\($i = 0; $i -lt 30; $i++\\) { try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/scrivi\" -UseBasicParsing -TimeoutSec 5; $ok = $true; break } catch { Start-Sleep -Seconds 2 } }; if \\($ok\\) { \"STATUS: $\\($r.StatusCode\\)\"; if \\($r.Content -match \"Scrivi un nuovo documento\"\\) { \"FORM OK\" } else { \"FORM MISSING\" }; if \\($r.Content -match \"Aggiungi capitolo\"\\) { \"CHAPTERS OK\" } else { \"CHAPTERS MISSING\" } } else { \"SERVER NOT REACHABLE\" })",
+      "PowerShell(npx tsx c:\\\\tmp\\\\test-sanitize.ts)",
+      "PowerShell(npx tsx c:\\\\tmp\\\\test-readpage.ts)"
     ],
     "additionalDirectories": [
       "c:\\Users\\ACER\\.claude\\projects\\c--Users-ACER-Desktop-Gianluca-Progetti-creta\\memory"

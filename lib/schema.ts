@@ -451,6 +451,107 @@ export function normalizeGeneratedBlocks(
   return [{ component: "RawText", props: { text: fallbackText } }];
 }
 
+/* ── Inline-HTML sanitizer ───────────────────────────────────────
+   The ingest LLM receives HTML and must translate inline tags into the
+   light verbatim markup (**bold**, `code`). When it copies tags into the
+   JSON strings instead ("<strong>Ruolo</strong>"), the renderer would
+   print them literally. This converts stray inline HTML to the native
+   markup deterministically: at ingest (normalizeDesignSections) and at
+   read (pagesStore.readPageDesign), so already-stored documents heal
+   without re-ingest. Text content is never rewritten, only the markup. */
+
+export function stripInlineHtml(text: string): string {
+  if (!text.includes("<") && !text.includes("&")) return text;
+  let out = text;
+
+  out = out.replace(
+    /<(strong|b)(?:\s[^<>]*)?>([\s\S]*?)<\/\1\s*>/gi,
+    (_match, _tag, inner: string) => {
+      const trimmed = inner.trim();
+      // keep surrounding spaces outside the ** so "**x** y" stays valid
+      return trimmed ? inner.replace(trimmed, `**${trimmed}**`) : inner;
+    }
+  );
+
+  out = out.replace(
+    /<code(?:\s[^<>]*)?>([\s\S]*?)<\/code\s*>/gi,
+    (_match, inner: string) => {
+      const trimmed = inner.trim();
+      return trimmed && !trimmed.includes("`") ? `\`${trimmed}\`` : inner;
+    }
+  );
+
+  out = out.replace(
+    /<a\s[^<>]*href="(https?:\/\/[^"]+)"[^<>]*>([\s\S]*?)<\/a\s*>/gi,
+    (_match, href: string, inner: string) => {
+      const label = inner.trim();
+      if (!label) return href;
+      return label === href ? inner : `${inner} (${href})`;
+    }
+  );
+
+  out = out.replace(/<br\s*\/?>/gi, "\n");
+  // em/i/u/span/li/…: drop the tags, keep the verbatim words
+  out = out.replace(/<\/?[a-zA-Z][^<>]*>/g, "");
+
+  return out
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&quot;/gi, '"')
+    .replace(/&(?:#0?39|apos);/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&amp;/gi, "&");
+}
+
+function deepMapStrings<T>(value: T, fn: (text: string) => string): T {
+  if (typeof value === "string") return fn(value) as T;
+  if (Array.isArray(value)) {
+    return value.map((item) => deepMapStrings(item, fn)) as T;
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, deepMapStrings(item, fn)])
+    ) as T;
+  }
+  return value;
+}
+
+function sanitizeBlock(block: PageDesignBlock): PageDesignBlock {
+  // code bodies may legitimately contain HTML/entities — leave them verbatim
+  if (block.type === "code") {
+    return block.title ? { ...block, title: stripInlineHtml(block.title) } : block;
+  }
+  return deepMapStrings(block, stripInlineHtml);
+}
+
+function sanitizeSection(
+  section: PageDesign["sections"][number]
+): PageDesign["sections"][number] {
+  return {
+    ...section,
+    title: stripInlineHtml(section.title),
+    intro: section.intro ? stripInlineHtml(section.intro) : section.intro,
+    chapter: section.chapter ? stripInlineHtml(section.chapter) : section.chapter,
+    blocks: section.blocks.map(sanitizeBlock),
+  };
+}
+
+/** Strip stray inline HTML from every rendered string of a stored design
+    (the `authoring` markdown source and code bodies stay untouched). */
+export function sanitizePageDesign(design: PageDesign): PageDesign {
+  return {
+    ...design,
+    page: {
+      ...design.page,
+      title: stripInlineHtml(design.page.title),
+      summary: stripInlineHtml(design.page.summary),
+      eyebrow: design.page.eyebrow ? stripInlineHtml(design.page.eyebrow) : design.page.eyebrow,
+      audience: design.page.audience ? stripInlineHtml(design.page.audience) : design.page.audience,
+    },
+    sections: design.sections.map(sanitizeSection),
+  };
+}
+
 /* ── Tolerant normalizer for the v2 PageDesign flow ──────────────
    Gemini does not reliably honour discriminated-union (anyOf) schemas,
    so it sometimes emits unknown block "type" values (e.g. "warning"
@@ -608,12 +709,12 @@ export function normalizeDesignSections(
   return rawSections
     .map((section) => {
       const s = (section ?? {}) as Record<string, unknown>;
-      return {
+      return sanitizeSection({
         title: firstString(s.title, s.heading) ?? "Sezione",
         intro: firstString(s.intro, s.summary),
         chapter: firstString(s.chapter),
         blocks: normalizeBlocks(s.blocks),
-      };
+      });
     })
     .filter((section) => section.blocks.length > 0);
 }

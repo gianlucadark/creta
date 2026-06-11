@@ -16,7 +16,8 @@ TEXT FIDELITY (NON-NEGOTIABLE)
 - Account for ALL of the chunk's content. Every sentence of the source must appear somewhere in the output. Nothing may be silently dropped. When in doubt about which block fits, use a "paragraph" block rather than discarding text.
 - NEVER split a "label: value" pair and keep only the label. If a line reads "Il risultato deve essere: true", the field must contain the WHOLE thing — including "true". Expected results, return values, file names and settings after a colon must never be truncated.
 - A value may appear in the source on its OWN line, separate from the phrase that introduces it (e.g. "Il risultato deve essere:" followed by "True"). Re-attach such orphan values to the introducing phrase. NEVER drop a short standalone line just because it is short or styled.
-- The ONLY things you may remove: page numbers, running headers/footers, and document metadata. Everything else stays.`.trim();
+- The ONLY things you may remove: page numbers, running headers/footers, and document metadata. Everything else stays.
+- The input is HTML: its tags are STRUCTURE, never text. NEVER copy an HTML tag or entity into any output string. Translate inline markup instead: <strong>/<b> → **bold**, <code> → \`backticks\`, <em>/<i>/<span> → keep only the words (drop the tags), &amp;/&lt;/&gt;/&nbsp; → the literal character. A string like "<strong>Ruolo (R):</strong> testo" must become "**Ruolo (R):** testo".`.trim();
 
 const BLOCK_CATALOG = `
 BLOCK TYPES — choose deliberately.

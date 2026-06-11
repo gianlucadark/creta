@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import { join } from "path";
-import { PageDesignSchema, type PageDesign } from "./schema";
+import { PageDesignSchema, sanitizePageDesign, type PageDesign } from "./schema";
 
 /* Server-only access to the JSON document store.
    Two interchangeable backends behind the same async API:
@@ -136,7 +136,7 @@ export async function readPageDesign(slug: string): Promise<ReadPageResult> {
   try {
     const parsed = PageDesignSchema.safeParse(JSON.parse(raw));
     return parsed.success
-      ? { status: "ok", design: parsed.data }
+      ? { status: "ok", design: sanitizePageDesign(parsed.data) }
       : { status: "not-v2" };
   } catch {
     return { status: "not-v2" };

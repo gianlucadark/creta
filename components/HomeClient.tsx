@@ -115,16 +115,6 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
     return { sectionTotal, minutesTotal };
   }, [documents]);
 
-  const resume = useMemo(() => {
-    let best: { page: PageMeta; pct: number; ts: number } | null = null;
-    for (const page of documents) {
-      const entry = progress[page.slug];
-      if (!entry || entry.pct < 0.03 || entry.pct > 0.97) continue;
-      if (!best || entry.ts > best.ts) best = { page, pct: entry.pct, ts: entry.ts };
-    }
-    return best;
-  }, [documents, progress]);
-
   function requestDeleteDocument(slug: string, title: string) {
     setDeleteRequest({ slug, title });
   }
@@ -362,34 +352,6 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
             />
           </div>
         </div>
-
-        {/* resume reading */}
-        {resume && (
-          <Link
-            href={`/${resume.page.slug}`}
-            transitionTypes={["nav-forward"]}
-            className="group mt-7 flex items-center gap-4 rounded-2xl border border-gold-400/60 bg-gold-50 px-5 py-3.5 transition hover:border-gold-500"
-          >
-            <span className="shrink-0 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-gold-700">
-              Riprendi la lettura
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-navy-900">
-              {resume.page.title}
-            </span>
-            <span className="hidden h-1 w-24 overflow-hidden rounded-full bg-gold-200 sm:block">
-              <span
-                className="block h-full rounded-full bg-gold-500"
-                style={{ width: `${Math.round(resume.pct * 100)}%` }}
-              />
-            </span>
-            <span className="shrink-0 font-mono text-xs font-semibold tabular-nums text-gold-700">
-              {Math.round(resume.pct * 100)}%
-            </span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-gold-700 transition-transform group-hover:translate-x-1">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Link>
-        )}
 
         {/* document index */}
         {documents.length === 0 ? (

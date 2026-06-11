@@ -22,7 +22,11 @@ import { google } from "@ai-sdk/google";
 import { GEMINI_MODEL } from "./config";
 import { chapterSystemPrompt, PAGE_META_PROMPT } from "./pageDesignPrompt";
 import { extractJson } from "./extractJson";
-import { normalizeDesignSections, type PageDesign } from "./schema";
+import {
+  normalizeDesignSections,
+  sanitizePageDesign,
+  type PageDesign,
+} from "./schema";
 import {
   buildChunks,
   cleanDocumentHtml,
@@ -470,7 +474,9 @@ export async function designFromHtml(
   });
   const llmChunks = results.filter((result) => result.viaLlm).length;
 
-  const design: PageDesign = {
+  // sections are sanitized by normalizeDesignSections; this also covers the
+  // LLM-produced page header (stray inline HTML tags → light markup)
+  const design: PageDesign = sanitizePageDesign({
     version: 2,
     page,
     sections:
@@ -482,7 +488,7 @@ export async function designFromHtml(
               blocks: [{ type: "paragraph", text: fullText }],
             },
           ],
-  };
+  });
 
   return {
     design,
