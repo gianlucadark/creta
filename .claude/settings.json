@@ -121,7 +121,14 @@
       "Bash(curl -s \"http://localhost:3000/mice-configurazione-claude-code\")",
       "Bash(curl -s -X PATCH -H \"Content-Type: application/json\" -d '{\"related\":[]}' \"http://localhost:3000/api/documents/mice-configurazione-claude-code\")",
       "Bash(curl -s -X PATCH -H \"Content-Type: application/json\" -d '{\"related\":[\"mice-linee-guida-ai\"]}' \"http://localhost:3000/api/documents/mice-configurazione-claude-code\")",
-      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -Confirm:$false }; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { \"ancora attivo\" } else { \"spento\" })"
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -Confirm:$false }; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { \"ancora attivo\" } else { \"spento\" })",
+      "Bash(BLOB_READ_WRITE_TOKEN= BLOB_STORE_ID= npx next dev -p 3210)",
+      "Bash(curl -s http://localhost:3210/api/collections)",
+      "Bash(BLOB_READ_WRITE_TOKEN= BLOB_STORE_ID= npx next start -p 3210)",
+      "Bash(curl -s -X PUT http://localhost:3210/api/collections -H \"Content-Type: application/json\" -d '{\"version\":1,\"collections\":[{\"id\":\"\",\"title\":\"News\",\"slugs\":[\"errori-da-evitare\",\"slug-inesistente\"]},{\"id\":\"\",\"title\":\"Guide operative\",\"slugs\":[\"mice-linee-guida-ai\",\"mice-configurazione-claude-code\"]},{\"id\":\"\",\"title\":\"  \",\"slugs\":[\"errori-da-evitare\"]}]}')",
+      "Bash(netstat -ano)",
+      "Bash(curl -s http://localhost:3210/)",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)"
     ],
     "additionalDirectories": [
       "c:\\Users\\ACER\\.claude\\projects\\c--Users-ACER-Desktop-Gianluca-Progetti-creta\\memory"

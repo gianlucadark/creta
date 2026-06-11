@@ -45,7 +45,7 @@ function freshRead(slug: string) {
   return hit && Date.now() - hit.at < CACHE_TTL_MS ? hit : null;
 }
 
-function shouldUseBlobStore() {
+export function shouldUseBlobStore() {
   return Boolean(
     process.env.BLOB_READ_WRITE_TOKEN ||
       (process.env.BLOB_STORE_ID && process.env.VERCEL)

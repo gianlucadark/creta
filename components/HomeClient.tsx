@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UploadModal } from "./UploadModal";
+import { CollectionsManager } from "./CollectionsManager";
 import { openPalette } from "./CommandPalette";
 import { ParticleWordmark } from "./ParticleWordmark";
 import {
@@ -12,6 +13,7 @@ import {
   readingSnapshot,
   subscribeReading,
 } from "@/lib/readingProgress";
+import type { DocCollection } from "@/lib/collections";
 import type { PageMeta } from "@/app/page";
 
 function Mark({ className = "" }: { className?: string }) {
@@ -70,10 +72,115 @@ const PORTAL_SECTIONS = [
   },
 ];
 
-export function HomeClient({ pages }: { pages: PageMeta[] }) {
+/* Riga dell'indice documenti, condivisa tra elenco piatto e per rubriche. */
+function DocRow({
+  page,
+  number,
+  isFeatured,
+  pct,
+  deleting,
+  onRequestDelete,
+}: {
+  page: PageMeta;
+  number: number;
+  isFeatured: boolean;
+  pct: number;
+  deleting: boolean;
+  onRequestDelete: () => void;
+}) {
+  return (
+    <li className="group relative border-b border-navy-900/10">
+      <div className="flex items-start gap-5 py-6 sm:gap-8 sm:py-7">
+        <span className="hidden w-12 shrink-0 pt-1 font-mono text-sm font-semibold text-navy-300 transition-colors group-hover:text-gold-600 sm:block">
+          {String(number).padStart(2, "0")}
+        </span>
+
+        <Link
+          href={`/${page.slug}`}
+          transitionTypes={["nav-forward"]}
+          className="min-w-0 flex-1"
+        >
+          <p className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-navy-400">
+            {page.eyebrow}
+          </p>
+          <h3
+            className={`mt-2 max-w-3xl font-display font-bold leading-tight text-navy-950 transition-colors group-hover:text-navy-700 ${
+              isFeatured ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl"
+            }`}
+            style={{ viewTransitionName: `doc-title-${page.slug}` }}
+          >
+            {page.title}
+          </h3>
+          {page.summary && (
+            <p
+              className={`mt-2.5 max-w-2xl text-sm leading-7 text-navy-500 ${
+                isFeatured ? "line-clamp-3 sm:text-[0.95rem]" : "line-clamp-2"
+              }`}
+            >
+              {page.summary}
+            </p>
+          )}
+          <p className="mt-3.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[0.68rem] font-medium uppercase tracking-wide text-navy-400">
+            <span>{page.sectionCount} sezioni</span>
+            <span className="h-0.5 w-0.5 rounded-full bg-navy-300" />
+            <span>{page.readingMinutes} min</span>
+            {page.displayDate && (
+              <>
+                <span className="h-0.5 w-0.5 rounded-full bg-navy-300" />
+                <span>{page.displayDate}</span>
+              </>
+            )}
+            {pct >= 0.97 ? (
+              <span className="flex items-center gap-1 text-emerald-700">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
+                  <path d="m5 12.5 4 4 10-10" />
+                </svg>
+                Letto
+              </span>
+            ) : pct > 0.03 ? (
+              <span className="text-gold-700">{Math.round(pct * 100)}% letto</span>
+            ) : null}
+          </p>
+        </Link>
+
+        <div className="flex shrink-0 items-center gap-3 self-center">
+          <DeleteButton
+            title={page.title}
+            loading={deleting}
+            onClick={onRequestDelete}
+          />
+          <span className="hidden h-10 w-10 place-items-center rounded-full border border-navy-900/15 text-navy-400 transition group-hover:border-gold-500 group-hover:text-gold-600 sm:grid">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform group-hover:translate-x-0.5">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      {/* Barra sottile del progresso di lettura */}
+      {pct > 0.03 && pct < 0.97 && (
+        <span
+          className="absolute bottom-[-1px] left-0 h-px bg-gold-500"
+          style={{ width: `${Math.round(pct * 100)}%` }}
+        />
+      )}
+    </li>
+  );
+}
+
+export function HomeClient({
+  pages,
+  collections: initialCollections,
+}: {
+  pages: PageMeta[];
+  collections: DocCollection[];
+}) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [documents, setDocuments] = useState(pages);
+  const [collections, setCollections] = useState(initialCollections);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
   const [deleteRequest, setDeleteRequest] = useState<{
     slug: string;
@@ -100,8 +207,50 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
       )
     : documents;
 
+  /* Archivio per rubriche: ogni voce raccoglie i propri documenti (ordinati
+     come l'archivio, dal piu' recente), gli slug orfani sono ignorati e cio'
+     che resta finisce in coda sotto "Fuori rubrica". Col filtro attivo si
+     torna all'elenco piatto: i risultati non vanno frammentati. */
+  const bySlug = new Map(documents.map((doc) => [doc.slug, doc]));
+  const groups: { id: string; title: string; inRubrica: boolean; docs: PageMeta[] }[] = [];
+  if (!needle && collections.length > 0) {
+    for (const collection of collections) {
+      const docs = collection.slugs
+        .map((slug) => bySlug.get(slug))
+        .filter((doc): doc is PageMeta => Boolean(doc))
+        .sort((a, b) => b.mtime - a.mtime);
+      if (docs.length > 0) {
+        groups.push({ id: collection.id, title: collection.title, inRubrica: true, docs });
+      }
+    }
+    if (groups.length > 0) {
+      const assigned = new Set(collections.flatMap((c) => c.slugs));
+      const rest = documents.filter((doc) => !assigned.has(doc.slug));
+      if (rest.length > 0) {
+        groups.push({ id: "fuori-rubrica", title: "Fuori rubrica", inRubrica: false, docs: rest });
+      }
+    }
+  }
+
+  /* Numerazione continua tra i gruppi, per mantenere l'indice editoriale. */
+  let rowNumber = 0;
+  const numberedGroups = groups.map((group) => ({
+    ...group,
+    rows: group.docs.map((doc) => ({ doc, number: ++rowNumber })),
+  }));
+
+  function collectionCount(collection: DocCollection) {
+    return collection.slugs.filter((slug) => bySlug.has(slug)).length;
+  }
+
   function requestDeleteDocument(slug: string, title: string) {
     setDeleteRequest({ slug, title });
+  }
+
+  function handleCollectionsSaved(next: DocCollection[]) {
+    setCollections(next);
+    setManagerOpen(false);
+    router.refresh();
   }
 
   async function deleteDocument() {
@@ -133,12 +282,24 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
     }
   }
 
+  function renderRows(rows: { doc: PageMeta; number: number }[]) {
+    return rows.map(({ doc, number }) => (
+      <DocRow
+        key={doc.slug}
+        page={doc}
+        number={number}
+        isFeatured={number === 1 && !needle}
+        pct={progress[doc.slug]?.pct ?? 0}
+        deleting={deletingSlug === doc.slug}
+        onRequestDelete={() => requestDeleteDocument(doc.slug, doc.title)}
+      />
+    ));
+  }
+
   return (
     <div className="min-h-screen bg-surface text-navy-900">
       {/* ── Hero a schermo intero ─────────────────────────────── */}
       <section className="creta-hero-bg relative flex min-h-[100svh] flex-col overflow-hidden text-white">
-        <div className="creta-grain pointer-events-none absolute inset-0 opacity-[0.05]" />
-
         {/* Wordmark particellare MICE: qui il segnale principale e' l'azienda,
             mentre Creta resta la tecnologia che alimenta il portale. */}
         <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] md:block">
@@ -146,7 +307,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
         </div>
 
         {/* Navigazione principale */}
-        <header className="relative z-10 flex items-center justify-between gap-3 px-5 py-5 sm:px-10">
+        <header className="relative z-30 flex items-center justify-between gap-3 px-5 py-5 sm:px-10">
           <Link href="/" className="flex items-center gap-2.5">
             <Mark />
             <span className="font-display text-lg font-bold tracking-tight">MICE AI Hub</span>
@@ -163,30 +324,79 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
               <span className="hidden sm:block">Cerca</span>
               <kbd className="hidden font-mono text-[0.65rem] font-semibold text-white/50 sm:block">⌘K</kbd>
             </button>
-            <Link
-              href="/cos-e-creta"
-              className="hidden rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/60 hover:text-white sm:block"
-            >
-              Cos&apos;e Creta
-            </Link>
-            <Link
-              href="/scrivi"
-              className="hidden rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/60 hover:text-white sm:block"
-            >
-              Scrivi
-            </Link>
-            <Link
-              href="/componi"
-              className="hidden rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/60 hover:text-white sm:block"
-            >
-              Componi
-            </Link>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="rounded-full bg-gold-400 px-4 py-2 text-sm font-semibold text-navy-950 transition hover:-translate-y-0.5 hover:bg-gold-300"
-            >
-              + Documento
-            </button>
+
+            {/* Menu rubriche: le voci portano al gruppo in archivio,
+                l'ultima azione apre il pannello di gestione. */}
+            <div className="relative z-40">
+              <button
+                type="button"
+                onClick={() => setNavMenuOpen((open) => !open)}
+                aria-expanded={navMenuOpen}
+                className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition ${
+                  navMenuOpen
+                    ? "border-white/60 text-white"
+                    : "border-white/20 text-white/80 hover:border-white/60 hover:text-white"
+                }`}
+              >
+                Rubriche
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`h-3 w-3 transition-transform ${navMenuOpen ? "rotate-180" : ""}`}>
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              {navMenuOpen && (
+                <>
+                  <button
+                    type="button"
+                    aria-hidden
+                    tabIndex={-1}
+                    onClick={() => setNavMenuOpen(false)}
+                    className="fixed inset-0 z-40 cursor-default"
+                  />
+                  <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-navy-900/10 bg-white p-1.5 text-navy-900 shadow-2xl shadow-navy-950/40">
+                    {collections.length === 0 ? (
+                      <p className="px-3.5 py-3 text-sm leading-6 text-navy-500">
+                        Nessuna rubrica ancora: crea la prima per organizzare
+                        l&apos;archivio.
+                      </p>
+                    ) : (
+                      collections.map((collection, index) => (
+                        <a
+                          key={collection.id}
+                          href={`#rubrica-${collection.id}`}
+                          onClick={() => setNavMenuOpen(false)}
+                          className="flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition hover:bg-surface"
+                        >
+                          <span className="flex min-w-0 items-center gap-2.5">
+                            <span className="font-mono text-[0.65rem] font-semibold text-gold-600">
+                              {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <span className="truncate">{collection.title}</span>
+                          </span>
+                          <span className="shrink-0 font-mono text-[0.65rem] font-semibold text-navy-400">
+                            {collectionCount(collection)}
+                          </span>
+                        </a>
+                      ))
+                    )}
+                    <div className="mx-2 my-1 border-t border-navy-900/10" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNavMenuOpen(false);
+                        setManagerOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-navy-900 transition hover:bg-surface"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-600">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                      {collections.length === 0 ? "Crea una rubrica" : "Gestisci rubriche"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
           </div>
         </header>
 
@@ -194,48 +404,47 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
         <div className="relative z-10 mx-auto flex w-full max-w-[88rem] flex-1 flex-col justify-center px-5 py-10 sm:px-10">
           <p className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
             <span className="h-px w-10 bg-gold-400/60" />
-            MICE internal intelligence
+            Documentazione interna MICE
           </p>
-          
+
           <h1 className="mt-7 font-display text-[clamp(2.9rem,9vw,5.5rem)] font-bold leading-[0.98] tracking-tight">
-            Osservatorio
+            Hub documentale
             <br />
-            AI interno{" "}
+            interno{" "}
             <em className="font-semibold italic text-gold-300">MICE</em>.
           </h1>
 
-          <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <p className="max-w-xl text-[1.02rem] leading-8 text-white/60">
-              News, linee guida e documenti operativi per seguire l&apos;evoluzione
-              dell&apos;intelligenza artificiale in azienda.
-              <span className="mt-3 block text-sm italic text-white/40">
-                Questo portale e&apos; realizzato con Creta: i documenti MICE
-                diventano pagine navigabili, cercabili e pronte da condividere.
-              </span>
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => setModalOpen(true)}
-                className="rounded-full bg-gold-400 px-6 py-3 text-sm font-semibold text-navy-950 transition hover:-translate-y-0.5 hover:bg-gold-300"
-              >
-                Carica un documento
-              </button>
-              <Link
-                href="/cos-e-creta"
-                className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
-              >
-                Cos&apos;e Creta
-              </Link>
-              <a
-                href="#archivio"
-                className="flex items-center gap-2 rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
-              >
-                Sfoglia l&apos;archivio
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 animate-[creta-bob_2.4s_ease-in-out_infinite]">
-                  <path d="M12 5v14M19 12l-7 7-7-7" />
-                </svg>
-              </a>
-            </div>
+          <p className="mt-8 max-w-xl text-[1.02rem] leading-8 text-white/60">
+            News, linee guida e documenti operativi per seguire l&apos;evoluzione
+            dell&apos;intelligenza artificiale in azienda: ogni contenuto diventa
+            una pagina navigabile, cercabile e pronta da condividere.
+          </p>
+
+          <div className="mt-10 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setModalOpen(true)}
+              className="rounded-full bg-gold-400 px-6 py-3 text-sm font-semibold text-navy-950 transition hover:-translate-y-0.5 hover:bg-gold-300"
+            >
+              Carica documento
+            </button>
+            <Link
+              href="/scrivi"
+              className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
+            >
+              Scrivi
+            </Link>
+            <Link
+              href="/componi"
+              className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
+            >
+              Componi
+            </Link>
+            <Link
+              href="/cos-e-creta"
+              className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
+            >
+              Cos&apos;e Creta
+            </Link>
           </div>
         </div>
 
@@ -287,19 +496,48 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
             </p>
             <h2 className="mt-2 font-display text-4xl font-bold">Archivio AI MICE</h2>
           </div>
-          <div className="relative w-full sm:w-80">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400">
-              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filtra l'indice…"
-              className="w-full rounded-full border border-navy-900/15 bg-white py-3 pl-11 pr-4 text-sm text-navy-900 placeholder:text-navy-400 outline-none transition focus:border-gold-500"
-            />
+          <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-80">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Filtra l'indice…"
+                className="w-full rounded-full border border-navy-900/15 bg-white py-3 pl-11 pr-4 text-sm text-navy-900 placeholder:text-navy-400 outline-none transition focus:border-gold-500"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setManagerOpen(true)}
+              className="flex shrink-0 items-center justify-center gap-2 rounded-full border border-navy-900/15 bg-white px-5 py-3 text-sm font-medium text-navy-700 transition hover:border-gold-500 hover:text-gold-700"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
+              Organizza
+            </button>
           </div>
         </div>
+
+        {/* Rail delle rubriche: salto rapido ai gruppi dell'archivio. */}
+        {numberedGroups.length > 0 && (
+          <nav className="mt-8 flex flex-wrap items-center gap-2" aria-label="Rubriche">
+            {numberedGroups.map((group, index) => (
+              <a
+                key={group.id}
+                href={`#rubrica-${group.id}`}
+                className="flex items-center gap-2 rounded-full border border-navy-900/15 bg-white px-4 py-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-navy-600 transition hover:border-gold-500 hover:text-gold-700"
+              >
+                <span className="text-gold-600">{String(index + 1).padStart(2, "0")}</span>
+                {group.title}
+                <span className="text-navy-300">{group.docs.length}</span>
+              </a>
+            ))}
+          </nav>
+        )}
 
         {/* Indice dei documenti */}
         {documents.length === 0 ? (
@@ -325,90 +563,28 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
             </button>
             , che guarda anche dentro le sezioni.
           </p>
+        ) : numberedGroups.length > 0 ? (
+          numberedGroups.map((group, index) => (
+            <div key={group.id} id={`rubrica-${group.id}`} className="scroll-mt-10">
+              <div className="mt-12 flex items-baseline gap-4 first:mt-7">
+                <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gold-600">
+                  {group.inRubrica ? `Rubrica ${String(index + 1).padStart(2, "0")}` : "In coda"}
+                </p>
+                <h3 className="font-display text-2xl font-bold text-navy-950">
+                  {group.title}
+                </h3>
+                <span className="font-mono text-[0.68rem] font-medium uppercase tracking-wide text-navy-400">
+                  {group.docs.length} {group.docs.length === 1 ? "documento" : "documenti"}
+                </span>
+              </div>
+              <ul className="mt-4 border-t-2 border-gold-500/70">
+                {renderRows(group.rows)}
+              </ul>
+            </div>
+          ))
         ) : (
           <ul className="mt-7 border-t border-navy-900/10">
-            {filtered.map((page, index) => {
-              const pct = progress[page.slug]?.pct ?? 0;
-              const isFeatured = index === 0 && !needle;
-              return (
-                <li key={page.slug} className="group relative border-b border-navy-900/10">
-                  <div className="flex items-start gap-5 py-6 sm:gap-8 sm:py-7">
-                    <span className="hidden w-12 shrink-0 pt-1 font-mono text-sm font-semibold text-navy-300 transition-colors group-hover:text-gold-600 sm:block">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-
-                    <Link
-                      href={`/${page.slug}`}
-                      transitionTypes={["nav-forward"]}
-                      className="min-w-0 flex-1"
-                    >
-                      <p className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-navy-400">
-                        {page.eyebrow}
-                      </p>
-                      <h3
-                        className={`mt-2 max-w-3xl font-display font-bold leading-tight text-navy-950 transition-colors group-hover:text-navy-700 ${
-                          isFeatured ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl"
-                        }`}
-                        style={{ viewTransitionName: `doc-title-${page.slug}` }}
-                      >
-                        {page.title}
-                      </h3>
-                      {page.summary && (
-                        <p
-                          className={`mt-2.5 max-w-2xl text-sm leading-7 text-navy-500 ${
-                            isFeatured ? "line-clamp-3 sm:text-[0.95rem]" : "line-clamp-2"
-                          }`}
-                        >
-                          {page.summary}
-                        </p>
-                      )}
-                      <p className="mt-3.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[0.68rem] font-medium uppercase tracking-wide text-navy-400">
-                        <span>{page.sectionCount} sezioni</span>
-                        <span className="h-0.5 w-0.5 rounded-full bg-navy-300" />
-                        <span>{page.readingMinutes} min</span>
-                        {page.displayDate && (
-                          <>
-                            <span className="h-0.5 w-0.5 rounded-full bg-navy-300" />
-                            <span>{page.displayDate}</span>
-                          </>
-                        )}
-                        {pct >= 0.97 ? (
-                          <span className="flex items-center gap-1 text-emerald-700">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
-                              <path d="m5 12.5 4 4 10-10" />
-                            </svg>
-                            Letto
-                          </span>
-                        ) : pct > 0.03 ? (
-                          <span className="text-gold-700">{Math.round(pct * 100)}% letto</span>
-                        ) : null}
-                      </p>
-                    </Link>
-
-                    <div className="flex shrink-0 items-center gap-3 self-center">
-                      <DeleteButton
-                        title={page.title}
-                        loading={deletingSlug === page.slug}
-                        onClick={() => requestDeleteDocument(page.slug, page.title)}
-                      />
-                      <span className="hidden h-10 w-10 place-items-center rounded-full border border-navy-900/15 text-navy-400 transition group-hover:border-gold-500 group-hover:text-gold-600 sm:grid">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform group-hover:translate-x-0.5">
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Barra sottile del progresso di lettura */}
-                  {pct > 0.03 && pct < 0.97 && (
-                    <span
-                      className="absolute bottom-[-1px] left-0 h-px bg-gold-500"
-                      style={{ width: `${Math.round(pct * 100)}%` }}
-                    />
-                  )}
-                </li>
-              );
-            })}
+            {renderRows(filtered.map((doc, index) => ({ doc, number: index + 1 })))}
           </ul>
         )}
       </section>
@@ -433,6 +609,14 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
       </footer>
 
       {modalOpen && <UploadModal onClose={() => setModalOpen(false)} />}
+      {managerOpen && (
+        <CollectionsManager
+          documents={documents}
+          collections={collections}
+          onClose={() => setManagerOpen(false)}
+          onSaved={handleCollectionsSaved}
+        />
+      )}
       {deleteRequest && (
         <div
           className="fixed inset-0 z-50 grid place-items-center bg-navy-950/55 px-4 py-6 backdrop-blur-sm"

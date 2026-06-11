@@ -34,6 +34,7 @@ creta/
 │   ├── api/ingest/route.ts    — upload .docx → Gemini → content/pages/<slug>.json
 │   ├── api/author/route.ts    — POST fai-da-te: markdown → stessa pipeline → JSON (+ PUT [slug]/ per rigenerare)
 │   ├── api/search/route.ts    — ricerca full-text su content/pages (palette ⌘K), zero LLM e zero DB
+│   ├── api/collections/route.ts — GET/PUT config delle rubriche (PUT = full-replace con authorizeEditor)
 │   ├── api/documents/[slug]/  — DELETE di un documento
 │   ├── [slug]/page.tsx        — renderizza una pagina (v2 o legacy) + generateMetadata
 │   ├── scrivi/page.tsx        — editor fai-da-te (crea o modifica via ?slug=…), monta WriterClient
@@ -52,6 +53,8 @@ creta/
 │   ├── schema.ts              — schema Zod (PageDesign v2 + DocumentTree legacy) + normalizzatori tolleranti
 │   ├── pageDesignPrompt.ts    — chapterSystemPrompt (singolo/multi-capitolo ± page header) + PAGE_META_PROMPT di fallback
 │   ├── pagesStore.ts          — adapter async dello store documenti: filesystem in dev, Vercel Blob quando c'è BLOB_READ_WRITE_TOKEN
+│   ├── collections.ts         — schema Zod + normalizzatore delle rubriche (gruppi di documenti in home; ogni documento sta al massimo in una rubrica)
+│   ├── collectionsStore.ts    — store della config rubriche: content/collections.json in locale, blob meta/collections.json su Vercel
 │   ├── searchIndex.ts         — indice full-text in memoria sullo store (cache su mtime/uploadedAt) + tempo di lettura
 │   ├── anchors.ts             — sectionAnchor condiviso tra renderer e indice (deep link coerenti)
 │   ├── readingProgress.ts     — progresso di lettura in localStorage (client, adapter useSyncExternalStore)
@@ -61,7 +64,8 @@ creta/
 │   ├── PageDesignRenderer.tsx — renderer v2: hero, TOC, sezioni, footer, tutti i blocchi
 │   ├── CommandPalette.tsx     — palette ⌘K globale (montata nel layout, cerca via /api/search)
 │   ├── InlineText.tsx         — resa inline di `code`, **bold**, URL
-│   ├── HomeClient.tsx         — home: hero full-screen, archivio, delete
+│   ├── HomeClient.tsx         — home: hero full-screen, menu rubriche, archivio per rubriche, delete
+│   ├── CollectionsManager.tsx — pannello modale rubriche: crea/rinomina/riordina voci e assegna i documenti
 │   ├── UploadModal.tsx        — upload con stati di avanzamento e avviso fallback
 │   ├── WriterClient.tsx       — editor fai-da-te: form a capitoli, cheat-sheet markdown, stati di avanzamento
 │   ├── DocHeader.tsx          — header sticky con progress di lettura (salvato in localStorage)
