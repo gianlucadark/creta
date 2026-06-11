@@ -243,6 +243,9 @@ export function HomeClient({
     return collection.slugs.filter((slug) => bySlug.has(slug)).length;
   }
 
+  const sortedDocuments = [...documents].sort((a, b) => b.mtime - a.mtime);
+  const fallbackDocuments = sortedDocuments.slice(0, 4);
+
   function requestDeleteDocument(slug: string, title: string) {
     setDeleteRequest({ slug, title });
   }
@@ -307,12 +310,120 @@ export function HomeClient({
         </div>
 
         {/* Navigazione principale */}
-        <header className="relative z-30 flex items-center justify-between gap-3 px-5 py-5 sm:px-10">
+        <header className="relative z-30 grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-5 py-5 sm:px-10">
           <Link href="/" className="flex items-center gap-2.5">
             <Mark />
             <span className="font-display text-lg font-bold tracking-tight">MICE AI Hub</span>
           </Link>
-          <div className="flex items-center gap-2.5">
+
+          <div className="relative z-40 justify-self-center">
+            <button
+              type="button"
+              onClick={() => setNavMenuOpen((open) => !open)}
+              aria-expanded={navMenuOpen}
+              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur transition ${
+                navMenuOpen
+                  ? "border-white/60 bg-white/10 text-white"
+                  : "border-white/20 bg-white/5 text-white/80 hover:border-white/60 hover:text-white"
+              }`}
+            >
+              Rubriche
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`h-3 w-3 transition-transform ${navMenuOpen ? "rotate-180" : ""}`}>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            {navMenuOpen && (
+              <>
+                <button
+                  type="button"
+                  aria-hidden
+                  tabIndex={-1}
+                  onClick={() => setNavMenuOpen(false)}
+                  className="fixed inset-0 z-40 cursor-default"
+                />
+                <div className="absolute left-1/2 top-full z-50 mt-3 w-[min(34rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-navy-900/10 bg-white p-2 text-navy-900 shadow-2xl shadow-navy-950/40">
+                  {collections.length === 0 ? (
+                    <div className="p-2.5">
+                      <p className="text-sm leading-6 text-navy-500">
+                        Nessuna rubrica ancora. Intanto puoi aprire i documenti
+                        più recenti.
+                      </p>
+                      <div className="mt-3 divide-y divide-navy-900/10">
+                        {fallbackDocuments.map((doc) => (
+                          <Link
+                            key={doc.slug}
+                            href={`/${doc.slug}`}
+                            onClick={() => setNavMenuOpen(false)}
+                            transitionTypes={["nav-forward"]}
+                            className="block py-2.5 text-sm font-semibold text-navy-900 transition hover:text-gold-700"
+                          >
+                            {doc.title}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {collections.map((collection) => {
+                        const docs = collection.slugs
+                          .map((slug) => bySlug.get(slug))
+                          .filter((doc): doc is PageMeta => Boolean(doc))
+                          .sort((a, b) => b.mtime - a.mtime)
+                          .slice(0, 3);
+
+                        return (
+                          <div key={collection.id} className="rounded-xl border border-navy-900/10 bg-surface/70 p-3">
+                            <a
+                              href={`#rubrica-${collection.id}`}
+                              onClick={() => setNavMenuOpen(false)}
+                              className="block truncate font-display text-lg font-bold text-navy-950 transition hover:text-gold-700"
+                            >
+                              {collection.title}
+                            </a>
+                            <div className="mt-2 space-y-1">
+                              {docs.length > 0 ? (
+                                docs.map((doc) => (
+                                  <Link
+                                    key={doc.slug}
+                                    href={`/${doc.slug}`}
+                                    onClick={() => setNavMenuOpen(false)}
+                                    transitionTypes={["nav-forward"]}
+                                    className="block truncate rounded-lg px-2 py-1.5 text-sm text-navy-600 transition hover:bg-white hover:text-navy-950"
+                                  >
+                                    {doc.title}
+                                  </Link>
+                                ))
+                              ) : (
+                                <p className="px-2 py-1.5 text-sm text-navy-400">
+                                  Rubrica vuota
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="mx-2 my-2 border-t border-navy-900/10" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNavMenuOpen(false);
+                      setManagerOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-navy-900 transition hover:bg-surface"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-600">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    {collections.length === 0 ? "Crea una rubrica" : "Gestisci rubriche"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={openPalette}
@@ -324,127 +435,76 @@ export function HomeClient({
               <span className="hidden sm:block">Cerca</span>
               <kbd className="hidden font-mono text-[0.65rem] font-semibold text-white/50 sm:block">⌘K</kbd>
             </button>
-
-            {/* Menu rubriche: le voci portano al gruppo in archivio,
-                l'ultima azione apre il pannello di gestione. */}
-            <div className="relative z-40">
-              <button
-                type="button"
-                onClick={() => setNavMenuOpen((open) => !open)}
-                aria-expanded={navMenuOpen}
-                className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition ${
-                  navMenuOpen
-                    ? "border-white/60 text-white"
-                    : "border-white/20 text-white/80 hover:border-white/60 hover:text-white"
-                }`}
-              >
-                Rubriche
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`h-3 w-3 transition-transform ${navMenuOpen ? "rotate-180" : ""}`}>
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              {navMenuOpen && (
-                <>
-                  <button
-                    type="button"
-                    aria-hidden
-                    tabIndex={-1}
-                    onClick={() => setNavMenuOpen(false)}
-                    className="fixed inset-0 z-40 cursor-default"
-                  />
-                  <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-navy-900/10 bg-white p-1.5 text-navy-900 shadow-2xl shadow-navy-950/40">
-                    {collections.length === 0 ? (
-                      <p className="px-3.5 py-3 text-sm leading-6 text-navy-500">
-                        Nessuna rubrica ancora: crea la prima per organizzare
-                        l&apos;archivio.
-                      </p>
-                    ) : (
-                      collections.map((collection, index) => (
-                        <a
-                          key={collection.id}
-                          href={`#rubrica-${collection.id}`}
-                          onClick={() => setNavMenuOpen(false)}
-                          className="flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition hover:bg-surface"
-                        >
-                          <span className="flex min-w-0 items-center gap-2.5">
-                            <span className="font-mono text-[0.65rem] font-semibold text-gold-600">
-                              {String(index + 1).padStart(2, "0")}
-                            </span>
-                            <span className="truncate">{collection.title}</span>
-                          </span>
-                          <span className="shrink-0 font-mono text-[0.65rem] font-semibold text-navy-400">
-                            {collectionCount(collection)}
-                          </span>
-                        </a>
-                      ))
-                    )}
-                    <div className="mx-2 my-1 border-t border-navy-900/10" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNavMenuOpen(false);
-                        setManagerOpen(true);
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-navy-900 transition hover:bg-surface"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-600">
-                        <path d="M12 5v14M5 12h14" />
-                      </svg>
-                      {collections.length === 0 ? "Crea una rubrica" : "Gestisci rubriche"}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
           </div>
         </header>
 
         {/* Titolo e azioni principali */}
         <div className="relative z-10 mx-auto flex w-full max-w-[88rem] flex-1 flex-col justify-center px-5 py-10 sm:px-10">
-          <p className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
-            <span className="h-px w-10 bg-gold-400/60" />
-            Documentazione interna MICE
-          </p>
+          <div className="max-w-3xl">
+            <p className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
+              <span className="h-px w-10 bg-gold-400/60" />
+              Documentazione interna MICE
+            </p>
 
-          <h1 className="mt-7 font-display text-[clamp(2.9rem,9vw,5.5rem)] font-bold leading-[0.98] tracking-tight">
-            Hub documentale
-            <br />
-            interno{" "}
-            <em className="font-semibold italic text-gold-300">MICE</em>.
-          </h1>
+            <h1 className="mt-7 max-w-4xl font-display text-[clamp(2.8rem,8vw,5.8rem)] font-bold leading-[0.95] tracking-tight">
+              Tavolo di lavoro
+              <br />
+              per la conoscenza{" "}
+              <em className="font-semibold italic text-gold-300">MICE</em>.
+            </h1>
 
-          <p className="mt-8 max-w-xl text-[1.02rem] leading-8 text-white/60">
-            News, linee guida e documenti operativi per seguire l&apos;evoluzione
-            dell&apos;intelligenza artificiale in azienda: ogni contenuto diventa
-            una pagina navigabile, cercabile e pronta da condividere.
-          </p>
+            <p className="mt-8 max-w-2xl text-[1.02rem] leading-8 text-white/68">
+              News, linee guida e procedure interne raccolte in un ambiente
+              leggibile: ogni documento diventa una pagina chiara, cercabile e
+              pronta da riprendere quando serve.
+            </p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setModalOpen(true)}
-              className="rounded-full bg-gold-400 px-6 py-3 text-sm font-semibold text-navy-950 transition hover:-translate-y-0.5 hover:bg-gold-300"
-            >
-              Carica documento
-            </button>
-            <Link
-              href="/scrivi"
-              className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
-            >
-              Scrivi
-            </Link>
-            <Link
-              href="/componi"
-              className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
-            >
-              Componi
-            </Link>
-            <Link
-              href="/cos-e-creta"
-              className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
-            >
-              Cos&apos;e Creta
-            </Link>
+            <div className="mt-9 grid gap-3 sm:max-w-2xl sm:grid-cols-3">
+              <button
+                onClick={() => setModalOpen(true)}
+                className="flex items-center justify-center gap-2 rounded-2xl bg-gold-400 px-5 py-4 text-sm font-semibold text-navy-950 transition hover:-translate-y-0.5 hover:bg-gold-300"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Carica
+              </button>
+              <Link
+                href="/scrivi"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/6 px-5 py-4 text-sm font-medium text-white transition hover:border-white/55 hover:bg-white/10"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+                Scrivi
+              </Link>
+              <Link
+                href="/componi"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/6 px-5 py-4 text-sm font-medium text-white transition hover:border-white/55 hover:bg-white/10"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="M4 7h16M4 12h10M4 17h16" />
+                </svg>
+                Componi
+              </Link>
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={openPalette}
+                className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/75 transition hover:border-white/45 hover:text-white"
+              >
+                Cerca nell&apos;hub
+                <kbd className="font-mono text-[0.65rem] text-white/45">⌘K</kbd>
+              </button>
+              <Link
+                href="/cos-e-creta"
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/75 transition hover:border-white/45 hover:text-white"
+              >
+                Cos&apos;è Creta
+              </Link>
+            </div>
           </div>
         </div>
 
