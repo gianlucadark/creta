@@ -114,6 +114,13 @@ export function sectionsFromHtml(html: string, fallbackTitle: string): Section[]
       continue;
     }
 
+    if (tag === "pre") {
+      // raw .text(): elementText would collapse the code's whitespace
+      const code = $(el).text().replace(/\s+$/, "");
+      if (code.trim()) ensure().blocks.push({ type: "code", code });
+      continue;
+    }
+
     const text = elementText($, el);
     if (text) ensure().blocks.push({ type: "paragraph", text });
   }

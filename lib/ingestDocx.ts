@@ -32,6 +32,7 @@ import {
 } from "./docxHtml";
 import { sectionsFromHtml } from "./htmlDesign";
 import { coverageRatio, designText } from "./coverage";
+import { authoredChaptersToHtml, type AuthoredChapter } from "./markdown";
 
 const MAX_CHUNK_CHARS = 18_000;
 const MIN_COVERAGE = 0.8;
@@ -379,6 +380,38 @@ async function buildMeta(
 export async function ingestDocxBuffer(buffer: Buffer): Promise<IngestResult> {
   const { value: rawHtml } = await mammoth.convertToHtml({ buffer });
   const html = cleanDocumentHtml(cleanText(rawHtml));
+  return designFromHtml(html);
+}
+
+export type AuthoredInput = {
+  title: string;
+  summary: string;
+  eyebrow?: string;
+  chapters: AuthoredChapter[];
+};
+
+/** Ingest a document written in the app: the markdown chapters become the
+    same semantic HTML shape the docx path produces, and the user-provided
+    title/summary preset the page header so the LLM meta step is skipped. */
+export async function ingestAuthoredDocument(
+  input: AuthoredInput
+): Promise<IngestResult> {
+  const html = authoredChaptersToHtml(input.chapters);
+  const page: PageDesign["page"] = {
+    title: input.title.trim(),
+    summary: input.summary.trim(),
+    eyebrow: input.eyebrow?.trim() || "Documento",
+  };
+  return designFromHtml(html, { page });
+}
+
+/** Core of the pipeline, shared by the docx and authored paths: cleaned
+    semantic HTML in, PageDesign out. With a preset page header every call
+    is sections-only (no meta inference). */
+export async function designFromHtml(
+  html: string,
+  preset?: { page: PageDesign["page"] }
+): Promise<IngestResult> {
   const fullText = htmlToPlainText(html);
 
   if (!fullText.trim()) {
@@ -394,13 +427,14 @@ export async function ingestDocxBuffer(buffer: Buffer): Promise<IngestResult> {
   const coverText = htmlToPlainText(structure.coverHtml);
   const tally: Tally = { llmCalls: 0 };
 
+  const wantMetaFirst = !preset && hasKey;
   let mergedPage: PageDesign["page"] | null = null;
   const groupResults = await mapWithConcurrency(
     groups,
     CONCURRENCY,
     async (group, index) => {
       // the first call also produces the page header from the cover
-      const wantMeta = index === 0 && hasKey;
+      const wantMeta = index === 0 && wantMetaFirst;
       const result = await runGroup(group, wantMeta, coverText, hasKey, tally);
       if (result.page) mergedPage = result.page;
       return result.perChunk;
@@ -409,7 +443,9 @@ export async function ingestDocxBuffer(buffer: Buffer): Promise<IngestResult> {
   const results = groupResults.flat();
 
   const page =
-    mergedPage ?? (await buildMeta(coverText, fullText, hasKey, tally));
+    preset?.page ??
+    mergedPage ??
+    (await buildMeta(coverText, fullText, hasKey, tally));
 
   // Reduce step: a continuation chunk that starts mid-section has no real
   // heading of its own, so the model titles its opening section with the

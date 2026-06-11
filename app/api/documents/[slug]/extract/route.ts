@@ -84,7 +84,14 @@ export async function POST(
     // Write the new document first: a failure rewriting the source never loses content.
     await writePageDesign(newSlug, newDesign);
     if (removeFromSource) {
-      await writePageDesign(slug, { ...design, sections: remaining });
+      // Keep the authored markdown source consistent: an authored chapter
+      // title equals its <h1>, i.e. section.chapter, so the match is exact.
+      let authoring = design.authoring;
+      if (authoring) {
+        const chapters = authoring.chapters.filter((c) => c.title !== chapter);
+        authoring = chapters.length > 0 ? { ...authoring, chapters } : undefined;
+      }
+      await writePageDesign(slug, { ...design, sections: remaining, authoring });
     }
 
     return Response.json({

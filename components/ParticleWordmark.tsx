@@ -2,15 +2,12 @@
 
 import { useEffect, useRef } from "react";
 
-/* Sciame di particelle che si ricompone ciclicamente nelle parole del brand.
-   È la metafora visiva del motore: le particelle (la materia) non vengono
-   mai create né distrutte tra una parola e l'altra — cambia solo la forma
-   che assumono. Canvas puro, zero dipendenze; con prefers-reduced-motion
-   disegna la prima parola statica e non anima nulla. */
+/* Particelle che arrivano da tutta l'area del canvas e compongono lentamente
+   MICE. Il puntatore crea interferenza solo nel punto attraversato. */
 
-const WORDS = ["MICE", "CRETA"];
-const HOLD_MS = 6000;
-const MAX_PARTICLES = 1500;
+const WORD = "MICE";
+const MAX_PARTICLES = 1900;
+const POINTER_RADIUS = 88;
 const GOLD = "236, 201, 60";
 const BLUE = "123, 175, 217";
 
@@ -24,6 +21,7 @@ type Particle = {
   size: number;
   gold: boolean;
   alpha: number;
+  seed: number;
 };
 
 export function ParticleWordmark({ className = "" }: { className?: string }) {
@@ -44,9 +42,9 @@ export function ParticleWordmark({ className = "" }: { className?: string }) {
     let raf = 0;
     let visible = true;
     let disposed = false;
+    let birth = performance.now();
     const particles: Particle[] = [];
-    let wordIndex = 0;
-    let lastSwap = performance.now();
+    const pointer = { x: 0, y: 0, active: false };
 
     function resize() {
       const rect = canvas!.getBoundingClientRect();
@@ -58,8 +56,6 @@ export function ParticleWordmark({ className = "" }: { className?: string }) {
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    /* Rasterizza la parola su un canvas fuori schermo e campiona i pixel
-       coperti: ogni punto campionato è la destinazione di una particella. */
     function sampleTargets(word: string) {
       const points: Array<{ x: number; y: number }> = [];
       if (width < 60 || height < 60) return points;
@@ -70,19 +66,22 @@ export function ParticleWordmark({ className = "" }: { className?: string }) {
       const octx = off.getContext("2d");
       if (!octx) return points;
 
-      /* la parola vive nel quadrante alto-destro della hero, dove non
-         si sovrappone al titolo */
-      const fontSize = Math.min(height * 0.42, (width / word.length) * 1.4);
+      const fontSize = Math.min(height * 0.43, (width / word.length) * 1.48);
       const family =
-        getComputedStyle(document.body).fontFamily || "sans-serif";
-      octx.font = `900 ${fontSize}px ${family}`;
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--font-display")
+          .trim() ||
+        getComputedStyle(document.body).fontFamily ||
+        "serif";
+
+      octx.font = `700 ${fontSize}px ${family}`;
       octx.textAlign = "center";
       octx.textBaseline = "middle";
       octx.fillStyle = "#fff";
-      octx.fillText(word, width * 0.54, height * 0.32);
+      octx.fillText(word, width * 0.53, height * 0.36);
 
       const data = octx.getImageData(0, 0, width, height).data;
-      const gap = Math.max(4, Math.round(fontSize / 30));
+      const gap = Math.max(4, Math.round(fontSize / 32));
       for (let y = 0; y < height; y += gap) {
         for (let x = 0; x < width; x += gap) {
           if (data[(y * width + x) * 4 + 3] > 128) points.push({ x, y });
@@ -95,38 +94,42 @@ export function ParticleWordmark({ className = "" }: { className?: string }) {
       return {
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: 0,
-        vy: 0,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
         tx: width / 2,
         ty: height / 2,
-        size: 1 + Math.random() * 1.4,
-        gold: Math.random() < 0.8,
-        alpha: 0.45 + Math.random() * 0.5,
+        size: 0.95 + Math.random() * 1.55,
+        gold: Math.random() < 0.78,
+        alpha: 0.42 + Math.random() * 0.5,
+        seed: Math.random() * Math.PI * 2,
       };
     }
 
-    function retarget(word: string) {
-      const targets = sampleTargets(word);
+    function composeWord() {
+      const targets = sampleTargets(WORD);
       if (targets.length === 0) return;
-      // shuffle: le traiettorie si incrociano e la transizione "fluisce"
+
       for (let i = targets.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [targets[i], targets[j]] = [targets[j], targets[i]];
       }
+
       const count = Math.min(targets.length, MAX_PARTICLES);
-      while (particles.length < count) particles.push(spawn());
-      particles.length = count;
+      particles.length = 0;
       for (let i = 0; i < count; i++) {
-        particles[i].tx = targets[i].x;
-        particles[i].ty = targets[i].y;
+        const particle = spawn();
+        particle.tx = targets[i].x;
+        particle.ty = targets[i].y;
+        particles.push(particle);
       }
+      birth = performance.now();
     }
 
-    function drawStatic(word: string) {
+    function drawStatic() {
       resize();
       ctx!.clearRect(0, 0, width, height);
-      for (const point of sampleTargets(word)) {
-        const gold = Math.random() < 0.8;
+      for (const point of sampleTargets(WORD).slice(0, MAX_PARTICLES)) {
+        const gold = Math.random() < 0.78;
         ctx!.fillStyle = `rgba(${gold ? GOLD : BLUE}, 0.8)`;
         ctx!.fillRect(point.x, point.y, 1.6, 1.6);
       }
@@ -134,59 +137,73 @@ export function ParticleWordmark({ className = "" }: { className?: string }) {
 
     function tick(now: number) {
       if (disposed) return;
-      if (now - lastSwap > HOLD_MS) {
-        wordIndex = (wordIndex + 1) % WORDS.length;
-        retarget(WORDS[wordIndex]);
-        lastSwap = now;
-      }
 
       ctx!.clearRect(0, 0, width, height);
+      const compose = Math.min(1, (now - birth) / 10500);
+      const spring = 0.0022 + compose * 0.014;
+      const damping = 0.93 - compose * 0.045;
+
       for (const p of particles) {
-        p.vx = (p.vx + (p.tx - p.x) * 0.024) * 0.84;
-        p.vy = (p.vy + (p.ty - p.y) * 0.024) * 0.84;
-        p.x += p.vx + (Math.random() - 0.5) * 0.4;
-        p.y += p.vy + (Math.random() - 0.5) * 0.4;
+        let fx = (p.tx - p.x) * spring;
+        let fy = (p.ty - p.y) * spring;
+
+        if (pointer.active) {
+          const dx = p.x - pointer.x;
+          const dy = p.y - pointer.y;
+          const distSq = dx * dx + dy * dy;
+          const radiusSq = POINTER_RADIUS * POINTER_RADIUS;
+
+          if (distSq < radiusSq && distSq > 0.01) {
+            const dist = Math.sqrt(distSq);
+            const force = (1 - dist / POINTER_RADIUS) ** 2;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            fx += nx * force * 2.9 + -ny * force * 0.85;
+            fy += ny * force * 2.9 + nx * force * 0.85;
+          }
+        }
+
+        p.vx = (p.vx + fx) * damping;
+        p.vy = (p.vy + fy) * damping;
+        p.x += p.vx + Math.sin(now * 0.0012 + p.seed) * 0.04;
+        p.y += p.vy + Math.cos(now * 0.001 + p.seed) * 0.04;
+
         ctx!.fillStyle = `rgba(${p.gold ? GOLD : BLUE}, ${p.alpha})`;
         ctx!.fillRect(p.x, p.y, p.size, p.size);
       }
+
       raf = requestAnimationFrame(tick);
     }
 
     function start() {
       resize();
-      retarget(WORDS[wordIndex]);
-      lastSwap = performance.now();
+      composeWord();
       raf = requestAnimationFrame(tick);
     }
 
     if (reduceMotion) {
-      drawStatic(WORDS[0]);
-      // il font display può caricare dopo il primo paint
-      document.fonts?.ready.then(() => !disposed && drawStatic(WORDS[0]));
+      drawStatic();
+      document.fonts?.ready.then(() => !disposed && drawStatic());
     } else {
       start();
-      document.fonts?.ready.then(() => {
-        if (!disposed) retarget(WORDS[wordIndex]);
-      });
+      document.fonts?.ready.then(() => !disposed && composeWord());
     }
 
     const resizeObserver = new ResizeObserver(() => {
       if (disposed) return;
       if (reduceMotion) {
-        drawStatic(WORDS[0]);
+        drawStatic();
       } else {
         resize();
-        retarget(WORDS[wordIndex]);
+        composeWord();
       }
     });
     resizeObserver.observe(canvas);
 
-    // fuori viewport (hero scrollata via) l'animazione si ferma
     const intersectionObserver = new IntersectionObserver(([entry]) => {
       if (reduceMotion || disposed) return;
       if (entry.isIntersecting && !visible) {
         visible = true;
-        lastSwap = performance.now();
         raf = requestAnimationFrame(tick);
       } else if (!entry.isIntersecting && visible) {
         visible = false;
@@ -195,9 +212,27 @@ export function ParticleWordmark({ className = "" }: { className?: string }) {
     });
     intersectionObserver.observe(canvas);
 
+    function movePointer(event: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      pointer.x = x;
+      pointer.y = y;
+      pointer.active = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+    }
+
+    function clearPointer() {
+      pointer.active = false;
+    }
+
+    window.addEventListener("pointermove", movePointer, { passive: true });
+    window.addEventListener("pointerleave", clearPointer);
+
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", movePointer);
+      window.removeEventListener("pointerleave", clearPointer);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
     };

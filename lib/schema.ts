@@ -269,6 +269,17 @@ export const PageDesignSchema = z.object({
       blocks: z.array(PageDesignBlockSchema),
     })
   ),
+  /** Markdown source of a document written in the app (/scrivi). Its
+      presence marks the document as text-editable (re-generable). Must be
+      declared here: the PATCH/extract routes round-trip the JSON through
+      this schema, and Zod strips undeclared keys. */
+  authoring: z
+    .object({
+      mode: z.literal("markdown"),
+      chapters: z.array(z.object({ title: z.string(), markdown: z.string() })),
+      updatedAt: z.string(),
+    })
+    .optional(),
 });
 
 export const StoredPageSchema = z.union([PageDesignSchema, DocumentTreeSchema]);

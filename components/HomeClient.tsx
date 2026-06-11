@@ -84,6 +84,11 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [documents, setDocuments] = useState(pages);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
+  const [deleteRequest, setDeleteRequest] = useState<{
+    slug: string;
+    title: string;
+    error?: string;
+  } | null>(null);
   const [query, setQuery] = useState("");
 
   /* reading progress lives in localStorage; empty on the server snapshot */
@@ -120,23 +125,34 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
     return best;
   }, [documents, progress]);
 
-  async function deleteDocument(slug: string, title: string) {
-    const confirmed = window.confirm(`Eliminare "${title}"?`);
-    if (!confirmed) return;
+  function requestDeleteDocument(slug: string, title: string) {
+    setDeleteRequest({ slug, title });
+  }
 
+  async function deleteDocument() {
+    if (!deleteRequest) return;
+
+    const { slug } = deleteRequest;
     setDeletingSlug(slug);
     try {
       const res = await fetch(`/api/documents/${slug}`, { method: "DELETE" });
       if (!res.ok) {
         const json = (await res.json().catch(() => null)) as { error?: string } | null;
-        window.alert(json?.error ?? "Eliminazione non riuscita.");
+        setDeleteRequest((current) =>
+          current?.slug === slug
+            ? { ...current, error: json?.error ?? "Eliminazione non riuscita." }
+            : current
+        );
         return;
       }
       setDocuments((current) => current.filter((page) => page.slug !== slug));
       dropReading(slug);
+      setDeleteRequest(null);
       router.refresh();
     } catch {
-      window.alert("Errore di rete. Riprova.");
+      setDeleteRequest((current) =>
+        current?.slug === slug ? { ...current, error: "Errore di rete. Riprova." } : current
+      );
     } finally {
       setDeletingSlug(null);
     }
@@ -172,6 +188,12 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
               <span className="hidden sm:block">Cerca</span>
               <kbd className="hidden font-mono text-[0.65rem] font-semibold text-white/50 sm:block">⌘K</kbd>
             </button>
+            <Link
+              href="/scrivi"
+              className="hidden rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/60 hover:text-white sm:block"
+            >
+              Scrivi
+            </Link>
             <Link
               href="/componi"
               className="hidden rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/60 hover:text-white sm:block"
@@ -220,6 +242,12 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
               >
                 Carica un documento
               </button>
+              <Link
+                href="/scrivi"
+                className="rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
+              >
+                Scrivi un documento
+              </Link>
               <a
                 href="#archivio"
                 className="flex items-center gap-2 rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-white/70"
@@ -450,7 +478,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
                       <DeleteButton
                         title={page.title}
                         loading={deletingSlug === page.slug}
-                        onClick={() => void deleteDocument(page.slug, page.title)}
+                        onClick={() => requestDeleteDocument(page.slug, page.title)}
                       />
                       <span className="hidden h-10 w-10 place-items-center rounded-full border border-navy-900/15 text-navy-400 transition group-hover:border-gold-500 group-hover:text-gold-600 sm:grid">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform group-hover:translate-x-0.5">
@@ -494,6 +522,63 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
       </footer>
 
       {modalOpen && <UploadModal onClose={() => setModalOpen(false)} />}
+      {deleteRequest && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-navy-950/55 px-4 py-6 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-document-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-white/70 bg-white p-5 shadow-2xl shadow-navy-950/20">
+            <div className="flex items-start gap-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-50 text-red-700">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </span>
+              <div className="min-w-0">
+                <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-red-700">
+                  Eliminazione definitiva
+                </p>
+                <h2 id="delete-document-title" className="mt-1 font-display text-2xl font-bold leading-tight text-navy-950">
+                  Eliminare questo documento?
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-navy-500">
+                  Stai per eliminare <span className="font-semibold text-navy-900">&ldquo;{deleteRequest.title}&rdquo;</span>. Il documento sparirà dalla libreria e non sarà più disponibile alla lettura.
+                </p>
+              </div>
+            </div>
+
+            {deleteRequest.error && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm font-medium text-red-800">
+                {deleteRequest.error}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteRequest(null)}
+                disabled={deletingSlug === deleteRequest.slug}
+                className="rounded-full border border-navy-200 px-4 py-2.5 text-sm font-semibold text-navy-700 transition hover:border-navy-300 hover:bg-navy-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={() => void deleteDocument()}
+                disabled={deletingSlug === deleteRequest.slug}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-red-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-red-900/20 transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {deletingSlug === deleteRequest.slug && (
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/70 border-t-transparent" />
+                )}
+                Elimina
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

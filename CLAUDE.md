@@ -20,6 +20,8 @@ L'utente carica un `.docx` dalla home (`UploadModal` → `POST /api/ingest`). La
 
 **IMPORTANTE — non tornare a `generateObject` con `PageDesignSchema`**: Gemini non rispetta i `responseSchema` con discriminated union (`anyOf`) e il `version: z.literal(2)` numerico fa rifiutare lo schema (400). Entrambi facevano fallire ogni chiamata con caduta silenziosa nel fallback lossy.
 
+**Modalità fai-da-te (`/scrivi`)**: l'utente scrive il documento direttamente nell'app (titolo, sommario, capitoli con markdown leggero). `lib/markdown.ts` converte il markdown in HTML semantico (h1 = capitolo; la notazione inline `` ` `` e `**` passa verbatim, è già quella nativa della pipeline) e `ingestAuthoredDocument` lo spinge nella **stessa pipeline map-reduce** via `designFromHtml` — col page header preimpostato dall'utente, quindi il meta step LLM è saltato. Il sorgente markdown è salvato nel campo opzionale `authoring` del JSON (dichiarato in `PageDesignSchema`, altrimenti il round-trip Zod di PATCH/extract lo cancellerebbe): la sua presenza rende il documento rieditabile da `/scrivi?slug=…` con rigenerazione sullo stesso slug (`PUT /api/author/[slug]`).
+
 ### 2. SERVING (ogni visita — deterministico, senza LLM)
 Il sito Next.js legge i JSON già salvati e li renderizza. **Zero chiamate a Gemini a runtime.** `app/[slug]/page.tsx` fa branch su `version === 2`: v2 → `PageDesignRenderer`, altrimenti il registry legacy (`components/registry.tsx`). Le pagine usano `dynamic = "force-dynamic"` perché il contenuto cambia a runtime (upload/delete).
 
@@ -30,15 +32,19 @@ creta/
 ├── content/pages/             — JSON generati dall'ingest, versionati in Git
 ├── app/
 │   ├── api/ingest/route.ts    — upload .docx → Gemini → content/pages/<slug>.json
+│   ├── api/author/route.ts    — POST fai-da-te: markdown → stessa pipeline → JSON (+ PUT [slug]/ per rigenerare)
 │   ├── api/search/route.ts    — ricerca full-text su content/pages (palette ⌘K), zero LLM e zero DB
 │   ├── api/documents/[slug]/  — DELETE di un documento
 │   ├── [slug]/page.tsx        — renderizza una pagina (v2 o legacy) + generateMetadata
+│   ├── scrivi/page.tsx        — editor fai-da-te (crea o modifica via ?slug=…), monta WriterClient
 │   ├── page.tsx               — home: libreria documenti con ricerca
 │   ├── not-found.tsx          — 404
 │   └── layout.tsx
 ├── lib/
 │   ├── config.ts              — costante GEMINI_MODEL (unico posto per cambiare il modello)
-│   ├── ingestDocx.ts          — pipeline map-reduce dell'ingest (chunk → LLM paralleli → coverage → merge)
+│   ├── ingestDocx.ts          — pipeline map-reduce dell'ingest (chunk → LLM paralleli → coverage → merge); designFromHtml è il core condiviso, ingestAuthoredDocument l'entry fai-da-te
+│   ├── markdown.ts            — markdown leggero → HTML semantico per il fai-da-te (inline `code`/**bold** passa verbatim)
+│   ├── authorBody.ts          — schema Zod del body /api/author (condiviso da POST e PUT)
 │   ├── docxHtml.ts            — pulizia HTML mammoth + split in capitoli/chunk + testo piano
 │   ├── htmlDesign.ts          — conversione deterministica HTML→sezioni (fallback garantito, cheerio)
 │   ├── coverage.ts            — punteggio di copertura testuale per chunk
@@ -57,6 +63,7 @@ creta/
 │   ├── InlineText.tsx         — resa inline di `code`, **bold**, URL
 │   ├── HomeClient.tsx         — home: hero full-screen, archivio, riprendi-lettura, delete
 │   ├── UploadModal.tsx        — upload con stati di avanzamento e avviso fallback
+│   ├── WriterClient.tsx       — editor fai-da-te: form a capitoli, cheat-sheet markdown, stati di avanzamento
 │   ├── DocHeader.tsx          — header sticky con progress di lettura (salvato in localStorage)
 │   ├── Reveal.tsx             — animazione on-scroll
 │   ├── registry.tsx           — registry legacy v1
