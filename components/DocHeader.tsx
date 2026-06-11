@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { openPalette } from "./CommandPalette";
+import { openPalette, useShortcutLabel } from "./CommandPalette";
 import { saveReading } from "@/lib/readingProgress";
 
 export function DocHeader({
@@ -14,6 +14,7 @@ export function DocHeader({
   title?: string;
   slug?: string;
 }) {
+  const shortcut = useShortcutLabel();
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -107,7 +108,7 @@ export function DocHeader({
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <kbd className="hidden font-mono text-[0.65rem] font-semibold sm:block">⌘K</kbd>
+            <kbd className="hidden font-mono text-[0.65rem] font-semibold sm:block">{shortcut}</kbd>
           </button>
           <Link
             href="/"

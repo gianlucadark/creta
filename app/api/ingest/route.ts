@@ -1,6 +1,7 @@
 import { extname } from "path";
 import { EmptyDocumentError, ingestDocxBuffer } from "@/lib/ingestDocx";
-import { writePageDesign } from "@/lib/pagesStore";
+import { pageExists, uniqueSlug, writePageDesign } from "@/lib/pagesStore";
+import { slugify } from "@/lib/slug";
 import { authorizeEditor } from "@/lib/editors";
 
 /* The Gemini map-reduce can take minutes on long documents: allow the
@@ -11,16 +12,6 @@ export const maxDuration = 300;
    so the limit must stay under that (with margin for multipart overhead). */
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
-function slugify(fileName: string) {
-  return (
-    fileName
-      .replace(/\.docx$/i, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || "document"
-  );
-}
-
 export async function POST(req: Request) {
   const denied = authorizeEditor(req);
   if (denied) return denied;
@@ -28,6 +19,8 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("docx") as File | null;
+    /* Come risolvere una collisione di slug: deciso dall'utente dopo il 409. */
+    const mode = formData.get("mode");
 
     if (!file) {
       return Response.json({ error: "Nessun file ricevuto." }, { status: 400 });
@@ -47,6 +40,24 @@ export async function POST(req: Request) {
       );
     }
 
+    /* La collisione va rilevata prima dell'ingest (che costa minuti di LLM):
+       senza una scelta esplicita dell'utente non si sovrascrive mai. */
+    let slug = slugify(file.name.replace(/\.docx$/i, ""));
+    if (await pageExists(slug)) {
+      if (mode === "copy") {
+        slug = await uniqueSlug(slug);
+      } else if (mode !== "overwrite") {
+        return Response.json(
+          {
+            error: "Esiste già un documento con questo nome.",
+            conflict: true,
+            slug,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const { design, engine, report } = await ingestDocxBuffer(buffer);
 
@@ -56,7 +67,6 @@ export async function POST(req: Request) {
         .join(" ")}`
     );
 
-    const slug = slugify(file.name);
     await writePageDesign(slug, design);
 
     return Response.json({ slug, title: design.page.title, engine });

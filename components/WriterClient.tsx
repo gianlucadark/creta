@@ -211,7 +211,7 @@ export function WriterClient({
                 <div className="creta-progress-grad h-full animate-[loading_1.25s_ease-in-out_infinite] rounded-full" />
               </div>
               <p className="text-xs text-navy-400">
-                Può richiedere fino a un minuto per i testi lunghi.
+                Può richiedere qualche minuto per i testi lunghi.
               </p>
             </div>
           </div>
@@ -222,9 +222,10 @@ export function WriterClient({
                 Pagina creata in modalità semplificata
               </p>
               <p className="text-sm leading-6 text-navy-600">
-                L&apos;analisi AI non era disponibile (verifica la chiave API in{" "}
-                <code className="rounded bg-navy-800/[0.07] px-1 font-mono text-[0.85em]">.env.local</code>),
-                quindi la pagina è stata composta con l&apos;impaginazione automatica di base.
+                L&apos;analisi automatica del layout non era disponibile in
+                questo momento, quindi la pagina è stata impaginata in modo
+                semplificato. Il contenuto c&apos;è tutto: puoi aprirla
+                comunque, oppure riprovare più tardi.
               </p>
               <div className="flex justify-center gap-3">
                 <button

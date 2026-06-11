@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
 import type { SearchResponse } from "@/lib/searchIndex";
 
@@ -13,6 +20,20 @@ export const PALETTE_EVENT = "creta:palette";
 
 export function openPalette() {
   window.dispatchEvent(new Event(PALETTE_EVENT));
+}
+
+/* Etichetta della scorciatoia per i <kbd> sparsi nel sito: il listener
+   accetta sia Ctrl sia ⌘, ma l'etichetta deve riflettere la piattaforma.
+   Il server (e l'hydration) rendono "Ctrl K" — il pubblico interno è su
+   Windows — poi il client corregge sui dispositivi Apple. */
+const noopSubscribe = () => () => {};
+
+export function useShortcutLabel() {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => (/Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘K" : "Ctrl K"),
+    () => "Ctrl K"
+  );
 }
 
 type Item =

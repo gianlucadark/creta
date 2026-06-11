@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UploadModal } from "./UploadModal";
 import { CollectionsManager } from "./CollectionsManager";
-import { openPalette } from "./CommandPalette";
+import { openPalette, useShortcutLabel } from "./CommandPalette";
 import { ParticleWordmark } from "./ParticleWordmark";
 import {
   dropReading,
@@ -281,14 +281,17 @@ export function HomeClient({
   collections: DocCollection[];
 }) {
   const router = useRouter();
+  const shortcut = useShortcutLabel();
   const [modalOpen, setModalOpen] = useState(false);
   const [managerOpen, setManagerOpen] = useState(false);
   const [managerFocus, setManagerFocus] = useState<string | null>(null);
   const [openCol, setOpenCol] = useState<string | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   function openManager(focusId: string | null = null) {
     setManagerFocus(focusId);
     setOpenCol(null);
+    setMobileNavOpen(false);
     setManagerOpen(true);
   }
   const [documents, setDocuments] = useState(pages);
@@ -429,52 +432,147 @@ export function HomeClient({
             <span className="font-display text-lg font-bold tracking-tight">MICE AI Hub</span>
           </Link>
 
-          <nav
-            aria-label="Rubriche"
-            className="relative z-40 hidden min-w-0 max-w-[min(56rem,60vw)] items-center gap-1.5 justify-self-center sm:flex"
-          >
-            {collections.length === 0 ? (
-              <button
-                type="button"
-                onClick={() => openManager()}
-                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur transition hover:border-white/60 hover:text-white"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-300">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                Crea una rubrica
-              </button>
-            ) : (
-              <>
-                {collections.map((collection) => (
-                  <CollectionPill
-                    key={collection.id}
-                    collection={collection}
-                    docs={collectionDocs(collection)}
-                    open={openCol === collection.id}
-                    onToggle={() =>
-                      setOpenCol((cur) =>
-                        cur === collection.id ? null : collection.id
-                      )
-                    }
-                    onClose={() => setOpenCol(null)}
-                    onManage={() => openManager(collection.id)}
-                  />
-                ))}
+          <div className="relative z-40 min-w-0 justify-self-center">
+            <nav
+              aria-label="Rubriche"
+              className="hidden min-w-0 max-w-[min(56rem,60vw)] items-center gap-1.5 sm:flex"
+            >
+              {collections.length === 0 ? (
                 <button
                   type="button"
                   onClick={() => openManager()}
-                  aria-label="Gestisci rubriche"
-                  title="Gestisci rubriche"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/5 text-white/70 backdrop-blur transition hover:border-white/60 hover:text-white"
+                  className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur transition hover:border-white/60 hover:text-white"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-300">
                     <path d="M12 5v14M5 12h14" />
                   </svg>
+                  Crea una rubrica
                 </button>
-              </>
-            )}
-          </nav>
+              ) : (
+                <>
+                  {collections.map((collection) => (
+                    <CollectionPill
+                      key={collection.id}
+                      collection={collection}
+                      docs={collectionDocs(collection)}
+                      open={openCol === collection.id}
+                      onToggle={() =>
+                        setOpenCol((cur) =>
+                          cur === collection.id ? null : collection.id
+                        )
+                      }
+                      onClose={() => setOpenCol(null)}
+                      onManage={() => openManager(collection.id)}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => openManager()}
+                    aria-label="Gestisci rubriche"
+                    title="Gestisci rubriche"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/5 text-white/70 backdrop-blur transition hover:border-white/60 hover:text-white"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </button>
+                </>
+              )}
+            </nav>
+
+            {/* Sotto sm le pill non entrano: un'unica voce "Rubriche" apre il
+                menu con le stesse destinazioni (ancore dell'archivio + gestione).
+                Senza rubriche resta l'invito a crearne una, come su desktop. */}
+            <div className="sm:hidden">
+              {collections.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => openManager()}
+                  className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur transition hover:border-white/60 hover:text-white"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-300">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Crea una rubrica
+                </button>
+              ) : (
+                <>
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen((cur) => !cur)}
+                  aria-expanded={mobileNavOpen}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur transition ${
+                    mobileNavOpen
+                      ? "border-white/60 bg-white/10 text-white"
+                      : "border-white/20 bg-white/5 text-white/80"
+                  }`}
+                >
+                  Rubriche
+                  <span className="font-mono text-[0.65rem] font-semibold text-gold-300">
+                    {collections.length}
+                  </span>
+                  <svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                    className={`h-3 w-3 transition-transform ${mobileNavOpen ? "rotate-180" : ""}`}
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                {mobileNavOpen && (
+                  <>
+                    <button
+                      type="button"
+                      aria-hidden
+                      tabIndex={-1}
+                      onClick={() => setMobileNavOpen(false)}
+                      className="fixed inset-0 z-40 cursor-default"
+                    />
+                    <div className="absolute left-1/2 top-full z-50 mt-3 w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-navy-900/10 bg-white p-2 text-navy-900 shadow-2xl shadow-navy-950/40">
+                      {collections.map((collection) => {
+                        const count = collectionDocs(collection).length;
+                        return count > 0 ? (
+                          <a
+                            key={collection.id}
+                            href={`#rubrica-${collection.id}`}
+                            onClick={() => setMobileNavOpen(false)}
+                            className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-sm text-navy-600 transition hover:bg-surface hover:text-navy-950"
+                          >
+                            <span className="min-w-0 truncate">{collection.title}</span>
+                            <span className="shrink-0 font-mono text-[0.65rem] font-semibold text-gold-600">
+                              {count}
+                            </span>
+                          </a>
+                        ) : (
+                          <button
+                            key={collection.id}
+                            type="button"
+                            onClick={() => openManager(collection.id)}
+                            className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-sm text-navy-400 transition hover:bg-surface hover:text-navy-950"
+                          >
+                            <span className="min-w-0 truncate">{collection.title}</span>
+                            <span className="shrink-0 font-mono text-[0.6rem] uppercase">vuota</span>
+                          </button>
+                        );
+                      })}
+                      <div className="mt-1 border-t border-navy-900/10 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => openManager()}
+                          className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-semibold text-navy-700 transition hover:bg-surface hover:text-gold-700"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-gold-600">
+                            <path d="M12 5v14M5 12h14" />
+                          </svg>
+                          Gestisci rubriche
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+                </>
+              )}
+            </div>
+          </div>
 
           <div className="flex items-center justify-end gap-2.5">
             <button
@@ -486,7 +584,7 @@ export function HomeClient({
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
               </svg>
               <span className="hidden sm:block">Cerca</span>
-              <kbd className="hidden font-mono text-[0.65rem] font-semibold text-white/50 sm:block">⌘K</kbd>
+              <kbd className="hidden font-mono text-[0.65rem] font-semibold text-white/50 sm:block">{shortcut}</kbd>
             </button>
           </div>
         </header>
@@ -549,7 +647,7 @@ export function HomeClient({
                 className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/75 transition hover:border-white/45 hover:text-white"
               >
                 Cerca nell&apos;hub
-                <kbd className="font-mono text-[0.65rem] text-white/45">⌘K</kbd>
+                <kbd className="font-mono text-[0.65rem] text-white/45">{shortcut}</kbd>
               </button>
               <Link
                 href="/cos-e-creta"
@@ -672,7 +770,7 @@ export function HomeClient({
           <p className="mt-7 rounded-2xl border border-dashed border-navy-900/20 bg-white px-5 py-14 text-center text-navy-500">
             Nessun documento corrisponde a &ldquo;{query}&rdquo;. Prova{" "}
             <button onClick={openPalette} className="font-semibold text-navy-900 underline decoration-gold-400 underline-offset-4">
-              la ricerca full-text ⌘K
+              la ricerca full-text {shortcut}
             </button>
             , che guarda anche dentro le sezioni.
           </p>
@@ -721,7 +819,7 @@ export function HomeClient({
             className="flex items-center gap-2 self-start font-mono text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/40 transition hover:text-gold-300 sm:self-auto"
           >
             Cerca ovunque
-            <kbd className="rounded border border-white/20 px-1.5 py-0.5">⌘K</kbd>
+            <kbd className="rounded border border-white/20 px-1.5 py-0.5">{shortcut}</kbd>
           </button>
         </div>
       </footer>

@@ -21,6 +21,7 @@ const LOADING_STEPS = [
 type State =
   | { phase: "idle" }
   | { phase: "loading"; fileName: string }
+  | { phase: "conflict"; file: File; slug: string }
   | { phase: "fallback"; slug: string; title: string }
   | { phase: "error"; message: string };
 
@@ -42,7 +43,7 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
     return () => clearInterval(timer);
   }, [isLoading]);
 
-  async function handleFile(file: File) {
+  async function handleFile(file: File, mode?: "overwrite" | "copy") {
     if (!file.name.toLowerCase().endsWith(".docx") && file.type !== ACCEPTED_MIME) {
       setState({ phase: "error", message: "Carica un file Word in formato .docx." });
       return;
@@ -58,6 +59,7 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
 
     const body = new FormData();
     body.append("docx", file);
+    if (mode) body.append("mode", mode);
 
     try {
       const res = await fetch("/api/ingest", { method: "POST", body });
@@ -66,7 +68,13 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
         title?: string;
         engine?: string;
         error?: string;
+        conflict?: boolean;
       };
+
+      if (res.status === 409 && json.conflict && json.slug) {
+        setState({ phase: "conflict", file, slug: json.slug });
+        return;
+      }
 
       if (!res.ok || !json.slug) {
         setState({ phase: "error", message: json.error ?? "Ingest non riuscito." });
@@ -136,8 +144,39 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
               <div className="creta-progress-grad h-full animate-[loading_1.25s_ease-in-out_infinite] rounded-full" />
             </div>
             <p className="text-xs text-navy-400">
-              Può richiedere fino a un minuto per i documenti lunghi.
+              Può richiedere qualche minuto per i documenti lunghi.
             </p>
+          </div>
+        ) : state.phase === "conflict" ? (
+          <div className="rounded-xl border border-gold-300/40 bg-gold-50 px-6 py-8 text-center space-y-4">
+            <p className="font-semibold text-navy-900">
+              Esiste già un documento con questo nome
+            </p>
+            <p className="text-sm leading-6 text-navy-600">
+              Nell&apos;archivio c&apos;è già una pagina creata da un file chiamato{" "}
+              <span className="font-semibold text-navy-900">{state.file.name}</span>.
+              Vuoi sostituirla con questa versione o tenerle entrambe?
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                onClick={() => setState({ phase: "idle" })}
+                className="rounded-full border border-navy-200 px-4 py-2 text-sm font-medium text-navy-700 transition hover:border-gold-400 hover:text-gold-500"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={() => void handleFile(state.file, "overwrite")}
+                className="rounded-full border border-navy-200 px-4 py-2 text-sm font-medium text-navy-700 transition hover:border-gold-400 hover:text-gold-500"
+              >
+                Sostituisci
+              </button>
+              <button
+                onClick={() => void handleFile(state.file, "copy")}
+                className="creta-badge-grad rounded-full px-4 py-2 text-sm font-semibold text-white shadow-md shadow-navy-900/20 transition hover:-translate-y-0.5"
+              >
+                Tieni entrambi
+              </button>
+            </div>
           </div>
         ) : state.phase === "fallback" ? (
           <div className="rounded-xl border border-gold-300/40 bg-gold-50 px-6 py-8 text-center space-y-4">
@@ -145,9 +184,10 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
               Pagina creata in modalità semplificata
             </p>
             <p className="text-sm leading-6 text-navy-600">
-              L&apos;analisi AI non era disponibile (verifica la chiave API in{" "}
-              <code className="rounded bg-navy-800/[0.07] px-1 font-mono text-[0.85em]">.env.local</code>),
-              quindi la pagina è stata composta con l&apos;impaginazione automatica di base.
+              L&apos;analisi automatica del layout non era disponibile in questo
+              momento, quindi la pagina è stata impaginata in modo semplificato.
+              Il contenuto c&apos;è tutto: puoi aprirla comunque, oppure
+              riprovare più tardi.
             </p>
             <div className="flex justify-center gap-3">
               <button
