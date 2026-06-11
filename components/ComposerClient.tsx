@@ -89,7 +89,7 @@ export function ComposerClient({ docs }: { docs: ComposerDoc[] }) {
 
   return (
     <div className="creta-grid-bg min-h-screen text-navy-900">
-      {/* Nav */}
+      {/* Navigazione */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-navy-950/94 px-4 py-3 text-white backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5">
@@ -123,7 +123,7 @@ export function ComposerClient({ docs }: { docs: ComposerDoc[] }) {
         </p>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_24rem]">
-          {/* Left: sources */}
+          {/* Colonna sinistra: sorgenti */}
           <section className="space-y-4">
             {docs.length === 0 ? (
               <p className="rounded-[1.75rem] border border-dashed border-navy-200 bg-white px-5 py-12 text-center text-navy-500">
@@ -181,7 +181,7 @@ export function ComposerClient({ docs }: { docs: ComposerDoc[] }) {
             )}
           </section>
 
-          {/* Right: composition */}
+          {/* Colonna destra: composizione */}
           <section className="h-fit space-y-5 rounded-2xl border border-navy-100 bg-white p-5 shadow-sm lg:sticky lg:top-20">
             <div>
               <label className={labelClass}>Titolo del nuovo documento</label>

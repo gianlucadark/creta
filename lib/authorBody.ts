@@ -1,9 +1,9 @@
-/* Request-body validation shared by the /api/author routes (POST create
-   and PUT regenerate take the same payload). */
+/* Validazione del request body condivisa dalle route /api/author: POST create
+   e PUT regenerate ricevono lo stesso payload. */
 
 import { z } from "zod";
 
-/* Vercel rejects bodies over ~4.5 MB; this guards the pipeline itself. */
+/* Vercel rifiuta body sopra circa 4,5 MB; questo protegge la pipeline stessa. */
 export const MAX_TOTAL_MARKDOWN_CHARS = 1_500_000;
 
 export const AuthorBodySchema = z.object({

@@ -38,7 +38,7 @@ export function ChapterNav({
 }) {
   const [visible, setVisible] = useState(false);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  /* the panel keeps rendering the last-opened group while it fades out */
+  /* Il pannello continua a renderizzare l'ultimo gruppo aperto durante il fade-out. */
   const [panelIndex, setPanelIndex] = useState(0);
   const [panelPos, setPanelPos] = useState({ left: PANEL_MARGIN, caret: PANEL_WIDTH / 2 });
   const [activeSectionIdx, setActiveSectionIdx] = useState(-1);
@@ -51,7 +51,7 @@ export function ChapterNav({
     group.items.some((item) => item.index === activeSectionIdx)
   );
 
-  /* show/hide on scroll + track active section; page scroll closes the panel */
+  /* Mostra/nasconde su scroll, traccia la sezione attiva e chiude il pannello. */
   useEffect(() => {
     function onScroll() {
       setVisible(window.scrollY > heroHeight - 80);
@@ -69,7 +69,7 @@ export function ChapterNav({
     return () => window.removeEventListener("scroll", onScroll);
   }, [heroHeight]);
 
-  /* close on outside click or Escape */
+  /* Chiude con click esterno o Escape. */
   useEffect(() => {
     function onPointer(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
@@ -87,7 +87,7 @@ export function ChapterNav({
     };
   }, []);
 
-  /* keep the active chapter centered when the bar overflows horizontally */
+  /* Mantiene centrato il capitolo attivo quando la barra scorre in orizzontale. */
   useEffect(() => {
     if (activeChapterIdx < 0) return;
     buttonRefs.current[activeChapterIdx]?.scrollIntoView({
@@ -135,10 +135,10 @@ export function ChapterNav({
           : "pointer-events-none -translate-y-1 opacity-0"
       }`}
     >
-      {/* Frosted bar */}
+      {/* Barra glassmorphism dei capitoli */}
       <div className="border-b border-navy-100/60 bg-white/85 shadow-sm shadow-navy-900/5 backdrop-blur-xl">
         <div className="mx-auto max-w-5xl overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]">
-          {/* w-max lets the row overflow naturally; min-w-full centers it when it fits */}
+          {/* w-max lascia scorrere la riga; min-w-full la centra quando entra. */}
           <div className="mx-auto flex w-max min-w-full items-center justify-center">
             {chapterGroups.map((group, i) => {
               const isActive = i === activeChapterIdx;
@@ -185,7 +185,7 @@ export function ChapterNav({
                     <path d="m4 6 4 4 4-4" />
                   </svg>
 
-                  {/* active-chapter underline */}
+                  {/* Sottolineatura del capitolo attivo */}
                   <span
                     className={`creta-progress-grad absolute inset-x-4 bottom-0 h-[2px] rounded-full transition-opacity duration-300 ${
                       isActive ? "opacity-100" : "opacity-0"
@@ -198,7 +198,7 @@ export function ChapterNav({
         </div>
       </div>
 
-      {/* Dropdown panel — sibling of the scrollable bar so it never gets clipped */}
+      {/* Pannello dropdown affiancato alla barra scrollabile per evitare clipping. */}
       {panelGroup && (
         <div
           role="menu"
@@ -211,13 +211,13 @@ export function ChapterNav({
               : "pointer-events-none -translate-y-1.5 opacity-0"
           }`}
         >
-          {/* caret pointing at the chapter button */}
+          {/* Caret allineata al bottone del capitolo */}
           <span
             style={{ left: panelPos.caret }}
             className="absolute top-[3px] h-3 w-3 -translate-x-1/2 rotate-45 rounded-[3px] bg-navy-700"
           />
           <div className="overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-2xl shadow-navy-950/15">
-            {/* panel header */}
+            {/* Testata del pannello */}
             <div className="creta-quote-grad px-5 py-3.5 text-white">
               <p className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-gold-300">
                 Capitolo {String(panelIndex + 1).padStart(2, "0")} ·{" "}
@@ -229,7 +229,7 @@ export function ChapterNav({
               </p>
             </div>
 
-            {/* section links */}
+            {/* Link alle sezioni */}
             <div className="max-h-[55vh] overflow-y-auto py-1.5">
               {panelGroup.items.map((item) => {
                 const isItemActive = item.index === activeSectionIdx;

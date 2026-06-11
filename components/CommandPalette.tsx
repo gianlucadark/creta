@@ -4,10 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SearchResponse } from "@/lib/searchIndex";
 
-/* Global ⌘K palette: full-text search across every document *and* every
-   section, served by /api/search (the JSON store is the index — no DB).
-   Mounted once in the root layout; other components open it by dispatching
-   the "creta:palette" event. */
+/* Palette globale ⌘K: ricerca full-text su tutti i documenti e tutte le
+   sezioni, servita da /api/search. Lo store JSON e' l'indice, senza database.
+   Montata una volta nel root layout; gli altri componenti la aprono emettendo
+   l'evento "creta:palette". */
 
 export const PALETTE_EVENT = "creta:palette";
 
@@ -30,7 +30,7 @@ function Highlight({ text, terms }: { text: string; terms: string[] }) {
   }, [terms]);
 
   if (!pattern) return <>{text}</>;
-  /* split keeps the single capture group at odd indices */
+  /* split conserva il gruppo catturato agli indici dispari. */
   return (
     <>
       {text.split(pattern).map((part, index) =>
@@ -56,7 +56,7 @@ export function CommandPalette() {
   const listRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  /* open/close triggers */
+  /* Trigger di apertura e chiusura. */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -75,7 +75,7 @@ export function CommandPalette() {
     };
   }, []);
 
-  /* lock scroll + focus while open */
+  /* Blocca lo scroll e porta il focus sull'input mentre la palette e' aperta. */
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -87,7 +87,7 @@ export function CommandPalette() {
     };
   }, [open]);
 
-  /* debounced fetch */
+  /* Fetch con debounce. */
   useEffect(() => {
     if (!open) return;
     const timer = setTimeout(
@@ -106,7 +106,7 @@ export function CommandPalette() {
             }
           })
           .catch(() => {
-            // aborted or offline: keep the previous list
+            // Richiesta abortita o offline: mantiene la lista precedente.
           });
       },
       query ? 140 : 0
@@ -163,7 +163,7 @@ export function CommandPalette() {
     }
   }
 
-  /* keep the active row in view */
+  /* Mantiene visibile la riga attiva. */
   useEffect(() => {
     listRef.current
       ?.querySelector(`[data-item="${active}"]`)
@@ -185,7 +185,7 @@ export function CommandPalette() {
       aria-label="Cerca nell'archivio"
     >
       <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-2xl shadow-navy-950/30">
-        {/* input */}
+        {/* Input di ricerca */}
         <div className="flex items-center gap-3 border-b border-navy-100 px-5 py-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4.5 w-4.5 shrink-0 text-navy-400">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
@@ -207,7 +207,7 @@ export function CommandPalette() {
           </button>
         </div>
 
-        {/* results */}
+        {/* Risultati */}
         <div ref={listRef} className="max-h-[55vh] overflow-y-auto overscroll-contain p-2">
           {items.length === 0 ? (
             <p className="px-4 py-10 text-center text-sm text-navy-400">
@@ -282,7 +282,7 @@ export function CommandPalette() {
           )}
         </div>
 
-        {/* footer */}
+        {/* Aiuti da tastiera */}
         <div className="flex items-center gap-4 border-t border-navy-100 bg-surface px-5 py-2.5 font-mono text-[0.62rem] uppercase tracking-wide text-navy-400">
           <span><kbd className="font-semibold text-navy-600">↑↓</kbd> naviga</span>
           <span><kbd className="font-semibold text-navy-600">↵</kbd> apri</span>

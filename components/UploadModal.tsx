@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 const ACCEPTED_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-/* Must match MAX_FILE_BYTES in app/api/ingest/route.ts (Vercel caps request
-   bodies at ~4.5 MB, so the server can never accept more anyway). */
+/* Deve restare allineato a MAX_FILE_BYTES in app/api/ingest/route.ts:
+   Vercel limita i body a circa 4,5 MB, quindi il server non puo' accettare
+   file piu' grandi. */
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
 const LOADING_STEPS = [
@@ -101,13 +102,13 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    /* backdrop */
+    /* Sfondo modale */
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/50 backdrop-blur-sm px-4"
       onClick={(e) => { if (e.target === e.currentTarget && !isLoading) onClose(); }}
     >
       <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-navy-100 p-6 space-y-5">
-        {/* header */}
+        {/* Testata */}
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold text-navy-900">
             Aggiungi documento
@@ -123,7 +124,7 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
-        {/* body */}
+        {/* Corpo */}
         {state.phase === "loading" ? (
           <div className="rounded-xl border border-navy-100 bg-surface px-6 py-10 text-center space-y-4">
             <div className="creta-badge-grad mx-auto h-10 w-10 rounded-xl animate-pulse" />
@@ -192,7 +193,7 @@ export function UploadModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        {/* error */}
+        {/* Errore */}
         {state.phase === "error" && (
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-900">
             {state.message}

@@ -7,11 +7,11 @@ import type { SearchResponse } from "@/lib/searchIndex";
 
 type LibDoc = SearchResponse["docs"][number];
 
-/* Cap shared with the PATCH route: keep the two in sync. */
+/* Limite condiviso con la route PATCH: mantenerli allineati. */
 const MAX_RELATED = 8;
 
-/** Opens a picker over the whole library (served by /api/search with an
-    empty query) and saves the chosen slugs via PATCH design.related. */
+/** Apre un picker sull'intera libreria, servita da /api/search con query
+    vuota, e salva gli slug scelti via PATCH design.related. */
 export function RelatedDocsButton({
   slug,
   selected,
@@ -27,9 +27,9 @@ export function RelatedDocsButton({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* Load the library when the modal opens (fresh every time: the list
-     changes with uploads/deletes elsewhere). openModal resets docs to null
-     so this effect only fetches. */
+  /* Carica la libreria all'apertura del modal: la lista va aggiornata dopo
+     upload o cancellazioni altrove. openModal resetta docs a null, quindi
+     questo effect esegue solo la fetch. */
   useEffect(() => {
     if (!open) return;
     let cancelled = false;

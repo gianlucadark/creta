@@ -1,5 +1,6 @@
-/* Client-side reading progress, persisted in localStorage. No backend:
-   the map lives in the browser and is matched against the library on render. */
+/* Progresso di lettura client-side, persistito in localStorage. Nessun
+   backend: la mappa vive nel browser e viene confrontata con la libreria al
+   render. */
 
 const KEY = "creta:reading";
 
@@ -36,9 +37,9 @@ export function loadReading(): ReadingMap {
   }
 }
 
-/* ── useSyncExternalStore adapters ───────────────────────────
-   The snapshot is cached on the raw string so React sees a stable
-   reference until the stored value actually changes. */
+/* ── Adapter useSyncExternalStore ────────────────────────────
+   Lo snapshot viene messo in cache sulla stringa grezza, cosi' React vede lo
+   stesso riferimento finche' il valore salvato non cambia davvero. */
 
 const EMPTY: ReadingMap = {};
 let cachedRaw: string | null = null;
@@ -74,7 +75,7 @@ export function saveReading(slug: string, pct: number) {
     map[slug] = { pct: Math.min(1, Math.max(0, pct)), ts: Date.now() };
     window.localStorage.setItem(KEY, JSON.stringify(map));
   } catch {
-    // storage full or blocked: reading progress is best-effort
+    // Storage pieno o bloccato: il progresso di lettura e' best-effort.
   }
 }
 
@@ -85,6 +86,6 @@ export function dropReading(slug: string) {
     delete map[slug];
     window.localStorage.setItem(KEY, JSON.stringify(map));
   } catch {
-    // ignore
+    // Evento non leggibile: il progresso resta best-effort.
   }
 }

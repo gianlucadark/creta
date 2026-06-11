@@ -1,20 +1,18 @@
-/* Map-reduce ingest pipeline for PageDesign v2.
+/* Pipeline map-reduce di ingest per PageDesign v2.
 
-   The docx HTML is split into one chunk per main chapter (oversized
-   chapters are sub-split), chunks are mapped to sections by parallel
-   LLM calls, and every result is verified with a text-coverage check.
-   A chunk whose mapping fails or drops content is retried and then
-   rebuilt deterministically from its own HTML — so the final page
-   always carries the whole document, chapter by chapter, no matter
-   what the model does.
+   L'HTML del docx viene diviso in un chunk per capitolo principale, con
+   ulteriori suddivisioni per capitoli troppo grandi. I chunk vengono mappati
+   in sezioni con chiamate LLM parallele e ogni risultato passa da un controllo
+   di copertura testuale. Se la mappatura fallisce o perde contenuto, il chunk
+   viene ritentato e poi ricostruito in modo deterministico dal proprio HTML:
+   la pagina finale contiene sempre tutto il documento, capitolo per capitolo.
 
-   To spend fewer calls without touching quality:
-   - consecutive whole chapters that fit the chunk budget together share
-     one call (multi-chapter prompt); a chapter that fails the coverage
-     check inside a grouped call is re-run with the full single-chapter
-     treatment, so the per-chapter guarantee is unchanged
-   - the first call also produces the page header from the cover; the
-     dedicated PAGE_META_PROMPT call remains only as fallback */
+   Per ridurre le chiamate senza perdere garanzie:
+   - capitoli interi consecutivi che rientrano nel budget condividono una
+     chiamata multi-capitolo; se un capitolo del gruppo non supera la copertura,
+     viene rieseguito con il trattamento completo a capitolo singolo
+   - la prima chiamata produce anche la testata della pagina dalla copertina;
+     PAGE_META_PROMPT resta solo come fallback */
 
 import mammoth from "mammoth";
 import { generateText } from "ai";
@@ -48,11 +46,11 @@ export class EmptyDocumentError extends Error {}
 
 export type IngestReport = {
   chunks: number;
-  /** Gemini calls actually made (grouped calls + rescues + meta fallback). */
+  /** Chiamate Gemini effettive: gruppi, recuperi e fallback dei metadati. */
   llmCalls: number;
   llmChunks: number;
   fallbackChunks: number;
-  /** Final per-chunk coverage ratios (0–1), in document order. */
+  /** Copertura finale per chunk, da 0 a 1, nell'ordine del documento. */
   coverage: number[];
 };
 
@@ -99,9 +97,9 @@ type ChunkResult = {
   coverage: number;
 };
 
-/** Plan the LLM calls: one call per chunk, except that consecutive whole
-    (single-part) chapters small enough to share the chunk budget ride
-    together in one multi-chapter call. */
+/** Pianifica le chiamate LLM: una per chunk, tranne i capitoli interi
+    consecutivi abbastanza piccoli da condividere il budget in una chiamata
+    multi-capitolo. */
 function buildCallGroups(chunks: DocChunk[], maxChars: number): DocChunk[][] {
   const groups: DocChunk[][] = [];
   let current: DocChunk[] = [];
@@ -115,8 +113,8 @@ function buildCallGroups(chunks: DocChunk[], maxChars: number): DocChunk[][] {
 
   for (const chunk of chunks) {
     if (chunk.parts > 1) {
-      // parts of a split chapter keep one call each: the continuation
-      // merge in the reduce step relies on the single-chapter prompt
+      // Le parti di un capitolo diviso mantengono una chiamata ciascuna:
+      // il merge delle continuazioni dipende dal prompt a capitolo singolo.
       flush();
       groups.push([chunk]);
       continue;
@@ -162,8 +160,8 @@ function groupUserPrompt(group: DocChunk[], coverText?: string): string {
   return parts.join("\n");
 }
 
-/** Per-chunk raw sections out of a (possibly multi-chapter) response.
-    A mismatched assignment is caught by the per-chapter coverage check. */
+/** Sezioni grezze per chunk da una risposta anche multi-capitolo.
+    Un'assegnazione errata viene intercettata dal controllo di copertura. */
 function rawSectionsByChunk(raw: unknown, group: DocChunk[]): unknown[] {
   if (group.length === 1) {
     if (Array.isArray(raw)) return [raw];
@@ -231,7 +229,7 @@ async function mapChunk(
     }
   }
 
-  // guaranteed-coverage path: rebuild the chunk from its own HTML
+  // Percorso a copertura garantita: ricostruisce il chunk dal suo HTML.
   const sections = sectionsFromHtml(chunk.html, chunk.chapter).map((section) => ({
     ...section,
     chapter: chunk.chapter,
@@ -243,9 +241,9 @@ async function mapChunk(
   };
 }
 
-/** One LLM call for a call group (single chunk needing the page header, or
-    a batch of small whole chapters). Chapters that fail the coverage check
-    fall back to the full single-chapter treatment. */
+/** Una chiamata LLM per gruppo: singolo chunk con testata pagina o lotto di
+    capitoli piccoli. I capitoli che falliscono la copertura passano al
+    trattamento completo a capitolo singolo. */
 async function runGroup(
   group: DocChunk[],
   wantMeta: boolean,
@@ -347,8 +345,8 @@ function fallbackMeta(coverText: string, fullText: string): PageDesign["page"] {
   };
 }
 
-/** Dedicated page-header call — used only when the merged first call did
-    not return a valid header. */
+/** Chiamata dedicata per la testata, usata solo se la prima chiamata unificata
+    non restituisce metadati validi. */
 async function buildMeta(
   coverText: string,
   fullText: string,
@@ -394,9 +392,9 @@ export type AuthoredInput = {
   chapters: AuthoredChapter[];
 };
 
-/** Ingest a document written in the app: the markdown chapters become the
-    same semantic HTML shape the docx path produces, and the user-provided
-    title/summary preset the page header so the LLM meta step is skipped. */
+/** Ingest di un documento scritto nell'app: i capitoli markdown diventano lo
+    stesso HTML semantico del percorso docx. Titolo e sommario forniti
+    dall'utente precompilano la testata e saltano il passaggio meta del LLM. */
 export async function ingestAuthoredDocument(
   input: AuthoredInput
 ): Promise<IngestResult> {
@@ -409,9 +407,9 @@ export async function ingestAuthoredDocument(
   return designFromHtml(html, { page });
 }
 
-/** Core of the pipeline, shared by the docx and authored paths: cleaned
-    semantic HTML in, PageDesign out. With a preset page header every call
-    is sections-only (no meta inference). */
+/** Nucleo della pipeline condiviso tra docx e documenti scritti nell'app:
+    entra HTML semantico pulito, esce PageDesign. Con testata preimpostata
+    ogni chiamata produce solo sezioni, senza inferenza dei metadati. */
 export async function designFromHtml(
   html: string,
   preset?: { page: PageDesign["page"] }
@@ -437,7 +435,7 @@ export async function designFromHtml(
     groups,
     CONCURRENCY,
     async (group, index) => {
-      // the first call also produces the page header from the cover
+      // La prima chiamata produce anche la testata partendo dalla copertina.
       const wantMeta = index === 0 && wantMetaFirst;
       const result = await runGroup(group, wantMeta, coverText, hasKey, tally);
       if (result.page) mergedPage = result.page;
@@ -451,10 +449,9 @@ export async function designFromHtml(
     mergedPage ??
     (await buildMeta(coverText, fullText, hasKey, tally));
 
-  // Reduce step: a continuation chunk that starts mid-section has no real
-  // heading of its own, so the model titles its opening section with the
-  // chapter name — merge those blocks into the previous section instead of
-  // showing a duplicate chapter-titled section.
+  // Reduce: un chunk di continuazione parte a meta' sezione e non ha un
+  // heading proprio; il modello tende a intitolarlo come il capitolo. Quei
+  // blocchi vanno fusi nella sezione precedente per evitare duplicati.
   const sections: Sections = [];
   results.forEach((result, index) => {
     const chunk = chunks[index];
@@ -474,8 +471,8 @@ export async function designFromHtml(
   });
   const llmChunks = results.filter((result) => result.viaLlm).length;
 
-  // sections are sanitized by normalizeDesignSections; this also covers the
-  // LLM-produced page header (stray inline HTML tags → light markup)
+  // Le sezioni sono gia' sanificate da normalizeDesignSections; qui copriamo
+  // anche la testata prodotta dal LLM e gli eventuali tag inline vaganti.
   const design: PageDesign = sanitizePageDesign({
     version: 2,
     page,

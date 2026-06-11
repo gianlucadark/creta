@@ -1,7 +1,7 @@
-/* Deterministic HTML → PageDesign sections converter. Used as the
-   guaranteed-coverage fallback: whenever the LLM mapping of a chunk fails
-   or drops content, the chunk is rebuilt from its own HTML so the page
-   always contains the full document. No LLM involved. */
+/* Convertitore deterministico da HTML a sezioni PageDesign. Usato come
+   fallback a copertura garantita: quando la mappatura LLM di un chunk fallisce
+   o perde contenuto, il chunk viene ricostruito dal proprio HTML, cosi' la
+   pagina contiene sempre l'intero documento. Nessun LLM coinvolto. */
 
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
@@ -9,7 +9,7 @@ import type { PageDesign, PageDesignBlock } from "./schema";
 
 type Section = PageDesign["sections"][number];
 
-/** Inline HTML → light verbatim markup (`**bold**`, link text + URL). */
+/** HTML inline -> markup leggero verbatim (`**bold**`, testo link + URL). */
 function inlineText($: cheerio.CheerioAPI, node: AnyNode): string {
   if (node.type === "text") return node.data ?? "";
   if (!("tagName" in node)) return "";
@@ -68,8 +68,8 @@ function tableBlock($: cheerio.CheerioAPI, tableEl: AnyNode): PageDesignBlock | 
   return { type: "table", headers: rows[0], rows: rows.slice(1) };
 }
 
-/** Convert a cleaned HTML fragment into renderable sections. h2/h3 start a
-    new section; everything else becomes the most fitting verbatim block. */
+/** Converte un frammento HTML pulito in sezioni renderizzabili. h2/h3 aprono
+    una nuova sezione; il resto diventa il blocco verbatim piu' adatto. */
 export function sectionsFromHtml(html: string, fallbackTitle: string): Section[] {
   const $ = cheerio.load(html, null, false);
   const sections: Section[] = [];
@@ -87,7 +87,7 @@ export function sectionsFromHtml(html: string, fallbackTitle: string): Section[]
     const tag = "tagName" in el ? el.tagName?.toLowerCase() : undefined;
     if (!tag) continue;
 
-    if (tag === "h1") continue; // chapter title is carried by section.chapter
+    if (tag === "h1") continue; // Il titolo del capitolo viaggia in section.chapter.
 
     if (tag === "h2" || tag === "h3") {
       const title = $(el).text().replace(/\s+/g, " ").trim();
@@ -115,7 +115,7 @@ export function sectionsFromHtml(html: string, fallbackTitle: string): Section[]
     }
 
     if (tag === "pre") {
-      // raw .text(): elementText would collapse the code's whitespace
+      // .text() grezzo: elementText collasserebbe gli spazi del codice.
       const code = $(el).text().replace(/\s+$/, "");
       if (code.trim()) ensure().blocks.push({ type: "code", code });
       continue;

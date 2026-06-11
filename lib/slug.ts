@@ -1,4 +1,4 @@
-/* Shared slug helpers for the document store (extract / compose / API routes). */
+/* Helper slug condivisi da store documenti, estrazioni, composizione e route API. */
 
 export function slugify(text: string) {
   return (

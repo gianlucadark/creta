@@ -1,5 +1,6 @@
-/* Detects text that is actually a JSON object/array (documents often embed
-   config snippets as plain prose) and returns it pretty-printed, or null. */
+/* Riconosce il testo che e' in realta' un oggetto/array JSON: alcuni
+   documenti includono configurazioni come prosa. Restituisce il JSON
+   formattato oppure null. */
 export function tryFormatJson(text: string): string | null {
   const trimmed = text.trim();
   if (!/^[\[{]/.test(trimmed) || !/[\]}]$/.test(trimmed)) return null;
@@ -9,7 +10,7 @@ export function tryFormatJson(text: string): string | null {
       return JSON.stringify(parsed, null, 2);
     }
   } catch {
-    // not valid JSON — leave the text as-is
+    // JSON non valido: il testo resta invariato.
   }
   return null;
 }

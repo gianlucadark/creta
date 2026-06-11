@@ -7,18 +7,18 @@ import type { PageDesign, PageDesignBlock } from "@/lib/schema";
 import { renderDesignBlock } from "./PageDesignRenderer";
 import { InlineText } from "./InlineText";
 
-/* ── Slide model ─────────────────────────────────────────────
-   The deck is derived deterministically from the stored design:
-   cover → (chapter dividers) → one or more slides per section → end.
-   Heavy sections are split across slides so content stays readable;
-   the per-block weight is a rough height estimate. */
+/* ── Modello slide ───────────────────────────────────────────
+   Il deck deriva in modo deterministico dal design salvato:
+   copertina -> divisori capitolo -> una o piu' slide per sezione -> fine.
+   Le sezioni pesanti vengono divise su piu' slide per restare leggibili;
+   il peso per blocco e' una stima grezza dell'altezza. */
 
 type SectionSlide = {
   kind: "section";
   title: string;
   intro?: string;
   chapter?: string;
-  /** 1-based section number in the document. */
+  /** Numero sezione nel documento, base 1. */
   number: number;
   part: number;
   parts: number;
@@ -117,7 +117,7 @@ function buildSlides(design: PageDesign): Slide[] {
   return slides;
 }
 
-/* ── Deck ────────────────────────────────────────────────────── */
+/* ── Sequenza slide ──────────────────────────────────────────── */
 
 export function PresentationClient({
   design,
@@ -148,7 +148,7 @@ export function PresentationClient({
     [current, last]
   );
 
-  /* keep ?slide=n shareable (1-based) without polluting history */
+  /* Mantiene ?slide=n condivisibile, base 1, senza sporcare la history. */
   useEffect(() => {
     const url = new URL(window.location.href);
     url.searchParams.set("slide", String(current + 1));
@@ -202,8 +202,8 @@ export function PresentationClient({
           toggleFullscreen();
           break;
         case "Escape":
-          /* the browser uses Esc to leave fullscreen first; only a second
-             press (not fullscreen anymore) closes the presentation */
+          /* Il browser usa Esc per uscire prima dal fullscreen; solo una
+             seconda pressione, fuori fullscreen, chiude la presentazione. */
           if (!document.fullscreenElement) router.push(`/${slug}`);
           break;
       }
@@ -230,7 +230,7 @@ export function PresentationClient({
 
   return (
     <div className="flex h-[100svh] flex-col overflow-hidden bg-navy-950 text-white">
-      {/* progress */}
+      {/* Progresso */}
       <div className="h-0.5 shrink-0 bg-white/10">
         <div
           className="creta-progress-grad h-full transition-transform duration-300 ease-out"
@@ -241,7 +241,7 @@ export function PresentationClient({
         />
       </div>
 
-      {/* top bar */}
+      {/* Barra superiore */}
       <header className="flex shrink-0 items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="creta-badge-grad grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-black text-white">
@@ -286,7 +286,7 @@ export function PresentationClient({
         </div>
       </header>
 
-      {/* stage */}
+      {/* Area slide */}
       <main className="relative min-h-0 flex-1 px-3 pb-3 sm:px-6 sm:pb-4">
         <div
           key={current}
@@ -305,7 +305,7 @@ export function PresentationClient({
         </div>
       </main>
 
-      {/* bottom bar */}
+      {/* Barra inferiore */}
       <footer className="flex shrink-0 items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <p className="min-w-0 truncate font-mono text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/40">
           {context}
@@ -339,7 +339,7 @@ export function PresentationClient({
   );
 }
 
-/* ── Slide layouts ───────────────────────────────────────────── */
+/* ── Layout slide ────────────────────────────────────────────── */
 
 function CoverSlide({
   design,
@@ -416,7 +416,7 @@ function SectionSlide({ slide }: { slide: SectionSlide }) {
   return (
     <div className="relative h-full overflow-y-auto overflow-x-hidden rounded-[1.75rem] bg-surface text-navy-900 lg:overflow-hidden">
       <div className="grid min-h-full gap-6 p-5 sm:p-8 lg:h-full lg:grid-cols-[17rem_1fr] lg:gap-10 lg:p-10">
-        {/* rail */}
+        {/* Rail sezioni */}
         <div className="lg:flex lg:min-h-0 lg:flex-col">
           {slide.chapter && (
             <p className="mb-3 break-words text-[0.7rem] font-bold uppercase tracking-[0.18em] text-gold-600">
@@ -444,7 +444,7 @@ function SectionSlide({ slide }: { slide: SectionSlide }) {
           )}
         </div>
 
-        {/* content */}
+        {/* Contenuto */}
         <div className="min-w-0 space-y-6 lg:min-h-0 lg:overflow-y-auto lg:pr-2">
           {slide.blocks.length > 0 ? (
             slide.blocks.map((block, index) => (

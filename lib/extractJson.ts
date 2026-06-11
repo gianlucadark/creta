@@ -1,8 +1,8 @@
-/* Extracts the JSON object from an LLM text response, recovering from
-   markdown fences and truncated output (max-token cuts). */
+/* Estrae l'oggetto JSON da una risposta testuale del LLM, recuperando da
+   fence markdown e output troncati per limite di token. */
 
-/* Close whatever strings/objects/arrays are still open at the end of a
-   truncated JSON prefix so it becomes parseable again. */
+/* Chiude stringhe, oggetti e array rimasti aperti alla fine di un prefisso
+   JSON troncato, cosi' torna parsabile. */
 function closeOpenStructures(prefix: string): string {
   const stack: string[] = [];
   let inString = false;
@@ -40,13 +40,13 @@ export function extractJson(raw: string): unknown {
     throw new Error("Nessun oggetto JSON nell'output del modello.");
   }
 
-  // complete object, possibly surrounded by prose
+  // Oggetto completo, eventualmente circondato da prosa.
   const end = candidate.lastIndexOf("}");
   if (end > start) {
     try {
       return JSON.parse(candidate.slice(start, end + 1));
     } catch {
-      // fall through to the truncation repair below
+      // Prosegue con il recupero da troncamento qui sotto.
     }
   }
 
@@ -54,9 +54,9 @@ export function extractJson(raw: string): unknown {
   try {
     return JSON.parse(slice);
   } catch {
-    // The model output was likely truncated mid-document: walk backwards to
-    // the longest prefix that can be closed into valid JSON, so the blocks
-    // produced before the cut are still recovered instead of discarded.
+    // L'output del modello probabilmente e' stato troncato: arretra fino al
+    // prefisso piu' lungo chiudibile come JSON valido, recuperando i blocchi
+    // generati prima del taglio invece di scartarli.
     let work = slice;
     for (let attempt = 0; attempt < 400 && work.length > 2; attempt += 1) {
       try {

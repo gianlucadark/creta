@@ -150,8 +150,8 @@ const CalloutBlock = z.object({
   text: z.string(),
 });
 
-/* Items keep `title` optional: Gemini occasionally emits text-only items
-   and a missing label must not invalidate (and thus flatten) the block. */
+/* `title` resta opzionale: Gemini a volte emette elementi solo testuali e
+   un'etichetta mancante non deve invalidare, quindi appiattire, il blocco. */
 const TitledItem = z.object({
   title: z.string().optional(),
   text: z.string(),
@@ -253,8 +253,8 @@ export const PageDesignSchema = z.object({
     eyebrow: z.string().optional(),
     summary: z.string(),
     audience: z.string().optional(),
-    /** Set when the document was extracted from a chapter of another
-        document; rendered as an "Estratto da" backlink. */
+    /** Presente quando il documento nasce dall'estrazione di un capitolo;
+        viene reso come backlink "Estratto da". */
     source: z
       .object({ slug: z.string(), title: z.string() })
       .optional(),
@@ -263,16 +263,16 @@ export const PageDesignSchema = z.object({
     z.object({
       title: z.string(),
       intro: z.string().optional(),
-      /** Main-chapter (h1) title this section belongs to; set by the ingest
-          pipeline, used by the renderer to group the TOC and label sections. */
+      /** Titolo del capitolo h1 a cui appartiene la sezione; impostato
+          dall'ingest e usato dal renderer per raggruppare indice e label. */
       chapter: z.string().optional(),
       blocks: z.array(PageDesignBlockSchema),
     })
   ),
-  /** Markdown source of a document written in the app (/scrivi). Its
-      presence marks the document as text-editable (re-generable). Must be
-      declared here: the PATCH/extract routes round-trip the JSON through
-      this schema, and Zod strips undeclared keys. */
+  /** Sorgente markdown di un documento scritto nell'app (/scrivi). La sua
+      presenza indica che il testo e' modificabile e rigenerabile. Deve stare
+      nello schema: le route PATCH/extract fanno passare il JSON da qui e Zod
+      rimuove le chiavi non dichiarate. */
   authoring: z
     .object({
       mode: z.literal("markdown"),
@@ -280,10 +280,10 @@ export const PageDesignSchema = z.object({
       updatedAt: z.string(),
     })
     .optional(),
-  /** Slugs of hand-picked related documents, rendered as cards at the
-      bottom of the page ("Vedi anche"). Declared here for the same reason
-      as `authoring`: mutation routes round-trip the JSON through this
-      schema, and Zod strips undeclared keys. */
+  /** Slug dei documenti correlati scelti a mano, resi come card in fondo
+      alla pagina ("Vedi anche"). Dichiarati qui per lo stesso motivo di
+      `authoring`: le route di mutazione passano da questo schema e Zod
+      rimuove le chiavi non dichiarate. */
   related: z.array(z.string()).optional(),
 });
 
@@ -456,14 +456,15 @@ export function normalizeGeneratedBlocks(
   return [{ component: "RawText", props: { text: fallbackText } }];
 }
 
-/* ── Inline-HTML sanitizer ───────────────────────────────────────
-   The ingest LLM receives HTML and must translate inline tags into the
-   light verbatim markup (**bold**, `code`). When it copies tags into the
-   JSON strings instead ("<strong>Ruolo</strong>"), the renderer would
-   print them literally. This converts stray inline HTML to the native
-   markup deterministically: at ingest (normalizeDesignSections) and at
-   read (pagesStore.readPageDesign), so already-stored documents heal
-   without re-ingest. Text content is never rewritten, only the markup. */
+/* ── Sanitizzazione HTML inline ──────────────────────────────────
+   Il LLM di ingest riceve HTML e deve tradurre i tag inline nel markup
+   leggero verbatim (**bold**, `code`). Se invece copia i tag dentro le
+   stringhe JSON ("<strong>Ruolo</strong>"), il renderer li mostrerebbe
+   letteralmente. Qui convertiamo in modo deterministico l'HTML inline
+   residuo nel markup nativo: durante l'ingest (normalizeDesignSections) e
+   in lettura (pagesStore.readPageDesign), cosi' anche i documenti gia'
+   salvati si correggono senza re-ingest. Il testo non viene mai riscritto,
+   cambia solo il markup. */
 
 export function stripInlineHtml(text: string): string {
   if (!text.includes("<") && !text.includes("&")) return text;
@@ -473,7 +474,7 @@ export function stripInlineHtml(text: string): string {
     /<(strong|b)(?:\s[^<>]*)?>([\s\S]*?)<\/\1\s*>/gi,
     (_match, _tag, inner: string) => {
       const trimmed = inner.trim();
-      // keep surrounding spaces outside the ** so "**x** y" stays valid
+      // Lascia gli spazi esterni fuori da **, cosi' "**x** y" resta valido.
       return trimmed ? inner.replace(trimmed, `**${trimmed}**`) : inner;
     }
   );
@@ -496,7 +497,7 @@ export function stripInlineHtml(text: string): string {
   );
 
   out = out.replace(/<br\s*\/?>/gi, "\n");
-  // em/i/u/span/li/…: drop the tags, keep the verbatim words
+  // em/i/u/span/li/...: rimuove i tag e conserva le parole verbatim.
   out = out.replace(/<\/?[a-zA-Z][^<>]*>/g, "");
 
   return out
@@ -522,7 +523,7 @@ function deepMapStrings<T>(value: T, fn: (text: string) => string): T {
 }
 
 function sanitizeBlock(block: PageDesignBlock): PageDesignBlock {
-  // code bodies may legitimately contain HTML/entities — leave them verbatim
+  // I corpi code possono contenere HTML/entities legittimi: restano verbatim.
   if (block.type === "code") {
     return block.title ? { ...block, title: stripInlineHtml(block.title) } : block;
   }
@@ -541,8 +542,8 @@ function sanitizeSection(
   };
 }
 
-/** Strip stray inline HTML from every rendered string of a stored design
-    (the `authoring` markdown source and code bodies stay untouched). */
+/** Rimuove HTML inline residuo da ogni stringa renderizzata del design
+    salvato; sorgente markdown `authoring` e corpi code restano intatti. */
 export function sanitizePageDesign(design: PageDesign): PageDesign {
   return {
     ...design,
@@ -557,14 +558,14 @@ export function sanitizePageDesign(design: PageDesign): PageDesign {
   };
 }
 
-/* ── Tolerant normalizer for the v2 PageDesign flow ──────────────
-   Gemini does not reliably honour discriminated-union (anyOf) schemas,
-   so it sometimes emits unknown block "type" values (e.g. "warning"
-   instead of a "callout" with tone "warning"). With strict parsing a
-   single bad block invalidates the whole document and the route falls
-   back to the lossy deterministic design. Here we coerce known aliases
-   and turn anything unrecognised into a paragraph built from its own
-   text — so no content is ever dropped. */
+/* ── Normalizzatore tollerante per PageDesign v2 ────────────────
+   Gemini non rispetta sempre gli schema discriminated-union (anyOf) e a
+   volte emette valori "type" non previsti, per esempio "warning" invece di
+   "callout" con tone "warning". Con parsing rigido un singolo blocco errato
+   invaliderebbe tutto il documento e la route finirebbe sul design
+   deterministico piu' povero. Qui forziamo gli alias noti e trasformiamo cio'
+   che non riconosciamo in un paragrafo costruito dal suo testo, senza perdere
+   contenuto. */
 
 const CALLOUT_WARNING = new Set([
   "warning", "alert", "danger", "caution", "attention", "attenzione", "important", "avviso",
@@ -589,7 +590,7 @@ const CODE_ALIASES = new Set(["code", "codeblock", "command", "commands", "snipp
 const QUOTE_ALIASES = new Set(["quote", "blockquote", "pullquote", "principle", "citazione"]);
 const TITLED_ITEM_TYPES = new Set(["steps", "timeline", "cards", "feature", "accordion"]);
 
-/** Coerce arbitrary item shapes (strings, alt key names) into { title?, text }. */
+/** Converte forme arbitrarie di item in { title?, text }. */
 function normalizeTitledItems(raw: unknown): { title?: string; text: string }[] {
   if (!Array.isArray(raw)) return [];
   return raw.flatMap((item) => {
@@ -607,7 +608,7 @@ function normalizeTitledItems(raw: unknown): { title?: string; text: string }[] 
   });
 }
 
-/** Coerce arbitrary item shapes into plain strings (for list/checklist). */
+/** Converte forme arbitrarie di item in stringhe semplici per list/checklist. */
 function normalizeStringItems(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw.flatMap((item) => {
@@ -622,7 +623,7 @@ function coercePageDesignBlock(raw: unknown): unknown {
   const block = raw as Record<string, unknown>;
   const type = typeof block.type === "string" ? block.type.toLowerCase().trim() : "";
 
-  // alias various single-note types onto the canonical "callout"
+  // Mappa diversi tipi di nota singola sul blocco canonico "callout".
   if (CALLOUT_WARNING.has(type) || CALLOUT_SUCCESS.has(type) || CALLOUT_INFO.has(type)) {
     const tone = CALLOUT_WARNING.has(type)
       ? "warning"
@@ -673,7 +674,7 @@ function coercePageDesignBlock(raw: unknown): unknown {
   if (TITLED_ITEM_TYPES.has(type)) {
     const items = normalizeTitledItems(block.items ?? block.steps ?? block.entries);
     if (items.length) {
-      // accordion entries need a clickable title; untitled items read better as cards
+      // Le accordion richiedono un titolo cliccabile; senza titolo rendono meglio come card.
       const target = type === "accordion" && items.some((item) => !item.title) ? "cards" : type;
       return { type: target, title: firstString(block.title, block.heading), items };
     }
@@ -689,7 +690,7 @@ function normalizeBlocks(rawBlocks: unknown): PageDesignBlock[] {
     const parsed = PageDesignBlockSchema.safeParse(coerced);
     if (parsed.success) return [parsed.data];
 
-    // salvage the block's own text, ignoring control fields like `type`/`tone`
+    // Recupera il testo del blocco ignorando campi di controllo come `type` e `tone`.
     const salvageable = Object.fromEntries(
       Object.entries(raw && typeof raw === "object" ? raw : {}).filter(
         ([key]) => key !== "type" && key !== "tone"
@@ -705,8 +706,8 @@ function normalizeBlocks(rawBlocks: unknown): PageDesignBlock[] {
   });
 }
 
-/** Tolerantly normalize a raw `sections` array (from a full-page or a
-    per-chapter LLM response) into valid PageDesign sections. */
+/** Normalizza in modo tollerante un array `sections` grezzo, da risposta LLM
+    full-page o per capitolo, in sezioni PageDesign valide. */
 export function normalizeDesignSections(
   rawSections: unknown
 ): PageDesign["sections"] {

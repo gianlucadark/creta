@@ -1,12 +1,12 @@
-/* Light markdown → semantic HTML converter for documents written in the
-   app (/scrivi). Produces the same HTML shape the docx pipeline emits
-   (h1 = chapter, h2/h3 = sections, p/ul/ol/table/pre blocks) so authored
-   text flows through the exact ingest pipeline used for .docx files.
+/* Convertitore da markdown leggero a HTML semantico per documenti scritti
+   nell'app (/scrivi). Produce la stessa forma HTML della pipeline docx
+   (h1 = capitolo, h2/h3 = sezioni, p/ul/ol/table/pre = blocchi), cosi' il
+   testo scritto passa nello stesso ingest usato per i file .docx.
 
-   Inline notation (`code`, **bold**) is NOT converted: it passes through
-   verbatim because it is already the pipeline's native light markup —
-   the LLM prompt mandates it and InlineText renders it. Text content is
-   only HTML-escaped, never rewritten. */
+   La notazione inline (`code`, **bold**) NON viene convertita: passa verbatim
+   perche' e' gia' il markup leggero nativo della pipeline, richiesto dal
+   prompt LLM e renderizzato da InlineText. Il testo viene solo escapato in
+   HTML, mai riscritto. */
 
 export type AuthoredChapter = { title: string; markdown: string };
 
@@ -21,7 +21,7 @@ const HEADING_RE = /^(#{1,6})\s+(.*)$/;
 const BULLET_RE = /^\s*[-*+]\s+(.*)$/;
 const ORDERED_RE = /^\s*\d+[.)]\s+(.*)$/;
 const FENCE_RE = /^\s*```/;
-/* GFM table separator: |---|:---:|--- (at least one dash run). */
+/* Separatore tabella GFM: |---|:---:|---, con almeno una sequenza di trattini. */
 const TABLE_SEPARATOR_RE = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
 
 function tableCells(line: string): string[] {
@@ -33,8 +33,8 @@ function tableCells(line: string): string[] {
     .map((cell) => escapeHtml(cell.trim()));
 }
 
-/** Convert one chapter body. Headings are clamped to h2–h4: an emitted
-    <h1> would create a phantom chapter in splitChapters. */
+/** Converte il corpo di un capitolo. Gli heading sono limitati a h2-h4:
+    un <h1> emesso qui creerebbe un capitolo fantasma in splitChapters. */
 export function markdownToHtml(markdown: string): string {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const out: string[] = [];
@@ -94,12 +94,12 @@ export function markdownToHtml(markdown: string): string {
       flushAll();
       const headers = tableCells(line);
       const rows: string[][] = [];
-      i += 2; // skip the separator line
+      i += 2; // Salta la riga separatrice.
       while (i < lines.length && lines[i].includes("|") && lines[i].trim()) {
         rows.push(tableCells(lines[i]));
         i += 1;
       }
-      i -= 1; // the for-loop increments past the last table row
+      i -= 1; // Il for incrementa oltre l'ultima riga della tabella.
       const headerHtml = headers.map((cell) => `<th>${cell}</th>`).join("");
       const rowsHtml = rows
         .map((cells) => `<tr>${cells.map((cell) => `<td>${cell}</td>`).join("")}</tr>`)
@@ -133,8 +133,8 @@ export function markdownToHtml(markdown: string): string {
   return out.join("\n");
 }
 
-/** Whole authored document → semantic HTML: each chapter title becomes the
-    <h1> that splitChapters/buildChunks use as the chapter boundary. */
+/** Documento scritto nell'app -> HTML semantico: ogni titolo capitolo diventa
+    l'<h1> usato da splitChapters/buildChunks come confine. */
 export function authoredChaptersToHtml(chapters: AuthoredChapter[]): string {
   return chapters
     .map(

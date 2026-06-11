@@ -18,7 +18,7 @@ export function ExtractChapterButton({
 }: {
   slug: string;
   chapter: string;
-  /** Smaller trigger for dense chapter controls. */
+  /** Trigger piu' piccolo per controlli capitolo densi. */
   compact?: boolean;
 }) {
   const router = useRouter();

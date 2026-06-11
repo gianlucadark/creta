@@ -95,7 +95,7 @@ export function WriterClient({
   }
 
   async function submit() {
-    // fully-empty chapters are dropped silently; half-filled ones are an error
+    // I capitoli completamente vuoti vengono ignorati; quelli parziali sono un errore.
     const kept = chapters.filter((c) => c.title.trim() || c.markdown.trim());
     if (!title.trim()) {
       setState({ phase: "error", message: "Dai un titolo al documento." });
@@ -167,7 +167,7 @@ export function WriterClient({
 
   return (
     <div className="creta-grid-bg min-h-screen text-navy-900">
-      {/* Nav */}
+      {/* Navigazione */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-navy-950/94 px-4 py-3 text-white backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5">
@@ -244,7 +244,7 @@ export function WriterClient({
           </div>
         ) : (
           <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_24rem]">
-            {/* Left: chapters */}
+            {/* Colonna sinistra: capitoli */}
             <section className="space-y-4">
               {chapters.map((chapter, position) => (
                 <div
@@ -305,7 +305,7 @@ export function WriterClient({
               </button>
             </section>
 
-            {/* Right: document meta + help */}
+            {/* Colonna destra: metadati documento e aiuto */}
             <section className="h-fit space-y-5 rounded-2xl border border-navy-100 bg-white p-5 shadow-sm lg:sticky lg:top-20">
               <div>
                 <label className={labelClass}>Titolo del documento</label>

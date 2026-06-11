@@ -9,10 +9,10 @@ export type SectionNavItem = {
 };
 
 /**
- * Floating section rail for the document detail page.
- * Collapsed: a column of thin ticks on the right edge (the active one is gold).
- * On hover it expands into a full table of contents with deep links.
- * Hidden until the reader scrolls past the hero, and on screens < xl.
+ * Rail flottante delle sezioni nella pagina documento. Da chiusa mostra tick
+ * sottili sul bordo destro; al passaggio del mouse diventa un indice con
+ * deep link. Resta nascosta finche' il lettore non supera la hero e sugli
+ * schermi sotto xl.
  */
 export function SectionNav({
   items,
@@ -33,7 +33,7 @@ export function SectionNav({
         const el = document.getElementById(items[i].anchor);
         if (el && el.getBoundingClientRect().top <= offset) current = i;
       }
-      /* at the very bottom the last section may never cross the offset line */
+      /* In fondo alla pagina l'ultima sezione puo' non superare mai la linea di offset. */
       if (
         items.length > 0 &&
         window.innerHeight + window.scrollY >=
@@ -77,7 +77,7 @@ export function SectionNav({
         revealed ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
     >
-      {/* Collapsed rail: one tick per section */}
+      {/* Rail collassata: un tick per sezione */}
       <div className="flex flex-col items-end gap-[7px] py-2 pl-6 transition-opacity duration-200 group-hover:opacity-0">
         {items.map((item, index) => (
           <span
@@ -91,7 +91,7 @@ export function SectionNav({
         ))}
       </div>
 
-      {/* Expanded panel */}
+      {/* Pannello espanso */}
       <div className="pointer-events-none absolute right-0 top-1/2 max-h-[72vh] w-72 -translate-y-1/2 translate-x-1.5 overflow-y-auto rounded-2xl border border-navy-200/70 bg-white/95 p-4 opacity-0 shadow-xl shadow-navy-900/10 backdrop-blur-md transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100">
         <p className="mb-3 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-navy-400">
           In questa pagina

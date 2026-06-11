@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Fades + lifts its children into view the first time they enter the viewport.
- * Pure CSS transition driven by an IntersectionObserver — no animation library.
+ * Mostra i figli con fade e sollevamento al primo ingresso nel viewport.
+ * Transizione CSS guidata da IntersectionObserver, senza librerie animation.
  */
 export function Reveal({
   children,

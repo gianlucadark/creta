@@ -28,7 +28,7 @@ export function EditDocButton({
   const [eyebrow, setEyebrow] = useState(page.eyebrow ?? "");
   const [summary, setSummary] = useState(page.summary);
   const [audience, setAudience] = useState(page.audience ?? "");
-  /* Current display order as indices into the original sections array. */
+  /* Ordine di visualizzazione corrente come indici dell'array sezioni originale. */
   const [order, setOrder] = useState(() => sections.map((_, i) => i));
   const [dragFrom, setDragFrom] = useState<number | null>(null);
 

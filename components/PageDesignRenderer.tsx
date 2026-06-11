@@ -10,8 +10,8 @@ import { sectionAnchor } from "@/lib/anchors";
 import { SectionNav } from "./SectionNav";
 import { RelatedDocsButton } from "./RelatedDocsButton";
 
-/** Library metadata of a related document, resolved by the page from the
-    stored slugs so deleted documents silently drop out. */
+/** Metadati libreria di un documento correlato, risolti dalla pagina a partire
+    dagli slug salvati: i documenti eliminati spariscono senza errori. */
 export type RelatedDocMeta = {
   slug: string;
   title: string;
@@ -21,7 +21,7 @@ export type RelatedDocMeta = {
   readingMinutes: number;
 };
 
-/* ── Icons (inline, no dependency) ──────────────────────────── */
+/* ── Icone inline senza dipendenze ──────────────────────────── */
 
 type IconProps = { className?: string };
 
@@ -63,7 +63,7 @@ const I = {
   ),
 };
 
-/* ── Primitive blocks ───────────────────────────────────────── */
+/* ── Blocchi primitivi ──────────────────────────────────────── */
 
 function BlockHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -454,7 +454,7 @@ function AccordionBlock({
   );
 }
 
-/* ── Block dispatcher ───────────────────────────────────────── */
+/* ── Dispatcher dei blocchi ─────────────────────────────────── */
 
 export function renderDesignBlock(block: PageDesignBlock, index: number) {
   switch (block.type) {
@@ -491,10 +491,10 @@ export function renderDesignBlock(block: PageDesignBlock, index: number) {
   }
 }
 
-/* ── Page shell ─────────────────────────────────────────────── */
+/* ── Struttura pagina ───────────────────────────────────────── */
 
-/* Group consecutive sections under their main-chapter (h1) title, so the
-   TOC and the section rail mirror the document's own hierarchy. */
+/* Raggruppa le sezioni consecutive sotto il titolo del capitolo h1, cosi'
+   indice e rail rispecchiano la gerarchia del documento sorgente. */
 function groupByChapter(sections: PageDesign["sections"]) {
   const groups: { chapter?: string; items: { title: string; index: number }[] }[] = [];
   sections.forEach((section, index) => {
@@ -527,7 +527,7 @@ export function PageDesignRenderer({
   return (
     <article className="bg-white">
       <SectionNav items={navItems} showChapters={showChapters} />
-      {/* Hero */}
+      {/* Testata hero */}
       <section className="relative overflow-hidden bg-navy-950 text-white">
         <div className="creta-grain pointer-events-none absolute inset-0 opacity-[0.05]" />
 
@@ -611,7 +611,7 @@ export function PageDesignRenderer({
         <div className="creta-scanline absolute inset-x-0 bottom-0 h-1" />
       </section>
 
-      {/* Body */}
+      {/* Corpo */}
       <div className="creta-grid-bg">
       <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14 lg:px-6">
         <div className="space-y-12 sm:space-y-16">
@@ -621,7 +621,7 @@ export function PageDesignRenderer({
               .filter((g) => g.chapter).length;
             return (
               <div key={groupIndex} className="space-y-6 sm:space-y-8">
-                {/* Chapter band: marks the parent <h1> chapter of the cards below */}
+                {/* Banda capitolo: segnala l'h1 padre delle sezioni sottostanti */}
                 {showChapters && group.chapter && (
                   <Reveal>
                     <div className="relative overflow-hidden rounded-[1.5rem] bg-navy-950 px-6 py-7 text-white shadow-lg shadow-navy-950/15 sm:px-8 sm:py-8">
@@ -707,7 +707,7 @@ export function PageDesignRenderer({
       </div>
       </div>
 
-      {/* Related documents — hand-picked links stored in design.related */}
+      {/* Documenti correlati scelti a mano e salvati in design.related */}
       <section className="border-t border-navy-200/70 bg-surface">
         <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14 lg:px-6">
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
@@ -766,7 +766,7 @@ export function PageDesignRenderer({
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Piè di pagina */}
       <footer className="border-t border-navy-200/70 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-10 text-sm text-navy-500 sm:flex-row lg:px-6">
           <p className="flex items-center gap-2.5">

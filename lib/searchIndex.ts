@@ -8,10 +8,10 @@ import {
 import { sectionAnchor } from "./anchors";
 import { listPageFiles, readPageRaw } from "./pagesStore";
 
-/* Server-only full-text index over the document store. Built lazily and
-   cached in module scope, keyed on the listing + last-modified times, so it
-   costs one store scan per request and re-reads JSON only when files change.
-   No database: the JSON store *is* the database. */
+/* Indice full-text server-only sullo store dei documenti. Viene costruito
+   pigramente e tenuto in cache di modulo, con chiave basata su elenco file e
+   mtime: ogni request paga una scansione dello store e rilegge i JSON solo
+   quando cambiano. Nessun database: lo store JSON e' il database. */
 
 export type LibraryDoc = {
   slug: string;
@@ -31,7 +31,7 @@ type SectionEntry = {
   title: string;
   chapter?: string;
   anchor: string;
-  /** Plain text of the section, inline markup stripped. */
+  /** Testo semplice della sezione, senza markup inline. */
   text: string;
 };
 
@@ -57,7 +57,7 @@ export type SearchResponse = {
 
 const WPM = 200;
 
-/** Strip the light inline notation (`code`, **bold**) down to plain text. */
+/** Riduce la notazione inline leggera (`code`, **bold**) a testo semplice. */
 function stripInline(text: string) {
   return text.replace(/[`*]/g, "");
 }
@@ -125,7 +125,7 @@ function formatDate(mtime: number) {
   });
 }
 
-/** Collect every string nested in a legacy v1 document. */
+/** Raccoglie ogni stringa annidata in un documento legacy v1. */
 function collectStrings(value: unknown): string[] {
   if (typeof value === "string") return value.trim() ? [value] : [];
   if (Array.isArray(value)) return value.flatMap(collectStrings);
@@ -151,7 +151,7 @@ export async function getLibraryIndex(): Promise<LibraryIndex> {
   const docs: LibraryDoc[] = [];
   const sections: SectionEntry[] = [];
 
-  // Parallel reads: under the Blob backend each read is a network fetch.
+  // Letture parallele: sul backend Blob ogni read e' una fetch di rete.
   const contents = await Promise.all(
     files.map((file) => readPageRaw(file.slug).catch(() => null))
   );
@@ -227,7 +227,7 @@ export async function getLibraryIndex(): Promise<LibraryIndex> {
   return index;
 }
 
-/* ── Search ─────────────────────────────────────────────────── */
+/* ── Ricerca ────────────────────────────────────────────────── */
 
 function normalize(text: string) {
   return text
@@ -283,7 +283,7 @@ export async function searchLibrary(
       for (const term of terms) {
         if (inTitle.includes(term)) score += 3;
         else if (inText.includes(term)) score += 1;
-        else return null; // every term must match somewhere
+        else return null; // Ogni termine deve comparire almeno una volta.
       }
       return { section, score };
     })

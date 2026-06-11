@@ -29,12 +29,12 @@ export function DocHeader({
       const pct = max > 0 ? Math.min(1, top / max) : 0;
       setScrolled(top > 80);
       setProgress(pct);
-      /* hide while reading down, reveal as soon as the reader scrolls up */
+      /* Si nasconde durante la lettura verso il basso e riappare appena si risale. */
       const delta = top - lastY.current;
       if (delta > 4 && top > 360) setHidden(true);
       else if (delta < -4 || top <= 360) setHidden(false);
       lastY.current = top;
-      /* persist where the reader got to, but only on meaningful movement */
+      /* Persiste il punto raggiunto solo dopo movimenti significativi. */
       if (slug && Math.abs(pct - lastSaved.current) > 0.02) {
         lastSaved.current = pct;
         saveReading(slug, pct);
@@ -61,7 +61,7 @@ export function DocHeader({
       }`}
     >
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3.5">
-        {/* Logo / back */}
+        {/* Logo e ritorno */}
         <Link href="/" transitionTypes={["nav-back"]} className="group flex shrink-0 items-center gap-2.5">
           <span className="creta-badge-grad grid h-8 w-8 place-items-center rounded-lg text-sm font-black text-white shadow-sm shadow-navy-900/20 transition-transform group-hover:-rotate-6">
             C
@@ -75,7 +75,7 @@ export function DocHeader({
           </span>
         </Link>
 
-        {/* Center: document title (visible only when scrolled) */}
+        {/* Centro: titolo documento, visibile solo dopo lo scroll */}
         {title && (
           <p
             className={`hidden min-w-0 max-w-sm flex-1 truncate text-center text-sm font-semibold transition-all duration-300 md:block ${
@@ -126,7 +126,7 @@ export function DocHeader({
         </div>
       </div>
 
-      {/* reading progress bar */}
+      {/* Barra del progresso di lettura */}
       <div className="h-0.5 w-full bg-transparent">
         <div
           className="creta-progress-grad h-full origin-left transition-transform duration-150 ease-out"

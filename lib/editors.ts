@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
-/* Allowlist degli editor — architettura DORMIENTE.
+/* Allowlist editor — architettura DORMIENTE.
 
    Oggi il sito è un portale interno aperto: chiunque lo raggiunge può
    caricare, comporre ed eliminare documenti. Quando servirà limitare le
@@ -94,7 +94,7 @@ export function authorizeEditor(req: Request): Response | null {
   if (!isAuthEnabled()) return null;
 
   if (!secret()) {
-    // allowlist attiva ma segreto mancante: meglio bloccare che aprire
+    // Allowlist attiva ma segreto mancante: meglio bloccare che aprire.
     console.error(
       "[creta] CRETA_EDITORS è impostata ma manca CRETA_AUTH_SECRET: modifiche bloccate."
     );

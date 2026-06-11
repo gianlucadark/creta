@@ -1,5 +1,5 @@
-/* Shared anchor derivation: the renderer assigns these ids to sections and
-   the search index uses the same function so deep links always line up. */
+/* Derivazione anchor condivisa: il renderer assegna questi id alle sezioni e
+   l'indice di ricerca usa la stessa funzione, cosi' i deep link restano allineati. */
 
 export function sectionAnchor(title: string, index: number) {
   const slug = title

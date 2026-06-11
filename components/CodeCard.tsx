@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { copyText } from "@/lib/clipboard";
 import { tryFormatJson } from "@/lib/jsonText";
 
-/* ── Language detection ─────────────────────────────────────── */
+/* ── Rilevamento linguaggio ─────────────────────────────────── */
 
 type Lang = "JSON" | "PowerShell" | "Shell" | "Codice";
 
@@ -21,7 +21,7 @@ function detectLanguage(code: string): Lang {
   return "Codice";
 }
 
-/* ── Syntax highlighting (tiny, dependency-free) ────────────── */
+/* ── Evidenziazione sintassi minimale e senza dipendenze ───── */
 
 const TOKEN_STYLE = {
   key: "text-gold-300",
@@ -113,7 +113,7 @@ function highlightLine(line: string, lang: Lang, key: number): React.ReactNode {
   return <span key={key}>{line}</span>;
 }
 
-/* ── Component ──────────────────────────────────────────────── */
+/* ── Componente ─────────────────────────────────────────────── */
 
 export function CodeCard({ title, code }: { title?: string; code: string }) {
   const formattedJson = tryFormatJson(code);

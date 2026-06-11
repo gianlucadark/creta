@@ -2,28 +2,29 @@ import { promises as fs } from "fs";
 import { join } from "path";
 import { PageDesignSchema, sanitizePageDesign, type PageDesign } from "./schema";
 
-/* Server-only access to the JSON document store.
-   Two interchangeable backends behind the same async API:
-   - local filesystem (content/pages) when no Blob credentials are configured
-   - Vercel Blob (pathname pages/<slug>.json) with either a read-write token
-     or Vercel's OIDC runtime credentials for the connected BLOB_STORE_ID.
-   The switch is per-call: normal local dev stays on files, while Vercel uses
-   the persistent private Blob store. */
+/* Accesso server-only allo store JSON dei documenti.
+   Due backend intercambiabili dietro la stessa API async:
+   - filesystem locale (content/pages) quando non ci sono credenziali Blob
+   - Vercel Blob (pathname pages/<slug>.json) con token read-write oppure
+     credenziali OIDC runtime di Vercel per il BLOB_STORE_ID collegato.
+   La scelta avviene per chiamata: in locale si usano i file, su Vercel lo
+   store Blob privato persistente. */
 
 const PAGES_DIR = join(process.cwd(), "content", "pages");
 const BLOB_PREFIX = "pages/";
 
-/* In-memory TTL cache over the Blob backend only: every list/get/head is a
-   billable network call, so warm serverless instances reuse what they have
-   already fetched. Mutations update the cache in place, so reads after a
-   write/delete on the same instance are always fresh; staleness across
-   instances is bounded by the TTL. The filesystem backend stays uncached
-   (local dev must see files changed on disk, e.g. by scripts/reingest.ts).
+/* Cache TTL in memoria solo per il backend Blob: ogni list/get/head e' una
+   chiamata di rete fatturabile, quindi le istanze serverless calde riusano
+   cio' che hanno gia' scaricato. Le mutazioni aggiornano la cache in place,
+   cosi' le letture successive a write/delete sulla stessa istanza sono fresche;
+   lo staleness tra istanze e' limitato dal TTL. Il filesystem resta senza
+   cache: in locale deve vedere i file modificati su disco, per esempio da
+   scripts/reingest.ts.
 
-   The cache lives on globalThis: in dev the bundler compiles route handlers
-   and pages into separate module graphs, each with its own module instance —
-   a write through one instance must be visible to reads through the others,
-   or a just-saved change stays invisible for a whole TTL. */
+   La cache vive su globalThis: in dev il bundler compila route handler e page
+   in module graph separati, ognuno con una propria istanza di modulo. Una
+   scrittura da un'istanza deve essere visibile alle letture dalle altre, oppure
+   una modifica appena salvata resterebbe invisibile per tutto il TTL. */
 const CACHE_TTL_MS = 60_000;
 
 type StoreCache = {
@@ -66,7 +67,7 @@ function isEnoent(error: unknown) {
 
 export type PageFile = { slug: string; mtime: number };
 
-/** List the stored documents with their last-modified time. */
+/** Elenca i documenti salvati con il rispettivo last-modified. */
 export async function listPageFiles(): Promise<PageFile[]> {
   if (shouldUseBlobStore()) {
     if (storeCache.list && Date.now() - storeCache.list.at < CACHE_TTL_MS) {
@@ -110,7 +111,7 @@ export async function listPageFiles(): Promise<PageFile[]> {
   }
 }
 
-/** Raw JSON text of a stored document, or null when it doesn't exist. */
+/** Testo JSON grezzo di un documento salvato, o null se non esiste. */
 export async function readPageRaw(slug: string): Promise<string | null> {
   if (shouldUseBlobStore()) {
     const hit = freshRead(slug);
@@ -176,7 +177,7 @@ export async function writePageDesign(slug: string, design: PageDesign) {
   await fs.writeFile(join(PAGES_DIR, `${slug}.json`), json, "utf8");
 }
 
-/** Delete a stored document. Returns false when it didn't exist. */
+/** Elimina un documento salvato. Restituisce false se non esisteva. */
 export async function deletePage(slug: string): Promise<boolean> {
   if (shouldUseBlobStore()) {
     if (!(await pageExists(slug))) return false;
@@ -221,8 +222,8 @@ export async function pageExists(slug: string): Promise<boolean> {
   }
 }
 
-/** First free slug among base, base-2, base-3, … One fresh listing instead
-    of a head call per candidate — and no stale cache right before a write. */
+/** Primo slug libero tra base, base-2, base-3, ... Usa una listing fresca
+    invece di una head per candidato, evitando cache stale prima della write. */
 export async function uniqueSlug(base: string): Promise<string> {
   storeCache.list = null;
   const taken = new Set((await listPageFiles()).map((file) => file.slug));

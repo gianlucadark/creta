@@ -1,6 +1,6 @@
-/* Renders the lightweight inline notation allowed by the ingest prompt:
-   `backticks` → copyable monospace chip, **asterisks** → bold, bare URLs →
-   links. Everything else is printed verbatim. */
+/* Renderizza la notazione inline leggera ammessa dal prompt di ingest:
+   `backticks` -> chip monospace copiabile, **asterisks** -> grassetto,
+   URL nudi -> link. Tutto il resto viene stampato verbatim. */
 
 import { CopyChip } from "./CopyChip";
 

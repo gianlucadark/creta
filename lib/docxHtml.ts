@@ -1,33 +1,33 @@
-/* Deterministic pre-processing of the mammoth HTML before it reaches the
-   LLM: strips the docx table of contents and footnote reference markers,
-   then splits the document into one chunk per main chapter (h1). Oversized
-   chapters are further split at h2 (then element) boundaries so every chunk
-   stays small enough for a full-fidelity, verbatim LLM mapping. */
+/* Pre-elaborazione deterministica dell'HTML prodotto da mammoth prima del
+   passaggio al LLM: rimuove indice e rimandi alle note del docx, poi divide
+   il documento in un chunk per capitolo principale (h1). I capitoli troppo
+   grandi vengono divisi su h2 e poi sui singoli elementi, cosi' ogni chunk
+   resta abbastanza piccolo per una mappatura fedele e verbatim. */
 
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 
 export type DocChunk = {
-  /** Verbatim h1 title of the chapter this chunk belongs to. */
+  /** Titolo h1 verbatim del capitolo a cui appartiene il chunk. */
   chapter: string;
-  /** 0-based part index within the chapter (chapters can span chunks). */
+  /** Indice della parte nel capitolo, base 0; un capitolo puo' occupare piu' chunk. */
   part: number;
-  /** Total number of chunks the chapter was split into. */
+  /** Numero totale di chunk in cui e' stato diviso il capitolo. */
   parts: number;
   html: string;
 };
 
 export type DocStructure = {
-  /** Title-page content found before the first h1 (TOC already removed). */
+  /** Contenuto della copertina prima del primo h1, con indice gia' rimosso. */
   coverHtml: string;
   chapters: { title: string; html: string }[];
-  /** Cleaned heading outline (h1–h4) of the whole document. */
+  /** Scaletta pulita degli heading h1-h4 dell'intero documento. */
   headings: { level: number; text: string }[];
 };
 
 const TOC_TITLE = /^(sommario|indice|table of contents)$/i;
 
-/** Remove TOC paragraphs and footnote reference markers ("[1]", "↑"). */
+/** Rimuove paragrafi dell'indice e marcatori delle note ("[1]", "↑"). */
 export function cleanDocumentHtml(rawHtml: string): string {
   const $ = cheerio.load(rawHtml, null, false);
 
@@ -36,13 +36,13 @@ export function cleanDocumentHtml(rawHtml: string): string {
     const href = a.attr("href") ?? "";
     if (href.startsWith("#_Toc")) {
       const p = a.closest("p");
-      // a TOC line is a paragraph whose entire text is the anchor's text
+      // Una riga dell'indice e' un paragrafo composto solo dal testo del link.
       if (p.length && p.text().trim() === a.text().trim()) p.remove();
       else a.replaceWith(a.text());
     } else if (href.startsWith("#footnote-ref-")) {
-      a.remove(); // "↑" backlink inside the footnote list
+      a.remove(); // Backlink "↑" dentro l'elenco delle note.
     } else if (href.startsWith("#footnote-")) {
-      a.remove(); // superscript "[n]" marker in the body text
+      a.remove(); // Marcatore apice "[n]" nel corpo del testo.
     }
   });
 
@@ -58,7 +58,7 @@ function nodeText($: cheerio.CheerioAPI, el: AnyNode): string {
   return $(el).text().replace(/\s+/g, " ").trim();
 }
 
-/** Split the cleaned HTML into the title page and one entry per h1 chapter. */
+/** Divide l'HTML pulito in copertina e un elemento per capitolo h1. */
 export function splitChapters(cleanHtml: string): DocStructure {
   const $ = cheerio.load(cleanHtml, null, false);
   const headings: DocStructure["headings"] = [];
@@ -93,11 +93,11 @@ export function splitChapters(cleanHtml: string): DocStructure {
   };
 }
 
-/** Group consecutive top-level elements into pieces of at most maxChars.
-    Pieces are packed as full as possible (fewer pieces → fewer LLM calls);
-    when a piece overflows, the cut moves back to the last h2/h3 boundary so
-    splits stay semantic, and a trailing fragment too small to be worth its
-    own call is merged back into the previous piece. */
+/** Raggruppa elementi top-level consecutivi in parti al massimo di maxChars.
+    Le parti vengono riempite il piu' possibile per ridurre le chiamate LLM;
+    quando una parte supera il limite, il taglio torna all'ultimo h2/h3 per
+    restare semantico. Un frammento finale troppo piccolo viene riassorbito
+    nella parte precedente. */
 function splitElements(
   elements: { html: string; isBoundary: boolean }[],
   maxChars: number
@@ -112,7 +112,7 @@ function splitElements(
 
   for (const el of elements) {
     if (currentLen > 0 && currentLen + el.html.length > maxChars) {
-      let cut = current.length; // current.length = no boundary found
+      let cut = current.length; // current.length indica che non esiste un confine utile.
       for (let i = current.length - 1; i > 0; i -= 1) {
         if (current[i].isBoundary) {
           cut = i;
@@ -161,8 +161,8 @@ function chapterToPieces(chapterHtml: string, maxChars: number): string[] {
         "tagName" in el && /^h[23]$/i.test(el.tagName ?? ""),
     }));
 
-  // first try to break at h2/h3 boundaries; re-split any oversized piece
-  // at plain element boundaries so no chunk can exceed the budget
+  // Prima prova i confini h2/h3; se una parte resta troppo grande,
+  // la ridivide sui singoli elementi per rispettare il budget.
   return splitElements(elements, maxChars).flatMap((piece) => {
     if (piece.length <= maxChars) return [piece];
     const $$ = cheerio.load(piece, null, false);
@@ -174,7 +174,7 @@ function chapterToPieces(chapterHtml: string, maxChars: number): string[] {
   });
 }
 
-/** Turn the chapter list into LLM-sized chunks (one call each). */
+/** Trasforma l'elenco dei capitoli in chunk dimensionati per il LLM. */
 export function buildChunks(
   structure: DocStructure,
   maxChars: number
@@ -193,20 +193,20 @@ export function buildChunks(
   return chunks;
 }
 
-/** Plain text of an HTML fragment, one line per block element. */
+/** Testo semplice di un frammento HTML, una riga per blocco. */
 export function htmlToPlainText(html: string): string {
   const $ = cheerio.load(html, null, false);
   const lines: string[] = [];
   $.root()
     .children()
     .each((_, el) => {
-      // table cells and list items each become their own line
+      // Celle di tabella ed elementi di lista diventano righe separate.
       const block = $(el);
       const leaves = block.find("p, li, td, th");
       if (leaves.length) {
         leaves.each((__, leaf) => {
           const inner = $(leaf);
-          if (inner.find("p, li").length) return; // keep only leaf nodes
+          if (inner.find("p, li").length) return; // Mantiene solo i nodi foglia.
           const text = inner.text().replace(/\s+/g, " ").trim();
           if (text) lines.push(text);
         });

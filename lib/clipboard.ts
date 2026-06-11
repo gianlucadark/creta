@@ -1,4 +1,4 @@
-/* Clipboard write with a fallback for non-secure contexts (plain HTTP). */
+/* Scrittura negli appunti con fallback per contesti non sicuri, come HTTP. */
 export async function copyText(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard?.writeText) {
@@ -6,7 +6,7 @@ export async function copyText(text: string): Promise<boolean> {
       return true;
     }
   } catch {
-    // fall through to the legacy path
+    // Prosegue sul percorso legacy.
   }
   try {
     const textarea = document.createElement("textarea");

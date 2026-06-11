@@ -1,6 +1,6 @@
-/* Coverage scoring: measures how much of a source chunk's text actually
-   made it into the generated sections. Used to detect (and repair) LLM
-   outputs that silently dropped or summarised content. */
+/* Scoring di copertura: misura quanto testo del chunk sorgente entra davvero
+   nelle sezioni generate. Serve a rilevare e riparare output LLM che perdono
+   o riassumono contenuto senza segnalarlo. */
 
 import type { PageDesign } from "./schema";
 
@@ -32,7 +32,7 @@ export function designText(sections: PageDesign["sections"]): string {
   return out.join("\n");
 }
 
-/** Fraction (0–1) of the source's significant words present in the output. */
+/** Frazione, da 0 a 1, delle parole significative sorgente presenti nell'output. */
 export function coverageRatio(sourceText: string, outputText: string): number {
   const source = new Set(words(sourceText));
   if (source.size === 0) return 1;

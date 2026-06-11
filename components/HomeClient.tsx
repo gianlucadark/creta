@@ -14,8 +14,8 @@ import {
 } from "@/lib/readingProgress";
 import type { PageMeta } from "@/app/page";
 
-/* The 13 typed blocks a document can be mapped onto — shown in the hero
-   marquee as a plain statement of what the engine actually does. */
+/* I 13 blocchi tipizzati su cui puo' essere mappato un documento; usati
+   nella marquee della hero per dichiarare cosa produce davvero il motore. */
 const BLOCK_TYPES = [
   "paragraph", "callout", "steps", "timeline", "table", "code", "cards",
   "feature", "stats", "checklist", "list", "quote", "accordion",
@@ -91,7 +91,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
   } | null>(null);
   const [query, setQuery] = useState("");
 
-  /* reading progress lives in localStorage; empty on the server snapshot */
+  /* Il progresso di lettura vive in localStorage; sullo snapshot server e' vuoto. */
   const progress = useSyncExternalStore(
     subscribeReading,
     readingSnapshot,
@@ -150,7 +150,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
 
   return (
     <div className="min-h-screen bg-surface text-navy-900">
-      {/* ── Hero — full screen ───────────────────────────────── */}
+      {/* ── Hero a schermo intero ─────────────────────────────── */}
       <section className="creta-hero-bg relative flex min-h-[100svh] flex-col overflow-hidden text-white">
         <div className="creta-grain pointer-events-none absolute inset-0 opacity-[0.05]" />
 
@@ -160,7 +160,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
           <ParticleWordmark className="h-full w-full opacity-100" />
         </div>
 
-        {/* nav */}
+        {/* Navigazione principale */}
         <header className="relative z-10 flex items-center justify-between gap-3 px-5 py-5 sm:px-10">
           <Link href="/" className="flex items-center gap-2.5">
             <Mark />
@@ -199,7 +199,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
           </div>
         </header>
 
-        {/* headline */}
+        {/* Titolo e azioni principali */}
         <div className="relative z-10 mx-auto flex w-full max-w-[88rem] flex-1 flex-col justify-center px-5 py-10 sm:px-10">
           <p className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
             <span className="h-px w-10 bg-gold-400/60" />
@@ -251,7 +251,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
           </div>
         </div>
 
-        {/* marquee of typed blocks */}
+        {/* Marquee dei blocchi tipizzati, tenuta pronta ma non renderizzata */}
         {/* <div className="relative z-10 overflow-hidden border-t border-white/10 py-3.5">
           <div className="creta-marquee">
             {[0, 1].map((copy) => (
@@ -271,7 +271,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
           </div>
         </div> */}
 
-        {/* live stats */}
+        {/* Statistiche live, tenute pronte ma non renderizzate */}
         {/* <div className="relative z-10 grid grid-cols-2 border-t border-white/10 sm:grid-cols-4">
           {[
             { value: documents.length, label: "Documenti" },
@@ -353,7 +353,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
           </div>
         </div>
 
-        {/* document index */}
+        {/* Indice dei documenti */}
         {documents.length === 0 ? (
           <div className="mt-7 rounded-2xl border border-dashed border-navy-900/20 bg-white px-6 py-20 text-center">
             <Mark className="mx-auto" />
@@ -450,7 +450,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
                     </div>
                   </div>
 
-                  {/* reading progress hairline */}
+                  {/* Barra sottile del progresso di lettura */}
                   {pct > 0.03 && pct < 0.97 && (
                     <span
                       className="absolute bottom-[-1px] left-0 h-px bg-gold-500"
@@ -464,7 +464,7 @@ export function HomeClient({ pages }: { pages: PageMeta[] }) {
         )}
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────── */}
+      {/* ── Piè di pagina ────────────────────────────────────── */}
       <footer className="bg-navy-950 text-white">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-3 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-10">
           <p className="flex items-center gap-3 text-sm text-white/50">

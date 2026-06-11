@@ -3,8 +3,8 @@
 import { useRef, useState } from "react";
 import { copyText } from "@/lib/clipboard";
 
-/* Inline monospace chip used for `backtick` tokens: click to copy.
-   Rendered as a button so commands/paths can be grabbed with one click. */
+/* Chip monospace inline per token `backtick`: click per copiare. E' un
+   button per permettere di prendere comandi e percorsi con un click. */
 export function CopyChip({ code, onDark = false }: { code: string; onDark?: boolean }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
