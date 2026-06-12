@@ -63,17 +63,17 @@ const PORTAL_SECTIONS = [
   {
     label: "News",
     title: "Aggiornamenti AI",
-    text: "Novita, segnali e cambiamenti da seguire per capire cosa sta arrivando nel lavoro quotidiano.",
+    text: "Comunicazioni e aggiornamenti sulle iniziative AI in corso: cosa cambia, cosa è attivo, cosa arriva.",
   },
   {
     label: "Guide",
     title: "Procedure interne",
-    text: "Linee guida, configurazioni e indicazioni operative gia pronte da consultare quando servono.",
+    text: "Linee guida operative, configurazioni e manuali pronti all'uso. Consultabili in qualsiasi momento.",
   },
   {
     label: "Archivio",
     title: "Documenti navigabili",
-    text: "Ogni contenuto resta cercabile, leggibile per sezioni e riprendibile dal punto in cui era stato lasciato.",
+    text: "Tutti i contenuti sono cercabili per testo, organizzati per sezioni e disponibili senza registrazione.",
   },
 ];
 
@@ -598,16 +598,15 @@ export function HomeClient({
             </p>
 
             <h1 className="mt-7 max-w-4xl font-display text-[clamp(2.8rem,8vw,5.8rem)] font-bold leading-[0.95] tracking-tight">
-              Tavolo di lavoro
+              Base di conoscenza
               <br />
-              per la conoscenza{" "}
+              interna{" "}
               <em className="font-semibold italic text-gold-300">MICE</em>.
             </h1>
 
             <p className="mt-8 max-w-2xl text-[1.02rem] leading-8 text-white/68">
-              News, linee guida e procedure interne raccolte in un ambiente
-              leggibile: ogni documento diventa una pagina chiara, cercabile e
-              pronta da riprendere quando serve.
+              Procedure, guide operative e aggiornamenti AI in un unico posto.
+              Cerca per testo, naviga per sezioni, riprendi da dove hai lasciato.
             </p>
 
             <div className="mt-9 grid gap-3 sm:max-w-2xl sm:grid-cols-3">
@@ -669,13 +668,13 @@ export function HomeClient({
               Dentro il portale
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold leading-tight">
-              Un punto unico.
+              Cosa trovi
               <br />
-              <em className="italic text-gold-600">Per lavorare meglio con l&apos;AI.</em>
+              <em className="italic text-gold-600">nel portale.</em>
             </h2>
             <p className="mt-4 text-sm leading-7 text-navy-500">
-              Il contenuto e&apos; aziendale; Creta cura la forma, la navigazione e
-              la leggibilita.
+              Il contenuto è aziendale. Creta gestisce la struttura, la
+              navigazione e la ricerca.
             </p>
           </div>
           <ol className="grid gap-8 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-navy-900/10">
