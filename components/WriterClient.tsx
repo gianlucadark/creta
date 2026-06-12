@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -41,6 +41,187 @@ const SYNTAX_ROWS: [string, string][] = [
   ["```", "blocco di codice (apri e chiudi)"],
 ];
 
+type FormatAction =
+  | { type: "wrap"; before: string; after: string; placeholder: string }
+  | { type: "line-prefix"; prefix: string; placeholder: string }
+  | { type: "insert"; template: string };
+
+function applyFormat(
+  textarea: HTMLTextAreaElement,
+  action: FormatAction,
+  onChange: (value: string) => void
+) {
+  const { value, selectionStart: ss, selectionEnd: se } = textarea;
+  const selected = value.slice(ss, se);
+
+  let next: string;
+  let cursorStart: number;
+  let cursorEnd: number;
+
+  if (action.type === "insert") {
+    // Se il cursore non è a inizio riga aggiunge una riga vuota prima
+    const needsNewline = ss > 0 && value[ss - 1] !== "\n";
+    const insertion = (needsNewline ? "\n" : "") + action.template;
+    next = value.slice(0, ss) + insertion + value.slice(se);
+    cursorStart = ss + insertion.length;
+    cursorEnd = cursorStart;
+  } else if (action.type === "wrap") {
+    const text = selected || action.placeholder;
+    next =
+      value.slice(0, ss) + action.before + text + action.after + value.slice(se);
+    cursorStart = ss + action.before.length;
+    cursorEnd = cursorStart + text.length;
+  } else {
+    // line-prefix: opera sulla riga corrente o sulle righe selezionate
+    const lineStart = value.lastIndexOf("\n", ss - 1) + 1;
+    const lineEnd = value.indexOf("\n", se);
+    const end = lineEnd === -1 ? value.length : lineEnd;
+    const lines = value.slice(lineStart, end).split("\n");
+    const prefixed = lines.map((l) => action.prefix + l).join("\n");
+    next = value.slice(0, lineStart) + prefixed + value.slice(end);
+    cursorStart = lineStart + action.prefix.length;
+    cursorEnd = lineStart + prefixed.length;
+  }
+
+  onChange(next);
+  // Ripristina la selezione dopo il re-render
+  requestAnimationFrame(() => {
+    textarea.focus();
+    textarea.setSelectionRange(cursorStart, cursorEnd);
+  });
+}
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function applyInline(raw: string): string {
+  let s = escHtml(raw);
+  s = s.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(
+    /`([^`\n]+)`/g,
+    '<code class="rounded bg-navy-100 px-1 font-mono text-[0.8em] text-navy-700">$1</code>'
+  );
+  return s;
+}
+
+function renderMarkdown(md: string): string {
+  if (!md.trim())
+    return '<p class="text-sm italic text-navy-400">Nessun contenuto ancora…</p>';
+
+  const lines = md.split("\n");
+  const output: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (line.trimStart().startsWith("```")) {
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].trimStart().startsWith("```")) {
+        codeLines.push(escHtml(lines[i]));
+        i++;
+      }
+      output.push(
+        `<pre class="my-2 overflow-x-auto rounded-lg bg-navy-900/[0.06] p-3 font-mono text-[0.78em] leading-5 text-navy-800"><code>${codeLines.join("\n")}</code></pre>`
+      );
+      i++;
+      continue;
+    }
+
+    if (line.startsWith("|")) {
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].startsWith("|")) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      const [headerRow, , ...bodyRows] = tableLines;
+      const headers = (headerRow ?? "")
+        .split("|")
+        .filter((s) => s.trim())
+        .map(
+          (h) =>
+            `<th class="border border-navy-200 px-2 py-1.5 text-left text-[0.75em] font-semibold bg-navy-50">${applyInline(h.trim())}</th>`
+        )
+        .join("");
+      const body = bodyRows
+        .map((row) => {
+          const cells = row
+            .split("|")
+            .filter((s) => s.trim())
+            .map(
+              (c) =>
+                `<td class="border border-navy-200 px-2 py-1.5 text-[0.78em]">${applyInline(c.trim())}</td>`
+            )
+            .join("");
+          return `<tr>${cells}</tr>`;
+        })
+        .join("");
+      output.push(
+        `<div class="my-2 overflow-x-auto"><table class="w-full border-collapse text-navy-700">${
+          headers ? `<thead><tr>${headers}</tr></thead>` : ""
+        }${body ? `<tbody>${body}</tbody>` : ""}</table></div>`
+      );
+      continue;
+    }
+
+    const h2 = line.match(/^##\s+(.+)/);
+    if (h2) {
+      output.push(
+        `<h2 class="mt-5 mb-1.5 font-display text-base font-bold text-navy-900">${applyInline(h2[1])}</h2>`
+      );
+      i++;
+      continue;
+    }
+
+    const h3 = line.match(/^###\s+(.+)/);
+    if (h3) {
+      output.push(
+        `<h3 class="mt-3.5 mb-1 text-sm font-semibold text-navy-800">${applyInline(h3[1])}</h3>`
+      );
+      i++;
+      continue;
+    }
+
+    if (/^- /.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^- /.test(lines[i])) {
+        items.push(`<li>${applyInline(lines[i].slice(2))}</li>`);
+        i++;
+      }
+      output.push(
+        `<ul class="my-2 ml-4 list-disc space-y-0.5 text-sm text-navy-700">${items.join("")}</ul>`
+      );
+      continue;
+    }
+
+    if (/^\d+\. /.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        items.push(`<li>${applyInline(lines[i].replace(/^\d+\. /, ""))}</li>`);
+        i++;
+      }
+      output.push(
+        `<ol class="my-2 ml-4 list-decimal space-y-0.5 text-sm text-navy-700">${items.join("")}</ol>`
+      );
+      continue;
+    }
+
+    if (!line.trim()) {
+      i++;
+      continue;
+    }
+
+    output.push(
+      `<p class="my-1 text-sm leading-7 text-navy-700">${applyInline(line)}</p>`
+    );
+    i++;
+  }
+
+  return output.join("");
+}
+
 export function WriterClient({
   slug,
   initial,
@@ -60,6 +241,8 @@ export function WriterClient({
   );
   const [state, setState] = useState<State>({ phase: "idle" });
   const [stepIndex, setStepIndex] = useState(0);
+  const [previewMode, setPreviewMode] = useState(false);
+  const textareaRefs = useRef<Map<number, HTMLTextAreaElement>>(new Map());
 
   const isLoading = state.phase === "loading";
 
@@ -247,6 +430,34 @@ export function WriterClient({
           <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_24rem]">
             {/* Colonna sinistra: capitoli */}
             <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-navy-400">
+                  Capitoli
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode((v) => !v)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                    previewMode
+                      ? "border-gold-400 bg-gold-50 text-gold-700"
+                      : "border-navy-200 bg-white text-navy-600 hover:border-gold-400 hover:text-gold-600"
+                  }`}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-3.5 w-3.5"
+                  >
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                  </svg>
+                  {previewMode ? "Nascondi anteprima" : "Mostra anteprima"}
+                </button>
+              </div>
               {chapters.map((chapter, position) => (
                 <div
                   key={chapter.id}
@@ -289,13 +500,77 @@ export function WriterClient({
                       </button>
                     </span>
                   </div>
-                  <textarea
-                    value={chapter.markdown}
-                    onChange={(e) => updateChapter(chapter.id, { markdown: e.target.value })}
-                    rows={10}
-                    placeholder={"Scrivi qui il contenuto del capitolo.\n\n## Una sezione\nIl testo della sezione…\n\n- un elenco\n- di punti"}
-                    className={`${inputClass} mt-3 resize-y font-mono text-[0.85rem] leading-6`}
-                  />
+                  {/* Toolbar di formattazione */}
+                  <div className="mt-3 flex flex-wrap items-center gap-1 border-b border-navy-100 pb-2">
+                    {(
+                      [
+                        { label: "H2", title: "Sezione (##)", extra: "", action: { type: "line-prefix", prefix: "## ", placeholder: "Titolo sezione" } },
+                        { label: "H3", title: "Sottotitolo (###)", extra: "", action: { type: "line-prefix", prefix: "### ", placeholder: "Sottotitolo" } },
+                        { label: "G", title: "Grassetto (**testo**)", extra: "font-bold", action: { type: "wrap", before: "**", after: "**", placeholder: "testo" } },
+                        { label: "`…`", title: "Codice inline", extra: "font-mono", action: { type: "wrap", before: "`", after: "`", placeholder: "codice" } },
+                        { label: "• lista", title: "Elenco puntato", extra: "", action: { type: "line-prefix", prefix: "- ", placeholder: "voce" } },
+                        { label: "tabella", title: "Inserisci tabella", extra: "", action: { type: "insert", template: "| Colonna 1 | Colonna 2 |\n|-----------|----------|\n| cella     | cella     |\n" } },
+                      ] as { label: string; title: string; extra: string; action: FormatAction }[]
+                    ).map(({ label, title, extra, action }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        title={title}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          const ta = textareaRefs.current.get(chapter.id);
+                          if (ta)
+                            applyFormat(ta, action, (v) =>
+                              updateChapter(chapter.id, { markdown: v })
+                            );
+                        }}
+                        className={`rounded border border-navy-100 bg-white px-2 py-0.5 text-xs text-navy-600 transition hover:border-gold-400 hover:text-gold-700 ${extra}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {previewMode ? (
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                      <textarea
+                        ref={(el) => {
+                          if (el) textareaRefs.current.set(chapter.id, el);
+                          else textareaRefs.current.delete(chapter.id);
+                        }}
+                        value={chapter.markdown}
+                        onChange={(e) =>
+                          updateChapter(chapter.id, { markdown: e.target.value })
+                        }
+                        rows={10}
+                        placeholder={
+                          "Scrivi qui il contenuto del capitolo.\n\n## Una sezione\nIl testo della sezione…\n\n- un elenco\n- di punti"
+                        }
+                        className={`${inputClass} min-h-[15rem] resize-y font-mono text-[0.85rem] leading-6`}
+                      />
+                      <div
+                        className="min-h-[15rem] overflow-y-auto rounded-xl border border-navy-100 bg-surface p-4"
+                        dangerouslySetInnerHTML={{
+                          __html: renderMarkdown(chapter.markdown),
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <textarea
+                      ref={(el) => {
+                        if (el) textareaRefs.current.set(chapter.id, el);
+                        else textareaRefs.current.delete(chapter.id);
+                      }}
+                      value={chapter.markdown}
+                      onChange={(e) =>
+                        updateChapter(chapter.id, { markdown: e.target.value })
+                      }
+                      rows={10}
+                      placeholder={
+                        "Scrivi qui il contenuto del capitolo.\n\n## Una sezione\nIl testo della sezione…\n\n- un elenco\n- di punti"
+                      }
+                      className={`${inputClass} mt-2 resize-y font-mono text-[0.85rem] leading-6`}
+                    />
+                  )}
                 </div>
               ))}
               <button
