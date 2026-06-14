@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { type ReactNode, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UploadModal } from "./UploadModal";
@@ -20,7 +20,7 @@ import type { PageMeta } from "@/app/page";
 function Mark({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`creta-badge-grad grid h-9 w-9 place-items-center rounded-xl shadow-sm shadow-navy-900/20 ${className}`}
+      className={`creta-badge-grad creta-hex grid h-9 w-9 place-items-center ${className}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -28,6 +28,33 @@ function Mark({ className = "" }: { className?: string }) {
         alt="MICE"
         className="h-5 w-5 [filter:brightness(0)_invert(1)]"
       />
+    </span>
+  );
+}
+
+/* Numero dentro un esagono outline: il "bullet" del sistema, rima con il logo.
+   Il colore del tratto segue currentColor (lo imposta chi lo usa). */
+function HexNumber({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={`relative grid shrink-0 place-items-center ${className}`}>
+      <svg
+        viewBox="0 0 100 100"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinejoin="round"
+        className="absolute inset-0 h-full w-full"
+        aria-hidden
+      >
+        <path d="M50 3 94 27.5V72.5L50 97 6 72.5V27.5Z" />
+      </svg>
+      <span className="relative">{children}</span>
     </span>
   );
 }
@@ -777,9 +804,13 @@ export function HomeClient({
           <ol className="grid gap-8 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-navy-900/10">
             {PORTAL_SECTIONS.map((step, index) => (
               <li key={step.title} className="sm:px-7 sm:first:pl-0 sm:last:pr-0">
-                <p className="font-mono text-[0.7rem] font-semibold text-gold-600">
-                  {String(index + 1).padStart(2, "0")}
-                  <span className="ml-2 font-medium uppercase tracking-[0.2em] text-navy-400">
+                <p className="flex items-center gap-2.5 font-mono text-[0.7rem] font-semibold">
+                  <HexNumber className="h-8 w-8 text-gold-400">
+                    <span className="text-[0.62rem] text-gold-700">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </HexNumber>
+                  <span className="font-medium uppercase tracking-[0.2em] text-navy-400">
                     {step.label}
                   </span>
                 </p>
@@ -836,9 +867,13 @@ export function HomeClient({
               <a
                 key={group.id}
                 href={`#rubrica-${group.id}`}
-                className="flex items-center gap-2 rounded-full border border-navy-900/15 bg-white px-4 py-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-navy-600 transition hover:border-gold-500 hover:text-gold-700"
+                className="flex items-center gap-2 rounded-full border border-navy-900/15 bg-white py-2 pl-2 pr-4 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-navy-600 transition hover:border-gold-500 hover:text-gold-700"
               >
-                <span className="text-gold-600">{String(index + 1).padStart(2, "0")}</span>
+                <HexNumber className="h-5 w-5 text-gold-400">
+                  <span className="text-[0.55rem] text-gold-700">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </HexNumber>
                 {group.title}
                 <span className="text-navy-300">{group.docs.length}</span>
               </a>
@@ -918,7 +953,7 @@ export function HomeClient({
       <footer className="bg-navy-950 text-white">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-3 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-10">
           <p className="flex items-center gap-3 text-sm text-white/50">
-            <span className="creta-badge-grad grid h-7 w-7 place-items-center rounded-lg">
+            <span className="creta-badge-grad creta-hex grid h-7 w-7 place-items-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/LogoMice.svg"
