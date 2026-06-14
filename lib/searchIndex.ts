@@ -97,6 +97,8 @@ function blockText(block: PageDesignBlock): string {
       ]
         .filter(Boolean)
         .join(" ");
+    case "image":
+      return [block.alt, block.caption].filter(Boolean).join(" ");
   }
 }
 

@@ -49,6 +49,31 @@ function listItems($: cheerio.CheerioAPI, listEl: AnyNode): string[] {
     .filter(Boolean);
 }
 
+type ImageBlock = Extract<PageDesignBlock, { type: "image" }>;
+
+/** Blocchi immagine per ogni <img> in (o coincidente con) un elemento. Mammoth
+    racchiude le immagini in <p>/<figure>, quindi non basta guardare il tag del
+    nodo: si cercano anche i discendenti. `alt` (alt-text di Word) diventa anche
+    didascalia visibile quando presente. */
+function imageBlocksIn($: cheerio.CheerioAPI, el: AnyNode): ImageBlock[] {
+  const tag = "tagName" in el ? el.tagName?.toLowerCase() : undefined;
+  const nodes = tag === "img" ? [el] : [];
+  nodes.push(...$(el).find("img").toArray());
+  return nodes.flatMap((node) => {
+    const src = $(node).attr("src");
+    if (!src) return [];
+    const alt = ($(node).attr("alt") ?? "").replace(/\s+/g, " ").trim();
+    return [
+      {
+        type: "image" as const,
+        src,
+        alt: alt || undefined,
+        caption: alt || undefined,
+      },
+    ];
+  });
+}
+
 function tableBlock($: cheerio.CheerioAPI, tableEl: AnyNode): PageDesignBlock | null {
   const rows = $(tableEl)
     .find("tr")
@@ -121,9 +146,36 @@ export function sectionsFromHtml(html: string, fallbackTitle: string): Section[]
       continue;
     }
 
-    const text = elementText($, el);
+    const text = tag === "img" ? "" : elementText($, el);
     if (text) ensure().blocks.push({ type: "paragraph", text });
+    for (const image of imageBlocksIn($, el)) ensure().blocks.push(image);
   }
 
   return sections.filter((section) => section.blocks.length > 0);
+}
+
+/** Immagini di un chunk con il titolo della sezione (h2/h3) a cui appartengono,
+    nello stesso schema di sezionamento di sectionsFromHtml. Usata nel percorso
+    LLM per ancorare ogni immagine alla sua sezione: il modello mappa solo il
+    testo, le immagini vengono aggiunte in modo deterministico. Le immagini
+    prima della prima sezione portano sectionTitle = fallbackTitle. */
+export function imagesFromHtml(
+  html: string,
+  fallbackTitle: string
+): { sectionTitle: string; block: ImageBlock }[] {
+  const $ = cheerio.load(html, null, false);
+  const out: { sectionTitle: string; block: ImageBlock }[] = [];
+  let sectionTitle = fallbackTitle;
+
+  for (const el of $.root().children().toArray()) {
+    const tag = "tagName" in el ? el.tagName?.toLowerCase() : undefined;
+    if (!tag) continue;
+    if (tag === "h2" || tag === "h3") {
+      sectionTitle = $(el).text().replace(/\s+/g, " ").trim() || fallbackTitle;
+      continue;
+    }
+    for (const block of imageBlocksIn($, el)) out.push({ sectionTitle, block });
+  }
+
+  return out;
 }

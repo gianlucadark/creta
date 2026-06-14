@@ -454,6 +454,35 @@ function AccordionBlock({
   );
 }
 
+function ImageBlock({
+  src,
+  alt,
+  caption,
+}: {
+  src: string;
+  alt?: string;
+  caption?: string;
+}) {
+  return (
+    <figure className="overflow-hidden rounded-2xl border border-navy-200 bg-white shadow-sm">
+      {/* URL arbitraria dallo store (Blob pubblico o /creta-assets), inclusi
+          SVG: <img> nativo evita la config domini di next/image. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt ?? caption ?? ""}
+        loading="lazy"
+        className="block h-auto w-full"
+      />
+      {caption && (
+        <figcaption className="border-t border-navy-100 px-5 py-3 text-sm leading-6 text-navy-500">
+          <InlineText text={caption} />
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
 /* ── Dispatcher dei blocchi ─────────────────────────────────── */
 
 export function renderDesignBlock(block: PageDesignBlock, index: number) {
@@ -488,6 +517,10 @@ export function renderDesignBlock(block: PageDesignBlock, index: number) {
       return <QuoteBlock key={index} text={block.text} attribution={block.attribution} />;
     case "accordion":
       return <AccordionBlock key={index} title={block.title} items={block.items} />;
+    case "image":
+      return (
+        <ImageBlock key={index} src={block.src} alt={block.alt} caption={block.caption} />
+      );
   }
 }
 

@@ -230,6 +230,17 @@ const FeatureBlock = z.object({
   items: z.array(TitledItem),
 });
 
+/* Immagine estratta dal documento sorgente. `src` è una URL prodotta
+   dall'ingest (Vercel Blob pubblico o /creta-assets in locale), non testo
+   verbatim: il blocco viene ancorato deterministicamente, mai generato dal
+   LLM. `caption`, quando presente, viene dall'alt-text dell'immagine in Word. */
+const ImageBlock = z.object({
+  type: z.literal("image"),
+  src: z.string(),
+  alt: z.string().optional(),
+  caption: z.string().optional(),
+});
+
 export const PageDesignBlockSchema = z.discriminatedUnion("type", [
   ParagraphBlock,
   CalloutBlock,
@@ -244,6 +255,7 @@ export const PageDesignBlockSchema = z.discriminatedUnion("type", [
   ChecklistBlock,
   ListBlock,
   FeatureBlock,
+  ImageBlock,
 ]);
 
 export const PageDesignSchema = z.object({
@@ -527,6 +539,15 @@ function sanitizeBlock(block: PageDesignBlock): PageDesignBlock {
   if (block.type === "code") {
     return block.title ? { ...block, title: stripInlineHtml(block.title) } : block;
   }
+  // `src` è una URL: non va passata da stripInlineHtml (i caratteri & nei query
+  // verrebbero alterati). Solo alt e caption sono testo da sanificare.
+  if (block.type === "image") {
+    return {
+      ...block,
+      alt: block.alt ? stripInlineHtml(block.alt) : block.alt,
+      caption: block.caption ? stripInlineHtml(block.caption) : block.caption,
+    };
+  }
   return deepMapStrings(block, stripInlineHtml);
 }
 
@@ -677,6 +698,18 @@ function coercePageDesignBlock(raw: unknown): unknown {
       // Le accordion richiedono un titolo cliccabile; senza titolo rendono meglio come card.
       const target = type === "accordion" && items.some((item) => !item.title) ? "cards" : type;
       return { type: target, title: firstString(block.title, block.heading), items };
+    }
+  }
+
+  if (type === "image" || type === "img" || type === "figure") {
+    const src = firstString(block.src, block.url, block.href);
+    if (src) {
+      return {
+        type: "image",
+        src,
+        alt: firstString(block.alt, block.altText, block.title),
+        caption: firstString(block.caption, block.alt, block.altText),
+      };
     }
   }
 

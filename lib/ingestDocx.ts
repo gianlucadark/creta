@@ -33,9 +33,10 @@ import {
   splitChapters,
   type DocChunk,
 } from "./docxHtml";
-import { sectionsFromHtml } from "./htmlDesign";
+import { imagesFromHtml, sectionsFromHtml } from "./htmlDesign";
 import { coverageRatio, designText } from "./coverage";
 import { authoredChaptersToHtml, type AuthoredChapter } from "./markdown";
+import { storeImage } from "./assetsStore";
 
 const MAX_CHUNK_CHARS = 18_000;
 const MIN_COVERAGE = 0.8;
@@ -423,14 +424,37 @@ export type IngestOptions = {
   /** Indici dei segmenti da importare (gli altri vengono scartati). Assente
       o vuoto => tutto il documento. La copertina e' sempre inclusa. */
   segmentIndices?: number[];
+  /** Slug del documento: serve a estrarre le immagini incorporate verso lo
+      store (images/<slug>/...). Senza slug le immagini restano inline base64 e
+      vengono ignorate, come prima. */
+  slug?: string;
 };
+
+/** Converte il docx in HTML estraendo le immagini incorporate verso lo store:
+    ogni <img> riceve una URL corta al posto del base64, così l'HTML che va al
+    chunking/LLM resta leggero. Un upload fallito non blocca l'ingest: l'immagine
+    viene semplicemente omessa (src vuoto, scartato a valle). */
+async function docxToHtml(buffer: Buffer, slug?: string): Promise<string> {
+  const convertImage = slug
+    ? mammoth.images.imgElement(async (image) => {
+        try {
+          const data = await image.readAsBuffer();
+          return { src: await storeImage(slug, data, image.contentType) };
+        } catch (error) {
+          console.warn(`[creta] immagine non salvata (slug "${slug}"):`, error);
+          return { src: "" };
+        }
+      })
+    : undefined;
+  const { value: rawHtml } = await mammoth.convertToHtml({ buffer }, { convertImage });
+  return cleanDocumentHtml(cleanText(rawHtml));
+}
 
 export async function ingestDocxBuffer(
   buffer: Buffer,
   options?: IngestOptions
 ): Promise<IngestResult> {
-  const { value: rawHtml } = await mammoth.convertToHtml({ buffer });
-  const html = cleanDocumentHtml(cleanText(rawHtml));
+  const html = await docxToHtml(buffer, options?.slug);
 
   const indices = options?.segmentIndices;
   if (indices && indices.length > 0) {
@@ -507,6 +531,24 @@ export async function designFromHtml(
     }
   );
   const results = groupResults.flat();
+
+  // Ancoraggio immagini: il modello mappa solo il testo, quindi per i chunk
+  // passati dall'LLM riattacchiamo ogni <img> alla sezione (h2/h3) di
+  // appartenenza, accodandola ai suoi blocchi. I chunk ricostruiti dal fallback
+  // hanno già le immagini posizionate da sectionsFromHtml: si saltano per non
+  // duplicarle. Avviene prima del reduce, così le continuazioni le trasportano.
+  results.forEach((result, index) => {
+    if (!result.viaLlm || result.sections.length === 0) return;
+    const anchored = imagesFromHtml(chunks[index].html, chunks[index].chapter);
+    if (anchored.length === 0) return;
+    const norm = (value: string) => value.trim().toLowerCase();
+    for (const { sectionTitle, block } of anchored) {
+      const target =
+        result.sections.find((section) => norm(section.title) === norm(sectionTitle)) ??
+        result.sections[0];
+      target.blocks.push(block);
+    }
+  });
 
   const page =
     preset?.page ??

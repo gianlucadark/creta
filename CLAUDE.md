@@ -10,10 +10,10 @@ Il modello LLM **non genera mai contenuto testuale né HTML**. Legge la struttur
 
 ### 1. INGEST (authoring — map-reduce: una chiamata LLM per capitolo)
 L'utente carica un `.docx` dalla home (`UploadModal` → `POST /api/ingest`). La pipeline è in `lib/ingestDocx.ts` (condivisa con `scripts/reingest.ts`):
-1. converte il docx con **mammoth** in HTML semantico; `lib/docxHtml.ts` rimuove sommario e marcatori di nota, poi **divide il documento in un chunk per capitolo `<h1>`** (i capitoli oltre ~18k caratteri sono sotto-divisi ai confini `<h2>`/`<h3>`)
+1. converte il docx con **mammoth** in HTML semantico; le **immagini incorporate** vengono estratte verso lo store (`lib/assetsStore.ts`) e ogni `<img>` riceve una URL corta al posto del base64, così non gonfiano l'input LLM; `lib/docxHtml.ts` rimuove sommario e marcatori di nota, poi **divide il documento in un chunk per capitolo `<h1>`** (i capitoli oltre ~18k caratteri sono sotto-divisi ai confini `<h2>`/`<h3>`)
 2. **map**: i chunk vanno a Gemini in parallelo (max 4 concorrenti) con il system prompt di `chapterSystemPrompt(n, withMeta)` (`lib/pageDesignPrompt.ts`), che obbliga: ogni `<h2>` → una sezione col titolo verbatim, `<h3>`/`<h4>` visibili come titoli dei blocchi. Per risparmiare chiamate: capitoli interi piccoli e adiacenti condividono una sola chiamata multi-capitolo (`buildCallGroups` in `lib/ingestDocx.ts`), e la **prima chiamata produce anche il `page` header** dalla copertina; `PAGE_META_PROMPT` resta solo come chiamata di fallback se la prima non restituisce un header valido. Sempre `generateText`, mai `generateObject` — vedi sotto
 3. ogni risposta passa per `extractJson` (ripara output troncati) + `normalizeDesignSections` (`lib/schema.ts`), poi `lib/coverage.ts` misura la **copertura testuale** per capitolo: sotto 0.8 si ritenta (un capitolo fallito in una chiamata raggruppata viene rifatto con la chiamata singola), poi il chunk è ricostruito deterministicamente dal proprio HTML con `lib/htmlDesign.ts` (cheerio: h2/h3→sezioni, p/ul/table→blocchi) — un capitolo non può mai sparire
-4. **reduce**: le sezioni dei chunk sono concatenate in ordine documento (le aperture dei chunk di continuazione senza heading vengono fuse nella sezione precedente); ogni sezione riceve `chapter` = titolo `<h1>` di appartenenza
+4. **reduce**: le sezioni dei chunk sono concatenate in ordine documento (le aperture dei chunk di continuazione senza heading vengono fuse nella sezione precedente); ogni sezione riceve `chapter` = titolo `<h1>` di appartenenza. Le **immagini** non passano mai dall'LLM (il prompt gli dice di ignorare gli `<img>`): per i chunk mappati dall'LLM ogni immagine viene riancorata in modo deterministico alla sua sezione `<h2>`/`<h3>` (`imagesFromHtml` in `lib/htmlDesign.ts`); per i chunk ricostruiti dal fallback sono già posizionate da `sectionsFromHtml`. Un blocco `image` (`src`, `alt?`, `caption?` dall'alt-text di Word) non può mai sparire
 5. salva come **PageDesign v2** in `content/pages/<slug>.json`; `engine: "fallback"` solo se nessun chunk è passato dall'LLM (es. chiave mancante)
 
 `GOOGLE_GENERATIVE_AI_API_KEY` serve solo qui. Per rigenerare da CLI: `npx tsx scripts/reingest.ts <file.docx>` (stampa il report di copertura per chunk). Esiste anche lo script legacy `npx tsx scripts/ingest.ts <file.docx>` (formato DocumentTree v1, ancora renderizzabile).
@@ -32,6 +32,7 @@ creta/
 ├── content/pages/             — JSON generati dall'ingest, versionati in Git
 ├── app/
 │   ├── api/ingest/route.ts    — upload .docx → Gemini → content/pages/<slug>.json
+│   ├── api/assets/[slug]/[name]/ — serve le immagini estratte dal blob privato (readImage)
 │   ├── api/author/route.ts    — POST fai-da-te: markdown → stessa pipeline → JSON (+ PUT [slug]/ per rigenerare)
 │   ├── api/search/route.ts    — ricerca full-text su content/pages (palette ⌘K), zero LLM e zero DB
 │   ├── api/collections/route.ts — GET/PUT config delle rubriche (PUT = full-replace con authorizeEditor)
@@ -53,6 +54,7 @@ creta/
 │   ├── schema.ts              — schema Zod (PageDesign v2 + DocumentTree legacy) + normalizzatori tolleranti
 │   ├── pageDesignPrompt.ts    — chapterSystemPrompt (singolo/multi-capitolo ± page header) + PAGE_META_PROMPT di fallback
 │   ├── pagesStore.ts          — adapter async dello store documenti: filesystem in dev, Vercel Blob quando c'è BLOB_READ_WRITE_TOKEN
+│   ├── assetsStore.ts         — store delle immagini estratte dai docx: Vercel Blob PRIVATO (images/<slug>/<hash>, servito via /api/assets) o public/creta-assets in locale; nome = hash del contenuto (idempotente)
 │   ├── collections.ts         — schema Zod + normalizzatore delle rubriche (gruppi di documenti in home; ogni documento sta al massimo in una rubrica)
 │   ├── collectionsStore.ts    — store della config rubriche: content/collections.json in locale, blob meta/collections.json su Vercel
 │   ├── searchIndex.ts         — indice full-text in memoria sullo store (cache su mtime/uploadedAt) + tempo di lettura

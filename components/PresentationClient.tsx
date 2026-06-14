@@ -75,6 +75,8 @@ function blockWeight(block: PageDesignBlock): number {
       );
       return Math.max(2, Math.ceil(block.items.length / 2) + Math.floor(chars / 700));
     }
+    case "image":
+      return 3;
   }
 }
 
@@ -558,7 +560,24 @@ function AutoFit({
     observer.observe(outer);
     /* I font web cambiano le metriche dopo il primo paint. */
     document.fonts?.ready.then(fit).catch(() => {});
-    return () => observer.disconnect();
+    /* Le immagini caricano in modo asincrono: senza un nuovo fit al loro
+       arrivo la slide verrebbe misurata ad altezza ~0 e l'immagine, una volta
+       caricata, sborderebbe l'area overflow-hidden venendo TAGLIATA. */
+    const pendingImgs = Array.from(inner.querySelectorAll("img")).filter(
+      (img) => !img.complete
+    );
+    const onImgSettled = () => fit();
+    pendingImgs.forEach((img) => {
+      img.addEventListener("load", onImgSettled);
+      img.addEventListener("error", onImgSettled);
+    });
+    return () => {
+      observer.disconnect();
+      pendingImgs.forEach((img) => {
+        img.removeEventListener("load", onImgSettled);
+        img.removeEventListener("error", onImgSettled);
+      });
+    };
   }, []);
 
   return (
@@ -573,6 +592,13 @@ function AutoFit({
     </div>
   );
 }
+
+/* Nelle slide l'immagine è centrata e limitata in altezza: l'aspect-ratio è
+   preservato (w-auto + h-auto dal blocco), così non sborda l'area né costringe
+   AutoFit a scale minuscole. Override del w-full del blocco via specificità del
+   selettore discendente. */
+const SLIDE_IMAGE_FIT =
+  "[&_figure]:mx-auto [&_figure]:w-fit [&_figure]:max-w-full [&_img]:w-auto [&_img]:max-h-[52vh]";
 
 function SectionSlide({ slide }: { slide: SectionSlide }) {
   /* Sezioni leggere (poco testo, in una sola slide) usano un layout editoriale
@@ -609,7 +635,9 @@ function SectionSlide({ slide }: { slide: SectionSlide }) {
               </p>
             )}
             {slide.blocks.length > 0 && (
-              <div className="mt-8 space-y-6 [&_p]:text-[1.2rem] [&_p]:leading-9">
+              <div
+                className={`mt-8 space-y-6 [&_p]:text-[1.2rem] [&_p]:leading-9 ${SLIDE_IMAGE_FIT}`}
+              >
                 {slide.blocks.map((block, index) => (
                   <div key={index}>{renderDesignBlock(block, index)}</div>
                 ))}
@@ -654,7 +682,7 @@ function SectionSlide({ slide }: { slide: SectionSlide }) {
 
         {/* Contenuto */}
         <AutoFit className="min-w-0">
-          <div className="space-y-6">
+          <div className={`space-y-6 ${SLIDE_IMAGE_FIT}`}>
             {slide.blocks.map((block, index) => (
               <div key={index}>{renderDesignBlock(block, index)}</div>
             ))}

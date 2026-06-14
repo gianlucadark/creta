@@ -38,9 +38,8 @@ async function main() {
   const { ingestDocxBuffer } = await import("../lib/ingestDocx");
 
   const buffer = readFileSync(filePath);
-  const { design, engine, report } = await ingestDocxBuffer(buffer);
-
   const slug = slugify(basename(filePath));
+  const { design, engine, report } = await ingestDocxBuffer(buffer, { slug });
   const outDir = join(process.cwd(), "content", "pages");
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, `${slug}.json`);

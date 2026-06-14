@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# immagini estratte dai documenti nel fallback filesystem (dev senza token Blob)
+/public/creta-assets
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

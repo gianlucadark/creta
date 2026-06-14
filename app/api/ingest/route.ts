@@ -77,6 +77,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const { design, engine, report } = await ingestDocxBuffer(buffer, {
       segmentIndices,
+      slug,
     });
 
     console.info(
