@@ -21,6 +21,22 @@ export async function POST(req: Request) {
     const file = formData.get("docx") as File | null;
     /* Come risolvere una collisione di slug: deciso dall'utente dopo il 409. */
     const mode = formData.get("mode");
+    /* Segmenti scelti nel passo di anteprima (JSON di indici). Assente o non
+       valido => si importa tutto il documento. */
+    const segmentsRaw = formData.get("segments");
+    let segmentIndices: number[] | undefined;
+    if (typeof segmentsRaw === "string" && segmentsRaw.trim()) {
+      try {
+        const parsed = JSON.parse(segmentsRaw);
+        if (Array.isArray(parsed)) {
+          segmentIndices = parsed.filter(
+            (n) => Number.isInteger(n) && n >= 0
+          );
+        }
+      } catch {
+        /* JSON malformato: si ignora e si importa tutto. */
+      }
+    }
 
     if (!file) {
       return Response.json({ error: "Nessun file ricevuto." }, { status: 400 });
@@ -59,7 +75,9 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { design, engine, report } = await ingestDocxBuffer(buffer);
+    const { design, engine, report } = await ingestDocxBuffer(buffer, {
+      segmentIndices,
+    });
 
     console.info(
       `[creta] ingest "${file.name}": ${report.chunks} chunk (${report.llmChunks} LLM, ${report.fallbackChunks} fallback), coverage ${report.coverage

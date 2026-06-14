@@ -193,6 +193,70 @@ export function buildChunks(
   return chunks;
 }
 
+export type OutlineSegment = {
+  /** Indice nell'ordine del documento, base 0 (stabile per la selezione). */
+  index: number;
+  title: string;
+  /** Livello dell'heading che apre il segmento (1-4): capitolo, sezione, ... */
+  level: number;
+  /** Caratteri del solo contenuto diretto del nodo (escluse le sotto-sezioni). */
+  charCount: number;
+  /** Heading + contenuto fino all'intestazione successiva (di qualsiasi livello).
+      Concatenando i nodi scelti in ordine si ricostruisce la gerarchia. */
+  html: string;
+};
+
+export type DocOutline = {
+  /** Contenuto prima della prima intestazione (copertina). */
+  coverHtml: string;
+  segments: OutlineSegment[];
+};
+
+/** Scaletta gerarchica del documento: un nodo per ogni intestazione (h1-h4),
+    cosi' l'utente puo' scegliere sia i capitoli sia le sezioni. Ogni nodo porta
+    solo il proprio contenuto diretto (fino all'intestazione successiva, di
+    qualunque livello); le sotto-sezioni sono nodi a se'. Concatenando in ordine
+    i nodi selezionati si riottiene l'HTML originale ridotto, con la nidificazione
+    intatta. La gerarchia (chi e' figlio di chi) si deduce dai livelli. */
+export function outlineDocument(cleanHtml: string): DocOutline {
+  const $ = cheerio.load(cleanHtml, null, false);
+  const children = $.root().children().toArray();
+
+  const coverParts: string[] = [];
+  const segments: { title: string; level: number; htmlParts: string[] }[] = [];
+
+  for (const el of children) {
+    const tag = "tagName" in el ? el.tagName?.toLowerCase() : undefined;
+    const match = tag ? /^h([1-4])$/.exec(tag) : null;
+    if (match) {
+      segments.push({
+        title: nodeText($, el),
+        level: Number(match[1]),
+        htmlParts: [$.html(el)],
+      });
+      continue;
+    }
+    const target = segments.length
+      ? segments[segments.length - 1].htmlParts
+      : coverParts;
+    target.push($.html(el));
+  }
+
+  return {
+    coverHtml: coverParts.join(""),
+    segments: segments.map((segment, index) => {
+      const html = segment.htmlParts.join("");
+      return {
+        index,
+        title: segment.title || "Sezione",
+        level: segment.level,
+        charCount: htmlToPlainText(html).length,
+        html,
+      };
+    }),
+  };
+}
+
 /** Testo semplice di un frammento HTML, una riga per blocco. */
 export function htmlToPlainText(html: string): string {
   const $ = cheerio.load(html, null, false);

@@ -29,6 +29,7 @@ import {
   buildChunks,
   cleanDocumentHtml,
   htmlToPlainText,
+  outlineDocument,
   splitChapters,
   type DocChunk,
 } from "./docxHtml";
@@ -379,9 +380,72 @@ async function buildMeta(
   }
 }
 
-export async function ingestDocxBuffer(buffer: Buffer): Promise<IngestResult> {
+/** Segmento selezionabile prima della generazione (vedi outlineDocument). */
+export type OutlineEntry = {
+  index: number;
+  title: string;
+  level: number;
+  charCount: number;
+};
+
+export type DocxOutline = {
+  segments: OutlineEntry[];
+  /** True se c'e' testo di copertina prima del primo segmento. */
+  hasCover: boolean;
+};
+
+/** Passo 1 del flusso a due tempi: converte il docx e ne estrae la scaletta
+    dei segmenti selezionabili senza alcuna chiamata LLM, cosi' l'utente puo'
+    scegliere cosa importare prima della generazione (costosa). */
+export async function analyzeDocxBuffer(buffer: Buffer): Promise<DocxOutline> {
   const { value: rawHtml } = await mammoth.convertToHtml({ buffer });
   const html = cleanDocumentHtml(cleanText(rawHtml));
+
+  if (!htmlToPlainText(html).trim()) {
+    throw new EmptyDocumentError(
+      "Il documento sembra vuoto o non contiene testo leggibile."
+    );
+  }
+
+  const outline = outlineDocument(html);
+  return {
+    segments: outline.segments.map(({ index, title, level, charCount }) => ({
+      index,
+      title,
+      level,
+      charCount,
+    })),
+    hasCover: Boolean(htmlToPlainText(outline.coverHtml).trim()),
+  };
+}
+
+export type IngestOptions = {
+  /** Indici dei segmenti da importare (gli altri vengono scartati). Assente
+      o vuoto => tutto il documento. La copertina e' sempre inclusa. */
+  segmentIndices?: number[];
+};
+
+export async function ingestDocxBuffer(
+  buffer: Buffer,
+  options?: IngestOptions
+): Promise<IngestResult> {
+  const { value: rawHtml } = await mammoth.convertToHtml({ buffer });
+  const html = cleanDocumentHtml(cleanText(rawHtml));
+
+  const indices = options?.segmentIndices;
+  if (indices && indices.length > 0) {
+    const outline = outlineDocument(html);
+    const keep = new Set(indices);
+    const selected = outline.segments.filter((segment) =>
+      keep.has(segment.index)
+    );
+    // Ricostruisce l'HTML coi soli segmenti scelti + copertina: re-parsato da
+    // designFromHtml riproduce esattamente la struttura originale ridotta.
+    const filteredHtml =
+      outline.coverHtml + selected.map((segment) => segment.html).join("");
+    return designFromHtml(filteredHtml);
+  }
+
   return designFromHtml(html);
 }
 
