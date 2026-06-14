@@ -7,6 +7,7 @@ import { UploadModal } from "./UploadModal";
 import { CollectionsManager } from "./CollectionsManager";
 import { openPalette, useShortcutLabel } from "./CommandPalette";
 import { ParticleWordmark } from "./ParticleWordmark";
+import { Reveal } from "./Reveal";
 import {
   dropReading,
   readingServerSnapshot,
@@ -45,13 +46,13 @@ function DeleteButton({
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-navy-100 bg-white text-navy-300 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-navy-200 bg-white text-navy-500 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
       aria-label={`Elimina ${title}`}
     >
       {loading ? (
-        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-navy-300 border-t-transparent" />
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-navy-300 border-t-transparent" />
       ) : (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
           <path d="M18 6 6 18M6 6l12 12" />
         </svg>
       )}
@@ -154,8 +155,8 @@ function DocRow({
             loading={deleting}
             onClick={onRequestDelete}
           />
-          <span className="hidden h-10 w-10 place-items-center rounded-full border border-navy-900/15 text-navy-400 transition group-hover:border-gold-500 group-hover:text-gold-600 sm:grid">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform group-hover:translate-x-0.5">
+          <span className="hidden h-10 w-10 place-items-center rounded-full border border-navy-300 bg-white text-navy-600 shadow-sm transition group-hover:border-gold-400 group-hover:bg-gold-400 group-hover:text-navy-950 sm:grid">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform group-hover:translate-x-0.5">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </span>
@@ -170,6 +171,102 @@ function DocRow({
         />
       )}
     </li>
+  );
+}
+
+/* Copertina dell'archivio: il documento di apertura reso come "cover story"
+   editoriale — sobria, ma distinta dall'indice. Compare solo nell'elenco
+   piatto non filtrato; con le rubriche attive la struttura sono i gruppi. */
+function FeaturedCard({
+  page,
+  pct,
+  deleting,
+  onRequestDelete,
+}: {
+  page: PageMeta;
+  pct: number;
+  deleting: boolean;
+  onRequestDelete: () => void;
+}) {
+  return (
+    <div className="group relative mt-7 overflow-hidden rounded-3xl border border-navy-900/10 bg-white transition hover:shadow-xl hover:shadow-navy-950/5">
+      {/* Filo d'oro: la firma editoriale, niente di più */}
+      <span className="creta-rule absolute inset-x-0 top-0 h-0.5" />
+
+      <div className="absolute right-5 top-5 z-10 sm:right-6 sm:top-6">
+        <DeleteButton title={page.title} loading={deleting} onClick={onRequestDelete} />
+      </div>
+
+      <Link
+        href={`/${page.slug}`}
+        transitionTypes={["nav-forward"]}
+        className="grid gap-6 px-7 py-9 sm:grid-cols-[auto_1fr] sm:gap-10 sm:px-10 sm:py-11"
+      >
+        <span className="creta-stat-grad font-display text-6xl font-bold leading-none sm:text-7xl">
+          01
+        </span>
+
+        <div className="min-w-0">
+          <p className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.25em] text-gold-600">
+            In evidenza
+            {page.eyebrow && (
+              <span className="ml-3 font-medium text-navy-400">{page.eyebrow}</span>
+            )}
+          </p>
+
+          <h3
+            className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[1.05] text-navy-950 transition-colors group-hover:text-navy-700 sm:text-5xl"
+            style={{ viewTransitionName: `doc-title-${page.slug}` }}
+          >
+            {page.title}
+          </h3>
+
+          {page.summary && (
+            <p className="mt-4 max-w-2xl text-[0.95rem] leading-7 text-navy-500 line-clamp-3">
+              {page.summary}
+            </p>
+          )}
+
+          <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+            <span className="flex items-center gap-2 rounded-full bg-navy-950 px-5 py-2.5 text-sm font-semibold text-white transition group-hover:bg-navy-800">
+              Apri il documento
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform group-hover:translate-x-0.5">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </span>
+            <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[0.68rem] font-medium uppercase tracking-wide text-navy-400">
+              <span>{page.sectionCount} sezioni</span>
+              <span className="h-0.5 w-0.5 rounded-full bg-navy-300" />
+              <span>{page.readingMinutes} min</span>
+              {page.displayDate && (
+                <>
+                  <span className="h-0.5 w-0.5 rounded-full bg-navy-300" />
+                  <span>{page.displayDate}</span>
+                </>
+              )}
+              {pct >= 0.97 ? (
+                <span className="flex items-center gap-1 text-emerald-700">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
+                    <path d="m5 12.5 4 4 10-10" />
+                  </svg>
+                  Letto
+                </span>
+              ) : pct > 0.03 ? (
+                <span className="text-gold-700">{Math.round(pct * 100)}% letto</span>
+              ) : null}
+            </span>
+          </div>
+        </div>
+      </Link>
+
+      {/* Barra sottile del progresso di lettura, come nelle righe dell'indice */}
+      {pct > 0.03 && pct < 0.97 && (
+        <span
+          className="absolute bottom-0 left-0 h-px bg-gold-500"
+          style={{ width: `${Math.round(pct * 100)}%` }}
+        />
+      )}
+    </div>
   );
 }
 
@@ -592,24 +689,24 @@ export function HomeClient({
         {/* Titolo e azioni principali */}
         <div className="relative z-10 mx-auto flex w-full max-w-[88rem] flex-1 flex-col justify-center px-5 py-10 sm:px-10">
           <div className="max-w-3xl">
-            <p className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
+            <Reveal as="p" delay={0} className="flex items-center gap-4 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold-400">
               <span className="h-px w-10 bg-gold-400/60" />
               Documentazione interna MICE
-            </p>
+            </Reveal>
 
-            <h1 className="mt-7 max-w-4xl font-display text-[clamp(2.8rem,8vw,5.8rem)] font-bold leading-[0.95] tracking-tight">
+            <Reveal as="h1" delay={80} className="mt-7 max-w-4xl font-display text-[clamp(2.8rem,8vw,5.8rem)] font-bold leading-[0.95] tracking-tight">
               Base di conoscenza
               <br />
               interna{" "}
-              <em className="font-semibold italic text-gold-300">MICE</em>.
-            </h1>
+              <em className="creta-gradient-text font-semibold italic">MICE</em>.
+            </Reveal>
 
-            <p className="mt-8 max-w-2xl text-[1.02rem] leading-8 text-white/68">
+            <Reveal as="p" delay={160} className="mt-8 max-w-2xl text-[1.02rem] leading-8 text-white/68">
               Procedure, guide operative e aggiornamenti AI in un unico posto.
               Cerca per testo, naviga per sezioni, riprendi da dove hai lasciato.
-            </p>
+            </Reveal>
 
-            <div className="mt-9 grid gap-3 sm:max-w-2xl sm:grid-cols-3">
+            <Reveal delay={240} className="mt-9 grid gap-3 sm:max-w-2xl sm:grid-cols-3">
               <button
                 onClick={() => setModalOpen(true)}
                 className="flex items-center justify-center gap-2 rounded-2xl bg-gold-400 px-5 py-4 text-sm font-semibold text-navy-950 transition hover:-translate-y-0.5 hover:bg-gold-300"
@@ -637,9 +734,9 @@ export function HomeClient({
                 </svg>
                 Componi
               </Link>
-            </div>
+            </Reveal>
 
-            <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Reveal delay={320} className="mt-5 flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={openPalette}
@@ -654,7 +751,7 @@ export function HomeClient({
               >
                 Cos&apos;è Creta
               </Link>
-            </div>
+            </Reveal>
           </div>
         </div>
 
@@ -792,6 +889,24 @@ export function HomeClient({
               </ul>
             </div>
           ))
+        ) : !needle ? (
+          <>
+            <FeaturedCard
+              page={filtered[0]}
+              pct={progress[filtered[0].slug]?.pct ?? 0}
+              deleting={deletingSlug === filtered[0].slug}
+              onRequestDelete={() =>
+                requestDeleteDocument(filtered[0].slug, filtered[0].title)
+              }
+            />
+            {filtered.length > 1 && (
+              <ul className="mt-4 border-t border-navy-900/10">
+                {renderRows(
+                  filtered.slice(1).map((doc, index) => ({ doc, number: index + 2 }))
+                )}
+              </ul>
+            )}
+          </>
         ) : (
           <ul className="mt-7 border-t border-navy-900/10">
             {renderRows(filtered.map((doc, index) => ({ doc, number: index + 1 })))}
