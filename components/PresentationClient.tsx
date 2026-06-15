@@ -328,7 +328,7 @@ export function PresentationClient({
             : slide.title;
 
   const navButton =
-    "grid h-10 w-10 place-items-center rounded-full border border-white/20 text-white/80 transition hover:border-gold-400 hover:text-gold-300 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:border-white/20 disabled:hover:text-white/80";
+    "grid h-12 w-12 place-items-center rounded-full border border-white/35 bg-white/12 text-white shadow-[0_14px_38px_rgba(0,0,0,0.38)] ring-1 ring-white/10 backdrop-blur transition hover:border-gold-300 hover:bg-gold-400/18 hover:text-gold-200 hover:shadow-[0_18px_46px_rgba(218,165,32,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-300 disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-white/5 disabled:text-white/35 disabled:shadow-none disabled:ring-0 disabled:hover:border-white/15 disabled:hover:bg-white/5 disabled:hover:text-white/35 sm:h-14 sm:w-14";
 
   return (
     <div className="flex h-[100svh] flex-col overflow-hidden bg-navy-950 text-white">
@@ -420,7 +420,7 @@ export function PresentationClient({
             aria-label="Slide precedente"
             className={navButton}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
@@ -431,7 +431,7 @@ export function PresentationClient({
             aria-label="Slide successiva"
             className={navButton}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </button>
