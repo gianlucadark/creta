@@ -87,6 +87,51 @@ function DeleteButton({
   );
 }
 
+/* Stella "metti in evidenza": attiva (piena, oro) sul documento attualmente
+   in evidenza — di default l'ultimo caricato, o quello scelto a mano. Cliccare
+   un altro documento lo promuove; ricliccare quello in evidenza torna
+   all'ultimo caricato. */
+function FeatureButton({
+  title,
+  active,
+  onClick,
+}: {
+  title: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      aria-label={
+        active
+          ? `${title} è in evidenza — torna all'ultimo caricato`
+          : `Metti ${title} in evidenza`
+      }
+      title={active ? "In evidenza — clicca per ripristinare l'ultimo caricato" : "Metti in evidenza"}
+      className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border shadow-sm transition ${
+        active
+          ? "border-gold-400 bg-gold-400 text-navy-950"
+          : "border-navy-200 bg-white text-navy-400 hover:border-gold-400 hover:bg-gold-50 hover:text-gold-700"
+      }`}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-4 w-4"
+      >
+        <path d="m12 3 2.7 5.5 6 .9-4.35 4.25 1.03 6L12 16.9l-5.38 2.75 1.03-6L3.3 9.4l6-.9z" />
+      </svg>
+    </button>
+  );
+}
+
 const PORTAL_SECTIONS = [
   {
     label: "News",
@@ -110,16 +155,20 @@ function DocRow({
   page,
   number,
   isFeatured,
+  pinned,
   pct,
   deleting,
   onRequestDelete,
+  onToggleFeature,
 }: {
   page: PageMeta;
   number: number;
   isFeatured: boolean;
+  pinned: boolean;
   pct: number;
   deleting: boolean;
   onRequestDelete: () => void;
+  onToggleFeature: () => void;
 }) {
   return (
     <li className="group relative border-b border-navy-900/10">
@@ -177,6 +226,11 @@ function DocRow({
         </Link>
 
         <div className="flex shrink-0 items-center gap-3 self-center">
+          <FeatureButton
+            title={page.title}
+            active={pinned}
+            onClick={onToggleFeature}
+          />
           <DeleteButton
             title={page.title}
             loading={deleting}
@@ -209,18 +263,21 @@ function FeaturedCard({
   pct,
   deleting,
   onRequestDelete,
+  onToggleFeature,
 }: {
   page: PageMeta;
   pct: number;
   deleting: boolean;
   onRequestDelete: () => void;
+  onToggleFeature: () => void;
 }) {
   return (
     <div className="group relative mt-7 overflow-hidden rounded-3xl border border-navy-900/10 bg-white transition hover:shadow-xl hover:shadow-navy-950/5">
       {/* Filo d'oro: la firma editoriale, niente di più */}
       <span className="creta-rule absolute inset-x-0 top-0 h-0.5" />
 
-      <div className="absolute right-5 top-5 z-10 sm:right-6 sm:top-6">
+      <div className="absolute right-5 top-5 z-10 flex items-center gap-2.5 sm:right-6 sm:top-6">
+        <FeatureButton title={page.title} active onClick={onToggleFeature} />
         <DeleteButton title={page.title} loading={deleting} onClick={onRequestDelete} />
       </div>
 
@@ -400,9 +457,11 @@ function CollectionPill({
 export function HomeClient({
   pages,
   collections: initialCollections,
+  featured,
 }: {
   pages: PageMeta[];
   collections: DocCollection[];
+  featured: string | null;
 }) {
   const router = useRouter();
   const shortcut = useShortcutLabel();
@@ -420,6 +479,7 @@ export function HomeClient({
   }
   const [documents, setDocuments] = useState(pages);
   const [collections, setCollections] = useState(initialCollections);
+  const [featuredSlug, setFeaturedSlug] = useState<string | null>(featured);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
   const [deleteRequest, setDeleteRequest] = useState<{
     slug: string;
@@ -435,16 +495,48 @@ export function HomeClient({
     readingServerSnapshot
   );
 
+  /* Documento in evidenza: la scelta manuale se punta ancora a un documento
+     esistente, altrimenti l'ultimo caricato (documents è ordinato per mtime
+     desc). La lista piatta lo porta in testa, così la "cover story" e la
+     numerazione dell'indice restano coerenti. */
+  const currentFeatured =
+    featuredSlug && documents.some((doc) => doc.slug === featuredSlug)
+      ? featuredSlug
+      : documents[0]?.slug ?? null;
+  const ordered =
+    currentFeatured && documents[0]?.slug !== currentFeatured
+      ? [
+          ...documents.filter((doc) => doc.slug === currentFeatured),
+          ...documents.filter((doc) => doc.slug !== currentFeatured),
+        ]
+      : documents;
+
   const needle = query.trim().toLowerCase();
   const filtered = needle
-    ? documents.filter(
+    ? ordered.filter(
         (page) =>
           page.title.toLowerCase().includes(needle) ||
           page.summary.toLowerCase().includes(needle) ||
           page.eyebrow.toLowerCase().includes(needle) ||
           page.slug.includes(needle)
       )
-    : documents;
+    : ordered;
+
+  async function toggleFeatured(slug: string) {
+    const next = slug === currentFeatured ? null : slug;
+    const previous = featuredSlug;
+    setFeaturedSlug(next); // ottimistico: la home reagisce subito
+    try {
+      const res = await fetch("/api/featured", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: next }),
+      });
+      if (!res.ok) throw new Error("save failed");
+    } catch {
+      setFeaturedSlug(previous); // rollback se il salvataggio non riesce
+    }
+  }
 
   /* Archivio per rubriche: ogni voce raccoglie i propri documenti (ordinati
      come l'archivio, dal piu' recente), gli slug orfani sono ignorati e cio'
@@ -532,9 +624,11 @@ export function HomeClient({
         page={doc}
         number={number}
         isFeatured={number === 1 && !needle}
+        pinned={doc.slug === currentFeatured}
         pct={progress[doc.slug]?.pct ?? 0}
         deleting={deletingSlug === doc.slug}
         onRequestDelete={() => requestDeleteDocument(doc.slug, doc.title)}
+        onToggleFeature={() => void toggleFeatured(doc.slug)}
       />
     ));
   }
@@ -933,6 +1027,7 @@ export function HomeClient({
               onRequestDelete={() =>
                 requestDeleteDocument(filtered[0].slug, filtered[0].title)
               }
+              onToggleFeature={() => void toggleFeatured(filtered[0].slug)}
             />
             {filtered.length > 1 && (
               <ul className="mt-4 border-t border-navy-900/10">
