@@ -97,6 +97,23 @@ function blockText(block: PageDesignBlock): string {
       ]
         .filter(Boolean)
         .join(" ");
+    case "spec":
+      return [
+        block.title,
+        ...block.items.flatMap((item) => [item.term, item.definition]),
+      ]
+        .filter(Boolean)
+        .join(" ");
+    case "compare":
+      return [
+        block.title,
+        block.left.heading,
+        ...block.left.items,
+        block.right.heading,
+        ...block.right.items,
+      ]
+        .filter(Boolean)
+        .join(" ");
     case "image":
       return [block.alt, block.caption].filter(Boolean).join(" ");
   }

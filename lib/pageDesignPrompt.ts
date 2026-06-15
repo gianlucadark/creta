@@ -41,8 +41,12 @@ The available types and their fields (alongside "type"):
 - { "type": "stats", "title"?: string, "items": [{ "value": string, "label": string, "hint"?: string }] }
                                                        — key figures/metrics. "value" is the number or short figure ("12", "99%", "3 GB"); "label" names it. Use whenever the document states notable numbers.
 - { "type": "quote", "text": string, "attribution"?: string }                     — a single standout sentence, principle, motto, or definition worth emphasising as a pull quote.
+- { "type": "spec", "title"?: string, "items": [{ "term": string, "definition": string }] }
+                                                       — label→value pairs or a single record made of fields: role→section, field→content, term→definition, parameter→value. Use this INSTEAD of a two-column table whenever one column is a short label/field name and the other is its value. Also the right home for "label: value" lines.
+- { "type": "compare", "title"?: string, "left": { "heading": string, "items": [string] }, "right": { "heading": string, "items": [string] } }
+                                                       — two contrasted sides: allowed/forbidden (consentito/vietato), before/after, pros/cons, do/don't. Copy headings and items verbatim.
 - { "type": "table", "title"?: string, "headers": [string], "rows": [[string]] }
-                                                       — genuinely tabular data. Copy every cell verbatim.
+                                                       — genuinely tabular data with 3+ columns, or a real data grid. Do NOT use a table for label→value records: use "spec" instead.
 - { "type": "code", "title"?: string, "code": string }                           — commands, scripts, JSON, config, file contents, prompt templates, or terminal output. Copy verbatim.
 - { "type": "accordion", "title"?: string, "items": [{ "title": string, "text": string }] }       — FAQs or a set of question/answer or term/explanation pairs that benefit from being collapsible.
 
@@ -58,6 +62,8 @@ GUIDANCE
 - Turn prerequisite/requirement lists into "checklist"; other bullet lists into "list".
 - Turn a memorable principle or one-line rule into a "quote".
 - Use "feature" or "cards" to break dense conceptual lists into a scannable grid.
+- Turn a record or a "label: value" / two-column "field/content" list into a "spec" block — NEVER a two-column table. Each "term" is the label (verbatim), each "definition" its value (verbatim, never truncated).
+- Turn an allowed-vs-forbidden, before-vs-after, or pros-vs-cons contrast into a "compare" block.
 - A multi-line command, script, config snippet, or reusable prompt template ALWAYS belongs in a "code" block, never inside a paragraph.
 - Never leave a long undifferentiated wall of text in a single paragraph block — split it across the most fitting blocks.`.trim();
 

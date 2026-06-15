@@ -315,6 +315,77 @@ function FeatureBlock({
   );
 }
 
+function SpecBlock({
+  title,
+  items,
+}: {
+  title?: string;
+  items: { term: string; definition: string }[];
+}) {
+  return (
+    <div className="space-y-5">
+      {title && <BlockHeading>{title}</BlockHeading>}
+      <dl className="divide-y divide-navy-100 overflow-hidden rounded-2xl border border-navy-200 bg-white shadow-sm">
+        {items.map((item, index) => (
+          <div
+            key={index}
+            className="grid gap-1 px-5 py-3.5 transition-colors hover:bg-surface/60 sm:grid-cols-[minmax(8rem,13rem)_1fr] sm:gap-5"
+          >
+            <dt className="font-semibold leading-7 text-navy-900 break-words">
+              <InlineText text={item.term} />
+            </dt>
+            <dd className="min-w-0 text-[0.95rem] leading-7 text-navy-700 break-words">
+              <InlineText text={item.definition} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function CompareBlock({
+  title,
+  left,
+  right,
+}: {
+  title?: string;
+  left: { heading: string; items: string[] };
+  right: { heading: string; items: string[] };
+}) {
+  const sides = [
+    { side: left, accent: "border-navy-200", dot: "bg-navy-400", label: "text-navy-900" },
+    { side: right, accent: "border-gold-300", dot: "creta-badge-grad", label: "text-gold-700" },
+  ];
+  return (
+    <div className="space-y-5">
+      {title && <BlockHeading>{title}</BlockHeading>}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {sides.map(({ side, accent, dot, label }, index) => (
+          <div
+            key={index}
+            className={`rounded-2xl border ${accent} bg-white px-5 py-5 shadow-sm`}
+          >
+            <p className={`mb-3 font-display text-base font-bold ${label} break-words`}>
+              <InlineText text={side.heading} />
+            </p>
+            <ul className="space-y-2.5">
+              {side.items.map((item, itemIndex) => (
+                <li key={itemIndex} className="flex items-start gap-3">
+                  <span className={`mt-[0.6rem] h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
+                  <span className="text-[0.95rem] leading-7 text-navy-700 break-words">
+                    <InlineText text={item} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StatsBlock({
   title,
   items,
@@ -465,7 +536,7 @@ function ImageBlock({
   caption?: string;
 }) {
   return (
-    <figure className="overflow-hidden rounded-2xl border border-navy-200 bg-white shadow-sm">
+    <figure className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-navy-200 bg-white shadow-sm">
       {/* URL arbitraria dallo store (Blob pubblico o /creta-assets), inclusi
           SVG: <img> nativo evita la config domini di next/image. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -508,6 +579,12 @@ export function renderDesignBlock(block: PageDesignBlock, index: number) {
       return <CardsBlock key={index} title={block.title} items={block.items} />;
     case "feature":
       return <FeatureBlock key={index} title={block.title} items={block.items} />;
+    case "spec":
+      return <SpecBlock key={index} title={block.title} items={block.items} />;
+    case "compare":
+      return (
+        <CompareBlock key={index} title={block.title} left={block.left} right={block.right} />
+      );
     case "stats":
       return <StatsBlock key={index} title={block.title} items={block.items} />;
     case "checklist":

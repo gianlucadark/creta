@@ -230,6 +230,25 @@ const FeatureBlock = z.object({
   items: z.array(TitledItem),
 });
 
+/* Scheda di coppie etichetta→valore (ruolo→sezione, campo→contenuto, termine→
+   definizione). Resa verticale, senza scroll orizzontale: è la casa naturale
+   delle righe "label: value" e dei record che altrimenti diventano tabelle a
+   due colonne ripetute. */
+const SpecBlock = z.object({
+  type: z.literal("spec"),
+  title: z.string().optional(),
+  items: z.array(z.object({ term: z.string(), definition: z.string() })),
+});
+
+/* Confronto a due colonne contrapposte (Consentito/Vietato, Prima/Dopo,
+   Pro/Contro). Ogni lato ha un titolo e una lista di voci. */
+const CompareBlock = z.object({
+  type: z.literal("compare"),
+  title: z.string().optional(),
+  left: z.object({ heading: z.string(), items: z.array(z.string()) }),
+  right: z.object({ heading: z.string(), items: z.array(z.string()) }),
+});
+
 /* Immagine estratta dal documento sorgente. `src` è una URL prodotta
    dall'ingest (Vercel Blob pubblico o /creta-assets in locale), non testo
    verbatim: il blocco viene ancorato deterministicamente, mai generato dal
@@ -255,6 +274,8 @@ export const PageDesignBlockSchema = z.discriminatedUnion("type", [
   ChecklistBlock,
   ListBlock,
   FeatureBlock,
+  SpecBlock,
+  CompareBlock,
   ImageBlock,
 ]);
 
@@ -551,10 +572,34 @@ function deepMapStrings<T>(value: T, fn: (text: string) => string): T {
   return value;
 }
 
+/* Una tabella a due colonne la cui prima colonna è un'etichetta generica
+   ("Campo", "Voce", "Field"…) non è dato tabellare ma un record: renderla come
+   "spec" verticale evita lo scroll orizzontale e la ripetizione. Conservativo:
+   non tocca le tabelle-mappatura reali (header[0] non generico). Gira in
+   sanitize, quindi i documenti già salvati si aggiornano in lettura senza
+   re-ingest. */
+function tableToSpec(
+  block: Extract<PageDesignBlock, { type: "table" }>
+): Extract<PageDesignBlock, { type: "spec" }> | null {
+  if (block.headers.length !== 2) return null;
+  const label = (block.headers[0] ?? "").toLowerCase().replace(/[^a-zàèéìòù]/g, "");
+  if (!SPEC_TABLE_LABELS.has(label)) return null;
+  const items = block.rows
+    .filter((row) => Array.isArray(row) && (row[0]?.trim() || row[1]?.trim()))
+    .map((row) => ({ term: row[0] ?? "", definition: row[1] ?? "" }));
+  if (!items.length) return null;
+  return { type: "spec", title: block.title, items };
+}
+
 function sanitizeBlock(block: PageDesignBlock): PageDesignBlock {
   // I corpi code possono contenere HTML/entities legittimi: restano verbatim.
   if (block.type === "code") {
     return block.title ? { ...block, title: stripInlineHtml(block.title) } : block;
+  }
+  // Record a due colonne → spec verticale (upgrade deterministico in lettura).
+  if (block.type === "table") {
+    const spec = tableToSpec(block);
+    if (spec) return deepMapStrings(spec, stripInlineHtml);
   }
   // `src` è una URL: non va passata da stripInlineHtml (i caratteri & nei query
   // verrebbero alterati). Solo alt e caption sono testo da sanificare.
@@ -627,6 +672,22 @@ const CHECKLIST_ALIASES = new Set(["checklist", "requirements", "prerequisites",
 const CODE_ALIASES = new Set(["code", "codeblock", "command", "commands", "snippet", "terminal", "script", "config", "json"]);
 const QUOTE_ALIASES = new Set(["quote", "blockquote", "pullquote", "principle", "citazione"]);
 const TITLED_ITEM_TYPES = new Set(["steps", "timeline", "cards", "feature", "accordion"]);
+const SPEC_ALIASES = new Set([
+  "spec", "specs", "specsheet", "specification", "definitionlist", "definitions",
+  "keyvalue", "keyvalues", "fields", "record", "properties", "attributes", "glossary",
+  "metadata", "details", "fieldlist", "datasheet",
+]);
+const COMPARE_ALIASES = new Set([
+  "compare", "comparison", "versus", "vs", "dosanddonts", "dosdonts", "prosandcons",
+  "proscons", "beforeafter", "consentitovietato", "twocolumns", "twosided",
+]);
+
+/* Header (prima colonna) generici che segnalano una tabella-record da rendere
+   come "spec" verticale anziché tabella a due colonne ripetuta. */
+const SPEC_TABLE_LABELS = new Set([
+  "campo", "voce", "attributo", "parametro", "proprietà", "proprieta", "elemento",
+  "chiave", "caratteristica", "field", "key", "attribute", "property", "parameter",
+]);
 
 /** Converte forme arbitrarie di item in { title?, text }. */
 function normalizeTitledItems(raw: unknown): { title?: string; text: string }[] {
@@ -641,6 +702,22 @@ function normalizeTitledItems(raw: unknown): { title?: string; text: string }[] 
       const text = firstString(o.text, o.description, o.body, o.content, o.definition, o.detail, o.value);
       if (text) return [{ title, text }];
       if (title) return [{ text: title }];
+    }
+    return [];
+  });
+}
+
+/** Converte forme arbitrarie di item in { term, definition } per "spec". */
+function normalizeSpecItems(raw: unknown): { term: string; definition: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    if (item && typeof item === "object") {
+      const o = item as Record<string, unknown>;
+      const term = firstString(o.term, o.label, o.name, o.key, o.title, o.field, o.campo);
+      const definition = firstString(
+        o.definition, o.value, o.text, o.description, o.content, o.detail, o.contenuto
+      );
+      if (term && definition) return [{ term, definition }];
     }
     return [];
   });
@@ -715,6 +792,29 @@ function coercePageDesignBlock(raw: unknown): unknown {
       // Le accordion richiedono un titolo cliccabile; senza titolo rendono meglio come card.
       const target = type === "accordion" && items.some((item) => !item.title) ? "cards" : type;
       return { type: target, title: firstString(block.title, block.heading), items };
+    }
+  }
+
+  if (SPEC_ALIASES.has(type)) {
+    const items = normalizeSpecItems(block.items ?? block.fields ?? block.rows ?? block.entries);
+    if (items.length) {
+      return { type: "spec", title: firstString(block.title, block.heading), items };
+    }
+  }
+
+  if (COMPARE_ALIASES.has(type)) {
+    const rawLeft = (block.left ?? {}) as Record<string, unknown>;
+    const rawRight = (block.right ?? {}) as Record<string, unknown>;
+    const left = {
+      heading: firstString(rawLeft.heading, rawLeft.title, rawLeft.label) ?? "",
+      items: normalizeStringItems(rawLeft.items ?? rawLeft.points ?? rawLeft.list),
+    };
+    const right = {
+      heading: firstString(rawRight.heading, rawRight.title, rawRight.label) ?? "",
+      items: normalizeStringItems(rawRight.items ?? rawRight.points ?? rawRight.list),
+    };
+    if (left.items.length && right.items.length) {
+      return { type: "compare", title: firstString(block.title, block.heading), left, right };
     }
   }
 

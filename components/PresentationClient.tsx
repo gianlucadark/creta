@@ -75,6 +75,20 @@ function blockWeight(block: PageDesignBlock): number {
       );
       return Math.max(2, Math.ceil(block.items.length / 2) + Math.floor(chars / 700));
     }
+    case "spec": {
+      const chars = block.items.reduce(
+        (sum, item) => sum + item.term.length + item.definition.length,
+        0
+      );
+      return Math.max(2, Math.ceil(block.items.length / 3) + Math.floor(chars / 700));
+    }
+    case "compare": {
+      const items = [...block.left.items, ...block.right.items];
+      return Math.max(
+        2,
+        Math.ceil(items.length / 3) + Math.floor(items.join("").length / 800)
+      );
+    }
     case "image":
       return 3;
   }
