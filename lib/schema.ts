@@ -258,6 +258,17 @@ export const PageDesignBlockSchema = z.discriminatedUnion("type", [
   ImageBlock,
 ]);
 
+/* Allegato scaricabile: `href` è una URL prodotta dall'upload (mai testo
+   verbatim, mai generata dall'LLM), `filename` il nome originale del file.
+   `size` (byte) e `mime` sono informativi per la card di download. */
+const AttachmentSchema = z.object({
+  href: z.string(),
+  filename: z.string(),
+  label: z.string().optional(),
+  size: z.number().int().nonnegative().optional(),
+  mime: z.string().optional(),
+});
+
 export const PageDesignSchema = z.object({
   version: z.literal(2),
   page: z.object({
@@ -297,6 +308,12 @@ export const PageDesignSchema = z.object({
       `authoring`: le route di mutazione passano da questo schema e Zod
       rimuove le chiavi non dichiarate. */
   related: z.array(z.string()).optional(),
+  /** File scaricabili allegati a mano in fondo alla pagina (es. script .ps1
+      di installazione). Come le immagini, NON passano mai dall'LLM: vengono
+      caricati nello store dei file e referenziati per URL (`href` =
+      /api/files/<slug>/<name>). `filename` è il nome originale mostrato e usato
+      per il download. Dichiarati qui per lo stesso motivo di `related`. */
+  attachments: z.array(AttachmentSchema).optional(),
 });
 
 export const StoredPageSchema = z.union([PageDesignSchema, DocumentTreeSchema]);
@@ -784,5 +801,6 @@ export function normalizePageDesign(
 export type Block = z.infer<typeof BlockSchema>;
 export type DocumentTree = z.infer<typeof DocumentTreeSchema>;
 export type PageDesign = z.infer<typeof PageDesignSchema>;
+export type Attachment = z.infer<typeof AttachmentSchema>;
 export type PageDesignBlock = z.infer<typeof PageDesignBlockSchema>;
 export type StoredPage = z.infer<typeof StoredPageSchema>;

@@ -33,6 +33,8 @@ creta/
 ├── app/
 │   ├── api/ingest/route.ts    — upload .docx → Gemini → content/pages/<slug>.json
 │   ├── api/assets/[slug]/[name]/ — serve le immagini estratte dal blob privato (readImage)
+│   ├── api/files/[slug]/[name]/  — serve gli allegati dal blob privato, SEMPRE forzati al download (octet-stream + Content-Disposition: attachment)
+│   ├── api/documents/[slug]/attachments/ — POST carica un allegato, DELETE lo rimuove (authorizeEditor, max 4 MB)
 │   ├── api/author/route.ts    — POST fai-da-te: markdown → stessa pipeline → JSON (+ PUT [slug]/ per rigenerare)
 │   ├── api/search/route.ts    — ricerca full-text su content/pages (palette ⌘K), zero LLM e zero DB
 │   ├── api/collections/route.ts — GET/PUT config delle rubriche (PUT = full-replace con authorizeEditor)
@@ -55,6 +57,7 @@ creta/
 │   ├── pageDesignPrompt.ts    — chapterSystemPrompt (singolo/multi-capitolo ± page header) + PAGE_META_PROMPT di fallback
 │   ├── pagesStore.ts          — adapter async dello store documenti: filesystem in dev, Vercel Blob quando c'è BLOB_READ_WRITE_TOKEN
 │   ├── assetsStore.ts         — store delle immagini estratte dai docx: Vercel Blob PRIVATO (images/<slug>/<hash>, servito via /api/assets) o public/creta-assets in locale; nome = hash del contenuto (idempotente)
+│   ├── filesStore.ts          — store degli allegati scaricabili (script .ps1, txt…): Vercel Blob PRIVATO (files/<slug>/<hash>) o public/creta-files in locale; whitelist estensioni (ALLOWED_FILE_EXT), nome = hash del contenuto
 │   ├── collections.ts         — schema Zod + normalizzatore delle rubriche (gruppi di documenti in home; ogni documento sta al massimo in una rubrica)
 │   ├── collectionsStore.ts    — store della config rubriche: content/collections.json in locale, blob meta/collections.json su Vercel
 │   ├── searchIndex.ts         — indice full-text in memoria sullo store (cache su mtime/uploadedAt) + tempo di lettura
@@ -70,6 +73,7 @@ creta/
 │   ├── CollectionsManager.tsx — pannello modale rubriche: crea/rinomina/riordina voci e assegna i documenti
 │   ├── UploadModal.tsx        — upload con stati di avanzamento e avviso fallback
 │   ├── WriterClient.tsx       — editor fai-da-te: form a capitoli, cheat-sheet markdown, stati di avanzamento
+│   ├── AttachmentManager.tsx  — sezione "Allegati" in fondo alla pagina: card di download + caricamento/eliminazione file (via /api/documents/<slug>/attachments)
 │   ├── DocHeader.tsx          — header sticky con progress di lettura (salvato in localStorage)
 │   ├── Reveal.tsx             — animazione on-scroll
 │   ├── registry.tsx           — registry legacy v1

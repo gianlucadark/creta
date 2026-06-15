@@ -9,6 +9,7 @@ import { tryFormatJson } from "@/lib/jsonText";
 import { sectionAnchor } from "@/lib/anchors";
 import { SectionNav } from "./SectionNav";
 import { RelatedDocsButton } from "./RelatedDocsButton";
+import { AttachmentManager } from "./AttachmentManager";
 
 /** Metadati libreria di un documento correlato, risolti dalla pagina a partire
     dagli slug salvati: i documenti eliminati spariscono senza errori. */
@@ -819,6 +820,13 @@ export function PageDesignRenderer({
         </div>
       </div>
       </div>
+
+      {/* Allegati scaricabili (script, documenti) caricati a mano */}
+      <section className="border-t border-navy-200/70 bg-white">
+        <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14 lg:px-6">
+          <AttachmentManager slug={slug} attachments={design.attachments ?? []} />
+        </div>
+      </section>
 
       {/* Documenti correlati scelti a mano e salvati in design.related */}
       <section className="border-t border-navy-200/70 bg-surface">
