@@ -9,6 +9,30 @@ export const metadata: Metadata = {
     "Creta è una generative UI engine: trasforma documenti in pagine web tipizzate, navigabili e servite in modo deterministico, senza riscrivere una parola.",
 };
 
+/* Generative UI: il confronto con l'approccio tradizionale. */
+const UI_COMPARE = [
+  {
+    tag: "Approccio tradizionale",
+    title: "L'interfaccia si disegna a mano",
+    tone: "muted" as const,
+    points: [
+      "Ogni schermata è progettata e codificata una per una.",
+      "Il contenuto va versato dentro un layout fisso, deciso prima.",
+      "Cambiare il contenuto significa rimettere mano al codice.",
+    ],
+  },
+  {
+    tag: "Generative UI",
+    title: "L'interfaccia nasce dal contenuto",
+    tone: "accent" as const,
+    points: [
+      "Un sistema compone la pagina da un set di componenti tipizzati.",
+      "È la struttura del contenuto a scegliere la forma giusta.",
+      "Nuovo contenuto, nuova pagina: senza disegnare nulla a mano.",
+    ],
+  },
+];
+
 /* I due momenti separati: authoring (una volta) vs serving (ogni visita). */
 const MOMENTS = [
   {
@@ -196,6 +220,105 @@ export default function AboutCretaPage() {
               verità; Creta si occupa della forma — sceglie i componenti, monta
               la navigazione, cura la leggibilità — e pubblica il risultato come
               esperienza digitale coerente e durevole.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── Cos'è la Generative UI ───────────────────────────── */}
+      <section className="creta-grid-bg border-b border-navy-900/10">
+        <div className="mx-auto max-w-[88rem] px-5 py-20 sm:px-10 lg:py-28">
+          <Reveal>
+            <div className="max-w-3xl">
+              <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-navy-400">
+                Il concetto
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-bold leading-tight text-navy-950 sm:text-4xl">
+                Cos&apos;è la Generative UI.
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-navy-500">
+                Generative UI vuol dire che l&apos;interfaccia non è disegnata in
+                anticipo, schermata per schermata: viene{" "}
+                <span className="font-semibold text-navy-800">
+                  composta da un sistema
+                </span>{" "}
+                a partire dal contenuto, scegliendo di volta in volta i
+                componenti più adatti da un vocabolario definito. La pagina non
+                è un contenitore da riempire, ma un risultato che prende forma
+                dai dati.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="mt-14 grid items-stretch gap-5 lg:grid-cols-[1fr_auto_1fr] lg:gap-3">
+            <Reveal>
+              <article className="relative order-1 flex h-full flex-col overflow-hidden rounded-3xl border border-navy-900/10 bg-white/60 p-8 sm:p-9">
+                <span className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.25em] text-navy-400">
+                  {UI_COMPARE[0].tag}
+                </span>
+                <h3 className="mt-4 font-display text-2xl font-bold leading-snug text-navy-950">
+                  {UI_COMPARE[0].title}
+                </h3>
+                <ul className="mt-7 space-y-4 border-t border-navy-900/10 pt-7">
+                  {UI_COMPARE[0].points.map((point) => (
+                    <li key={point} className="flex gap-3 text-sm leading-7 text-navy-600">
+                      <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-navy-300" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </Reveal>
+
+            {/* freccia separatrice tra i due approcci */}
+            <Reveal delay={120}>
+              <div className="order-2 flex items-center justify-center lg:h-full lg:px-1">
+                <span className="grid h-11 w-11 place-items-center rounded-full border border-navy-900/10 bg-white text-navy-400 shadow-sm shadow-navy-950/5">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4 rotate-90 lg:rotate-0"
+                  >
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </div>
+            </Reveal>
+
+            <Reveal delay={120}>
+              <article className="relative order-3 flex h-full flex-col overflow-hidden rounded-3xl border border-gold-500/40 bg-white p-8 shadow-lg shadow-navy-950/5 sm:p-9">
+                <span className="creta-rule absolute inset-x-0 top-0 h-1" />
+                <span className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.25em] text-gold-700">
+                  {UI_COMPARE[1].tag}
+                </span>
+                <h3 className="mt-4 font-display text-2xl font-bold leading-snug text-navy-950">
+                  {UI_COMPARE[1].title}
+                </h3>
+                <ul className="mt-7 space-y-4 border-t border-navy-900/10 pt-7">
+                  {UI_COMPARE[1].points.map((point) => (
+                    <li key={point} className="flex gap-3 text-sm leading-7 text-navy-600">
+                      <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-500" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </Reveal>
+          </div>
+
+          <Reveal delay={200}>
+            <p className="mx-auto mt-12 max-w-3xl text-center text-base leading-8 text-navy-500">
+              Creta porta questa idea sui documenti, con un vincolo che la rende
+              affidabile:{" "}
+              <span className="font-semibold text-navy-800">
+                genera solo la forma, mai il testo
+              </span>
+              . L&apos;interfaccia è composta su misura; le parole restano,
+              parola per parola, quelle della fonte.
             </p>
           </Reveal>
         </div>
