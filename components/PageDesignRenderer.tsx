@@ -10,6 +10,7 @@ import { sectionAnchor } from "@/lib/anchors";
 import { SectionNav } from "./SectionNav";
 import { RelatedDocsButton } from "./RelatedDocsButton";
 import { AttachmentManager } from "./AttachmentManager";
+import { ChapterRail } from "./ChapterRail";
 
 /** Metadati libreria di un documento correlato, risolti dalla pagina a partire
     dagli slug salvati: i documenti eliminati spariscono senza errori. */
@@ -618,48 +619,65 @@ function groupByChapter(sections: PageDesign["sections"]) {
   return groups;
 }
 
-/* Card di una singola sezione: numero, titolo, intro e blocchi. Il capitolo di
-   appartenenza non e' piu' ripetuto qui — lo porta la spina laterale. */
-function SectionCard({
+/* Blocchi "larghi": griglie e momenti visivi che escono dalla colonna di
+   lettura per dare il ritmo da landing. Il testo di scorrimento (paragrafi,
+   liste, callout, steps…) resta invece nella colonna stretta, leggibile. */
+const WIDE_BLOCKS = new Set<PageDesignBlock["type"]>([
+  "cards",
+  "feature",
+  "stats",
+  "quote",
+  "table",
+  "compare",
+]);
+
+/* Sezione in stile landing: intestazione centrata con numero filigrana dietro,
+   poi i blocchi in colonna di lettura stretta; i blocchi larghi sfondano ai
+   lati (lg:-mx-24) restando dentro la banda. */
+function LandingSection({
   section,
   index,
-  slug,
 }: {
   section: PageDesign["sections"][number];
   index: number;
-  slug: string;
 }) {
   return (
     <section
       id={sectionAnchor(section.title, index)}
       data-idx={index}
-      className="grid scroll-mt-32 gap-6 rounded-[1.5rem] border border-navy-100 bg-white p-4 shadow-sm sm:p-6 lg:grid-cols-[15rem_1fr] lg:gap-10"
+      className="scroll-mt-32"
     >
-      <div className="lg:sticky lg:top-24 lg:self-start">
-        <Reveal>
-          <div className="flex items-center gap-3">
-            <p className="creta-stat-grad font-display text-5xl font-bold leading-none">
-              {String(index + 1).padStart(2, "0")}
-            </p>
-            <span className="rounded-full bg-navy-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-navy-500">
-              sezione
-            </span>
-          </div>
-          <div className="creta-rule mt-4 h-0.5 w-16 rounded-full" />
-          <h3 className="mt-4 font-display text-2xl font-bold leading-tight text-navy-900">
+      <Reveal className="relative text-center">
+        {/* Numero filigrana: grande e tenue, dietro all'intestazione */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 -z-0 -translate-x-1/2 -translate-y-[60%] select-none font-display text-[7rem] font-black leading-none text-navy-100 sm:text-[10rem]"
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <div className="relative">
+          <p className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.3em] text-gold-600">
+            Sezione {String(index + 1).padStart(2, "0")}
+          </p>
+          <h3 className="mx-auto mt-2 max-w-3xl break-words font-display text-3xl font-bold leading-tight text-navy-900 sm:text-4xl">
             {section.title}
           </h3>
+          <div className="creta-rule mx-auto mt-4 h-0.5 w-12 rounded-full" />
           {section.intro && (
-            <p className="mt-3 text-sm leading-7 text-navy-600">
+            <p className="mx-auto mt-5 max-w-2xl text-[1.02rem] leading-8 text-navy-600">
               <InlineText text={section.intro} />
             </p>
           )}
-        </Reveal>
-      </div>
+        </div>
+      </Reveal>
 
-      <div className="min-w-0 space-y-7">
+      <div className="mx-auto mt-10 max-w-3xl space-y-8 sm:mt-12">
         {section.blocks.map((block, blockIndex) => (
-          <Reveal key={blockIndex} delay={Math.min(blockIndex, 4) * 70}>
+          <Reveal
+            key={blockIndex}
+            delay={Math.min(blockIndex, 4) * 70}
+            className={WIDE_BLOCKS.has(block.type) ? "lg:-mx-24" : ""}
+          >
             {renderDesignBlock(block, blockIndex)}
           </Reveal>
         ))}
@@ -668,11 +686,10 @@ function SectionCard({
   );
 }
 
-/* Spina di capitolo: rail verticale sticky a sinistra delle sezioni. Resta
-   agganciata mentre si scorre il capitolo, cosi' ogni card sa sempre a quale
-   h1 appartiene anche nei capitoli molto lunghi. Solo da lg in su; sotto, il
-   capitolo e' segnalato dall'intestazione compatta orizzontale. */
-function ChapterSpine({
+/* Intestazione di capitolo centrata, in apertura di ogni banda. Sostituisce la
+   spina laterale sticky: l'orientamento "in quale capitolo sono" resta affidato
+   a SectionNav (scrollspy in testa). */
+function ChapterHeader({
   chapter,
   number,
   count,
@@ -684,39 +701,21 @@ function ChapterSpine({
   slug: string;
 }) {
   return (
-    <div className="relative hidden lg:block">
-      <div className="sticky top-24 pl-5">
-        {/* Spina: filo verticale oro che sfuma, ancora il capitolo alla colonna */}
-        <div
-          className="pointer-events-none absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full"
-          style={{
-            backgroundImage:
-              "linear-gradient(180deg, #ECC93C, #D4A820 30%, transparent)",
-          }}
-        />
-        <p className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.25em] text-gold-600">
-          Capitolo
-        </p>
-        {/* Numero ghost: solo contorno, fa da filigrana editoriale */}
-        <p
-          className="-ml-0.5 mt-0.5 font-display text-[4.25rem] font-black leading-[0.8] text-transparent"
-          style={{ WebkitTextStroke: "1.5px var(--color-navy-300)" }}
-          aria-hidden
-        >
-          {String(number).padStart(2, "0")}
-        </p>
-        <h2 className="mt-3 break-words font-display text-[1.05rem] font-bold leading-snug text-navy-900">
-          {chapter}
-        </h2>
-        <div className="creta-rule mt-3 h-0.5 w-9 rounded-full" />
-        <p className="mt-3 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-navy-400">
+    <Reveal className="mb-16 text-center sm:mb-24">
+      <p className="font-mono text-[0.7rem] font-bold uppercase tracking-[0.32em] text-gold-600">
+        Capitolo {String(number).padStart(2, "0")}
+      </p>
+      <h2 className="mx-auto mt-3 max-w-3xl break-words font-display text-4xl font-bold leading-tight text-navy-950 sm:text-5xl">
+        {chapter}
+      </h2>
+      <div className="creta-rule mx-auto mt-5 h-0.5 w-16 rounded-full" />
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-navy-400">
+        <span>
           {count} {count === 1 ? "sezione" : "sezioni"}
-        </p>
-        <div className="mt-4">
-          <ExtractChapterButton slug={slug} chapter={chapter} compact />
-        </div>
+        </span>
+        <ExtractChapterButton slug={slug} chapter={chapter} compact />
       </div>
-    </div>
+    </Reveal>
   );
 }
 
@@ -824,78 +823,51 @@ export function PageDesignRenderer({
         <div className="creta-scanline absolute inset-x-0 bottom-0 h-1" />
       </section>
 
-      {/* Corpo */}
-      <div className="creta-grid-bg">
-      <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14 lg:px-6">
-        <div className="space-y-14 sm:space-y-20">
-          {chapterGroups.map((group, groupIndex) => {
-            const sectionCards = group.items.map(({ index }) => (
-              <SectionCard
-                key={index}
-                section={design.sections[index]}
-                index={index}
-                slug={slug}
-              />
-            ));
+      {/* Corpo — bande full-width alternate, stile landing */}
+      <div>
+        {chapterGroups.map((group, groupIndex) => {
+          const chapter = group.chapter;
+          const sections = group.items.map(({ index }) => (
+            <LandingSection
+              key={index}
+              section={design.sections[index]}
+              index={index}
+            />
+          ));
 
-            const chapter = group.chapter;
-            /* Sezioni senza capitolo (o documenti a capitolo unico): semplice
-               pila di card, niente spina. */
-            if (!showChapters || !chapter) {
-              return (
-                <div key={groupIndex} className="space-y-6 sm:space-y-8">
-                  {sectionCards}
-                </div>
-              );
-            }
+          const hasHeader = showChapters && Boolean(chapter);
+          const chapterNumber = chapterGroups
+            .slice(0, groupIndex + 1)
+            .filter((g) => g.chapter).length;
 
-            const chapterNumber = chapterGroups
-              .slice(0, groupIndex + 1)
-              .filter((g) => g.chapter).length;
+          /* Bande alternate: bianco pulito ↔ griglia testurizzata, per dare
+             battito da landing senza mettere sfondi arbitrari sotto i blocchi
+             (che sono pensati per fondo chiaro). */
+          const band = groupIndex % 2 === 0 ? "bg-white" : "creta-grid-bg";
 
-            return (
-              <div key={groupIndex}>
-                {/* Intestazione capitolo compatta: solo sotto lg, dove la spina
-                    laterale sticky non c'e' */}
-                <Reveal>
-                  <div className="relative mb-5 overflow-hidden rounded-[1.25rem] bg-navy-950 px-5 py-4 text-white shadow-lg shadow-navy-950/15 lg:hidden">
-                    <div className="creta-grain pointer-events-none absolute inset-0 opacity-[0.05]" />
-                    <div className="creta-scanline absolute inset-x-0 bottom-0 h-0.5" />
-                    <div className="relative flex items-center justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-gold-400">
-                          Capitolo {String(chapterNumber).padStart(2, "0")}
-                          <span className="ml-2 normal-case tracking-normal text-white/40">
-                            {group.items.length}{" "}
-                            {group.items.length === 1 ? "sezione" : "sezioni"}
-                          </span>
-                        </p>
-                        <h2 className="mt-1 break-words font-display text-xl font-bold leading-tight">
-                          {chapter}
-                        </h2>
-                      </div>
-                      <ExtractChapterButton slug={slug} chapter={chapter} compact />
-                    </div>
-                  </div>
-                </Reveal>
-
-                {/* Spina laterale persistente + colonna delle sezioni */}
-                <div className="lg:grid lg:grid-cols-[10rem_minmax(0,1fr)] lg:gap-x-6">
-                  <ChapterSpine
+          return (
+            <section key={groupIndex} className={`relative ${band}`}>
+              {hasHeader && chapter && (
+                <ChapterRail
+                  number={chapterNumber}
+                  chapter={chapter}
+                  slug={slug}
+                />
+              )}
+              <div className="mx-auto max-w-5xl px-5 py-16 sm:py-24 lg:px-6">
+                {hasHeader && chapter && (
+                  <ChapterHeader
                     chapter={chapter}
                     number={chapterNumber}
                     count={group.items.length}
                     slug={slug}
                   />
-                  <div className="space-y-6 sm:space-y-8 lg:border-l lg:border-navy-100 lg:pl-6">
-                    {sectionCards}
-                  </div>
-                </div>
+                )}
+                <div className="space-y-20 sm:space-y-28">{sections}</div>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </section>
+          );
+        })}
       </div>
 
       {/* Allegati scaricabili (script, documenti) caricati a mano */}
