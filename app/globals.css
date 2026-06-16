@@ -219,6 +219,82 @@ body {
   background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px;
 }
 
+.creta-paper-band {
+  background-color: #FFFFFF;
+  background-image:
+    linear-gradient(115deg, transparent 0 12%, rgba(236, 201, 60, 0.08) 12% 12.35%, transparent 12.35% 100%),
+    linear-gradient(90deg, rgba(180, 211, 236, 0.22) 1px, transparent 1px),
+    linear-gradient(rgba(180, 211, 236, 0.16) 1px, transparent 1px);
+  background-size: 100% 100%, 96px 96px, 96px 96px;
+}
+
+.creta-paper-band::before,
+.creta-grid-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.creta-paper-band::before {
+  background:
+    linear-gradient(180deg, rgba(238, 244, 250, 0.78), transparent 18rem),
+    repeating-linear-gradient(
+      118deg,
+      transparent 0 8.8rem,
+      rgba(17, 50, 80, 0.045) 8.8rem 8.86rem,
+      transparent 8.86rem 15rem
+    );
+  opacity: 0.82;
+}
+
+.creta-paper-band::after {
+  content: "";
+  position: absolute;
+  top: 4rem;
+  bottom: 4rem;
+  left: max(1rem, calc(50% - 38rem));
+  width: 3px;
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, transparent, rgba(236, 201, 60, 0.64), rgba(123, 175, 217, 0.55), transparent);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.creta-grid-band::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), transparent 20rem),
+    linear-gradient(105deg, transparent 0 58%, rgba(255, 255, 255, 0.52) 58% 58.35%, transparent 58.35% 100%);
+}
+
+.creta-section-watermark {
+  color: rgba(180, 211, 236, 0.52);
+  text-shadow: 0 22px 42px rgba(17, 50, 80, 0.08);
+}
+
+.creta-section-thread {
+  background-image: linear-gradient(180deg, transparent, rgba(180, 211, 236, 0.75) 20%, rgba(236, 201, 60, 0.62) 50%, rgba(180, 211, 236, 0.75) 80%, transparent);
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.group\/section:hover .creta-section-thread {
+  opacity: 0.6;
+}
+
+.creta-reading-column::before {
+  content: "";
+  position: absolute;
+  inset: -1.75rem -2.5rem;
+  z-index: -1;
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, #FFFFFF, #F7FAFD),
+    linear-gradient(90deg, transparent, rgba(180, 211, 236, 0.2), transparent);
+  box-shadow: 0 28px 80px rgba(13, 37, 64, 0.08);
+  opacity: 1;
+}
+
 .creta-scanline {
   background-image: linear-gradient(
     90deg,

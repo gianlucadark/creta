@@ -100,7 +100,7 @@ function CalloutBlock({
   const theme = {
     info: {
       ring: "border-navy-200",
-      bg: "bg-surface-dark/50",
+      bg: "bg-surface-dark",
       chip: "bg-navy-900 text-white",
       Icon: I.info,
     },
@@ -650,13 +650,17 @@ function LandingSection({
     <section
       id={sectionAnchor(section.title, index)}
       data-idx={index}
-      className="scroll-mt-32"
+      className="group/section relative scroll-mt-32"
     >
+      <span
+        aria-hidden
+        className="creta-section-thread absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 lg:block"
+      />
       <Reveal className="relative text-center">
         {/* Numero filigrana: grande e tenue, dietro all'intestazione */}
         <span
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-1/2 -z-0 -translate-x-1/2 -translate-y-[60%] select-none font-display text-[7rem] font-black leading-none text-navy-100 sm:text-[10rem]"
+          className="creta-section-watermark pointer-events-none absolute left-1/2 top-1/2 -z-0 -translate-x-1/2 -translate-y-[60%] select-none font-display text-[7rem] font-black leading-none sm:text-[10rem]"
         >
           {String(index + 1).padStart(2, "0")}
         </span>
@@ -689,7 +693,7 @@ function LandingSection({
         </div>
       </Reveal>
 
-      <div className="mx-auto mt-10 max-w-3xl space-y-8 sm:mt-12">
+      <div className="creta-reading-column relative mx-auto mt-10 max-w-3xl space-y-8 sm:mt-12">
         {section.blocks.map((block, blockIndex) => (
           <Reveal
             key={blockIndex}
@@ -866,7 +870,10 @@ export function PageDesignRenderer({
           /* Bande alternate: bianco pulito ↔ griglia testurizzata, per dare
              battito da landing senza mettere sfondi arbitrari sotto i blocchi
              (che sono pensati per fondo chiaro). */
-          const band = groupIndex % 2 === 0 ? "bg-white" : "creta-grid-bg";
+          const band =
+            groupIndex % 2 === 0
+              ? "creta-paper-band"
+              : "creta-grid-bg creta-grid-band";
 
           return (
             <section key={groupIndex} className={`relative ${band}`}>
@@ -877,7 +884,7 @@ export function PageDesignRenderer({
                   slug={slug}
                 />
               )}
-              <div className="mx-auto max-w-5xl px-5 py-16 sm:py-24 lg:px-6">
+              <div className="relative z-10 mx-auto max-w-5xl px-5 py-16 sm:py-24 lg:px-6">
                 {hasHeader && chapter && (
                   <ChapterHeader
                     chapter={chapter}
@@ -950,7 +957,7 @@ export function PageDesignRenderer({
               ))}
             </div>
           ) : (
-            <p className="mt-7 rounded-2xl border border-dashed border-navy-300/60 bg-white/70 px-6 py-10 text-center text-sm leading-7 text-navy-500">
+            <p className="mt-7 rounded-2xl border border-dashed border-navy-300/60 bg-white px-6 py-10 text-center text-sm leading-7 text-navy-500 shadow-sm">
               Nessun collegamento ancora. Usa{" "}
               <span className="font-semibold text-navy-700">“Collega documenti”</span>{" "}
               per suggerire le prossime letture in fondo a questa pagina.

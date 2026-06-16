@@ -16,25 +16,20 @@ export function ChapterRail({
   slug: string;
 }) {
   return (
-    <div className="pointer-events-none absolute inset-0 hidden xl:block">
-      <div className="sticky top-0 h-0">
-        <div
-          className="pointer-events-auto absolute left-10 top-0 flex w-44 flex-col items-start gap-3"
-          style={{ transform: "translateY(calc(50vh - 50%))" }}
-        >
-          <p className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.28em] text-gold-600">
-            Capitolo
-          </p>
-          <span className="creta-stat-grad -mt-1 font-display text-5xl font-black leading-none">
-            {String(number).padStart(2, "0")}
-          </span>
-          <div className="creta-rule h-0.5 w-10 rounded-full" />
-          <p className="line-clamp-4 font-display text-base font-bold leading-snug text-navy-900">
-            {chapter}
-          </p>
-          <div className="mt-1">
-            <ExtractChapterButton slug={slug} chapter={chapter} compact />
-          </div>
+    <div className="pointer-events-none absolute inset-y-0 left-0 z-20 hidden w-64 xl:block">
+      <div className="sticky top-[34vh] ml-10 flex w-44 flex-col items-start gap-3">
+        <p className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.28em] text-gold-600">
+          Capitolo
+        </p>
+        <span className="creta-stat-grad -mt-1 font-display text-5xl font-black leading-none">
+          {String(number).padStart(2, "0")}
+        </span>
+        <div className="creta-rule h-0.5 w-10 rounded-full" />
+        <p className="line-clamp-4 font-display text-base font-bold leading-snug text-navy-900">
+          {chapter}
+        </p>
+        <div className="pointer-events-auto mt-1">
+          <ExtractChapterButton slug={slug} chapter={chapter} compact />
         </div>
       </div>
     </div>
