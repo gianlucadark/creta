@@ -833,7 +833,7 @@ function coercePageDesignBlock(raw: unknown): unknown {
   return block;
 }
 
-function normalizeBlocks(rawBlocks: unknown): PageDesignBlock[] {
+export function normalizeBlocks(rawBlocks: unknown): PageDesignBlock[] {
   if (!Array.isArray(rawBlocks)) return [];
   return rawBlocks.flatMap((raw, index) => {
     const coerced = coercePageDesignBlock(raw);

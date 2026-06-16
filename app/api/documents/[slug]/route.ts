@@ -7,6 +7,7 @@ import {
 } from "@/lib/pagesStore";
 import { isValidSlug } from "@/lib/slug";
 import { authorizeEditor } from "@/lib/editors";
+import { normalizeBlocks } from "@/lib/schema";
 
 export async function DELETE(
   req: Request,
@@ -49,6 +50,21 @@ const PatchSchema = z.object({
   /** Slugs of the hand-picked related documents ("Vedi anche").
       An empty array clears the list. */
   related: z.array(z.string()).max(8).optional(),
+  /** Per-section content edits applied by hand from the detail page. Each
+      entry replaces the title/intro/blocks of the section at `index`. The
+      blocks are raw (unknown) and pass through `normalizeBlocks` for tolerant
+      validation: a malformed block is coerced or downgraded to a paragraph,
+      never accepted as-is. */
+  sections: z
+    .array(
+      z.object({
+        index: z.number().int().nonnegative(),
+        title: z.string().optional(),
+        intro: z.string().optional(),
+        blocks: z.array(z.unknown()),
+      })
+    )
+    .optional(),
 });
 
 /* Update document metadata, reorder its sections and/or set its related
@@ -84,7 +100,45 @@ export async function PATCH(
     }
 
     const { design } = source;
-    const { page, order, related } = body.data;
+    const { page, order, related, sections: sectionEdits } = body.data;
+
+    /* Le modifiche per-sezione si applicano sugli indici originali, prima di
+       un eventuale riordino: l'editor del dettaglio invia solo `sections`. */
+    if (sectionEdits) {
+      if (design.authoring) {
+        return Response.json(
+          {
+            error:
+              "Questo documento si modifica da /scrivi: la modifica per sezione non è disponibile.",
+          },
+          { status: 400 }
+        );
+      }
+      for (const edit of sectionEdits) {
+        if (edit.index >= design.sections.length) {
+          return Response.json(
+            { error: "Sezione non valida." },
+            { status: 400 }
+          );
+        }
+        const target = design.sections[edit.index];
+        if (edit.title !== undefined) {
+          const title = edit.title.trim();
+          if (title) target.title = title;
+        }
+        if (edit.intro !== undefined) {
+          target.intro = edit.intro.trim() || undefined;
+        }
+        const blocks = normalizeBlocks(edit.blocks);
+        if (blocks.length === 0) {
+          return Response.json(
+            { error: "Una sezione non può restare senza contenuti." },
+            { status: 400 }
+          );
+        }
+        target.blocks = blocks;
+      }
+    }
 
     if (page) {
       const title = page.title?.trim();

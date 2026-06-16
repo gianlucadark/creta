@@ -11,6 +11,7 @@ import { SectionNav } from "./SectionNav";
 import { RelatedDocsButton } from "./RelatedDocsButton";
 import { AttachmentManager } from "./AttachmentManager";
 import { ChapterRail } from "./ChapterRail";
+import { SectionEditButton } from "./SectionEditButton";
 
 /** Metadati libreria di un documento correlato, risolti dalla pagina a partire
     dagli slug salvati: i documenti eliminati spariscono senza errori. */
@@ -637,9 +638,13 @@ const WIDE_BLOCKS = new Set<PageDesignBlock["type"]>([
 function LandingSection({
   section,
   index,
+  slug,
+  editable,
 }: {
   section: PageDesign["sections"][number];
   index: number;
+  slug: string;
+  editable: boolean;
 }) {
   return (
     <section
@@ -667,6 +672,19 @@ function LandingSection({
             <p className="mx-auto mt-5 max-w-2xl text-[1.02rem] leading-8 text-navy-600">
               <InlineText text={section.intro} />
             </p>
+          )}
+          {editable && (
+            <div className="mt-5 flex justify-center">
+              <SectionEditButton
+                slug={slug}
+                sectionIndex={index}
+                section={{
+                  title: section.title,
+                  intro: section.intro,
+                  blocks: section.blocks,
+                }}
+              />
+            </div>
           )}
         </div>
       </Reveal>
@@ -730,6 +748,9 @@ export function PageDesignRenderer({
 }) {
   const chapterGroups = groupByChapter(design.sections);
   const showChapters = chapterGroups.filter((group) => group.chapter).length > 1;
+  /* I documenti scritti in /scrivi hanno la sorgente markdown come verita': si
+     modificano da li', non per-sezione, per non divergere alla rigenerazione. */
+  const editable = !design.authoring;
   const navItems = design.sections.map((section, index) => ({
     anchor: sectionAnchor(section.title, index),
     title: section.title,
@@ -832,6 +853,8 @@ export function PageDesignRenderer({
               key={index}
               section={design.sections[index]}
               index={index}
+              slug={slug}
+              editable={editable}
             />
           ));
 
