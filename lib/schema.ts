@@ -260,6 +260,18 @@ const ImageBlock = z.object({
   caption: z.string().optional(),
 });
 
+/* Invito all'azione: promuove un link presente nel documento a bottone in
+   evidenza (es. "Scarica lo script", "Apri la console"). `label` e `href`
+   sono VERBATIM dal documento (l'LLM non inventa URL); `title`/`text`
+   opzionali introducono l'azione. */
+const CtaBlock = z.object({
+  type: z.literal("cta"),
+  title: z.string().optional(),
+  text: z.string().optional(),
+  label: z.string(),
+  href: z.string(),
+});
+
 export const PageDesignBlockSchema = z.discriminatedUnion("type", [
   ParagraphBlock,
   CalloutBlock,
@@ -277,6 +289,7 @@ export const PageDesignBlockSchema = z.discriminatedUnion("type", [
   SpecBlock,
   CompareBlock,
   ImageBlock,
+  CtaBlock,
 ]);
 
 /* Allegato scaricabile: `href` è una URL prodotta dall'upload (mai testo
@@ -610,6 +623,15 @@ function sanitizeBlock(block: PageDesignBlock): PageDesignBlock {
       caption: block.caption ? stripInlineHtml(block.caption) : block.caption,
     };
   }
+  // `href` è una URL: come image.src non va sanificata. Solo i testi mostrati.
+  if (block.type === "cta") {
+    return {
+      ...block,
+      title: block.title ? stripInlineHtml(block.title) : block.title,
+      text: block.text ? stripInlineHtml(block.text) : block.text,
+      label: stripInlineHtml(block.label),
+    };
+  }
   return deepMapStrings(block, stripInlineHtml);
 }
 
@@ -830,8 +852,27 @@ function coercePageDesignBlock(raw: unknown): unknown {
     }
   }
 
+  if (CTA_ALIASES.has(type)) {
+    const href = firstString(block.href, block.url, block.link);
+    const label = firstString(block.label, block.text, block.cta, block.title);
+    if (href && label) {
+      return {
+        type: "cta",
+        title: firstString(block.title, block.heading),
+        text: firstString(block.text, block.description, block.body),
+        label,
+        href,
+      };
+    }
+    // Senza href non e' un'azione: lascia che il salvataggio lo renda testo.
+  }
+
   return block;
 }
+
+const CTA_ALIASES = new Set([
+  "cta", "button", "action", "link", "downloadbutton", "callto action", "calltoaction",
+]);
 
 export function normalizeBlocks(rawBlocks: unknown): PageDesignBlock[] {
   if (!Array.isArray(rawBlocks)) return [];

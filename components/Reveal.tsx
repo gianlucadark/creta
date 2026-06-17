@@ -2,9 +2,52 @@
 
 import { useEffect, useRef, useState } from "react";
 
+/* Un SOLO IntersectionObserver condiviso da tutte le istanze di Reveal: una
+   pagina lunga ne monta decine/centinaia e un observer per istanza generava
+   jank in scroll su mobile. Qui ogni Reveal registra il proprio nodo con una
+   callback "rivelami"; alla prima intersezione la callback parte e il nodo
+   viene smesso di osservare. */
+const callbacks = new Map<Element, () => void>();
+let observer: IntersectionObserver | null = null;
+
+function getObserver(): IntersectionObserver | null {
+  if (typeof IntersectionObserver === "undefined") return null;
+  if (!observer) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const cb = callbacks.get(entry.target);
+          if (cb) {
+            cb();
+            callbacks.delete(entry.target);
+            observer?.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+    );
+  }
+  return observer;
+}
+
+function observe(el: Element, reveal: () => void): () => void {
+  const io = getObserver();
+  if (!io) {
+    reveal();
+    return () => {};
+  }
+  callbacks.set(el, reveal);
+  io.observe(el);
+  return () => {
+    callbacks.delete(el);
+    io.unobserve(el);
+  };
+}
+
 /**
  * Mostra i figli con fade e sollevamento al primo ingresso nel viewport.
- * Transizione CSS guidata da IntersectionObserver, senza librerie animation.
+ * Transizione CSS guidata da un IntersectionObserver condiviso, senza librerie.
  */
 export function Reveal({
   children,
@@ -23,24 +66,7 @@ export function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    if (typeof IntersectionObserver === "undefined") {
-      const id = requestAnimationFrame(() => setShown(true));
-      return () => cancelAnimationFrame(id);
-    }
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
-    );
-
-    io.observe(el);
-    return () => io.disconnect();
+    return observe(el, () => setShown(true));
   }, []);
 
   return (

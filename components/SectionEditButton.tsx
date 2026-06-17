@@ -36,6 +36,7 @@ const ADDABLE_TYPES: { type: BlockType; label: string }[] = [
   { type: "quote", label: "Citazione" },
   { type: "table", label: "Tabella" },
   { type: "code", label: "Codice" },
+  { type: "cta", label: "Azione (link)" },
 ];
 
 const TYPE_LABEL: Record<BlockType, string> = {
@@ -55,6 +56,7 @@ const TYPE_LABEL: Record<BlockType, string> = {
   table: "Tabella",
   code: "Codice",
   image: "Immagine",
+  cta: "Azione (link)",
 };
 
 function emptyBlock(type: BlockType): PageDesignBlock {
@@ -95,6 +97,8 @@ function emptyBlock(type: BlockType): PageDesignBlock {
       return { type: "code", code: "" };
     case "image":
       return { type: "image", src: "" };
+    case "cta":
+      return { type: "cta", label: "", href: "" };
   }
 }
 
@@ -627,6 +631,36 @@ function BlockEditor({
             onChange={(e) =>
               onChange({ ...block, caption: e.target.value || undefined })
             }
+            className={inputClass}
+          />
+        </div>
+      );
+    case "cta":
+      return (
+        <div className="space-y-2">
+          <input
+            value={block.title ?? ""}
+            placeholder="Titolo (facoltativo)"
+            onChange={(e) => onChange({ ...block, title: e.target.value || undefined })}
+            className={inputClass}
+          />
+          <textarea
+            value={block.text ?? ""}
+            rows={2}
+            placeholder="Testo (facoltativo)"
+            onChange={(e) => onChange({ ...block, text: e.target.value || undefined })}
+            className={`${inputClass} resize-y leading-7`}
+          />
+          <input
+            value={block.label}
+            placeholder="Etichetta del bottone"
+            onChange={(e) => onChange({ ...block, label: e.target.value })}
+            className={inputClass}
+          />
+          <input
+            value={block.href}
+            placeholder="URL (https://…)"
+            onChange={(e) => onChange({ ...block, href: e.target.value })}
             className={inputClass}
           />
         </div>

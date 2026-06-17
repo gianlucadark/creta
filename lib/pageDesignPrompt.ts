@@ -49,6 +49,7 @@ The available types and their fields (alongside "type"):
                                                        — genuinely tabular data with 3+ columns, or a real data grid. Do NOT use a table for label→value records: use "spec" instead.
 - { "type": "code", "title"?: string, "code": string }                           — commands, scripts, JSON, config, file contents, prompt templates, or terminal output. Copy verbatim.
 - { "type": "accordion", "title"?: string, "items": [{ "title": string, "text": string }] }       — FAQs or a set of question/answer or term/explanation pairs that benefit from being collapsible.
+- { "type": "cta", "title"?: string, "text"?: string, "label": string, "href": string }       — promote a link the document presents as an ACTION (a download, "open the console", a form, a sign-up) to a prominent button. "label" is the link's anchor text and "href" its URL, BOTH verbatim from the document. Use ONLY for genuine calls to action — never invent a link, and leave ordinary in-text links inside their paragraph.
 
 INLINE FORMATTING
 - Inside any "text"/"title"/"intro" field you MAY wrap short verbatim technical tokens — commands, file paths, file names, key names, flags, values like "True" — in single backticks (\`claude --version\`). The characters inside the backticks must stay verbatim; the backticks only mark them for monospace rendering.

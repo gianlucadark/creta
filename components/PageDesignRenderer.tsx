@@ -228,7 +228,11 @@ function TableBlock({
           <thead className="creta-quote-grad text-white">
             <tr>
               {headers.map((header, index) => (
-                <th key={index} className="px-5 py-3.5 font-semibold tracking-wide">
+                <th
+                  key={index}
+                  scope="col"
+                  className="px-5 py-3.5 font-semibold tracking-wide"
+                >
                   {header}
                 </th>
               ))}
@@ -557,6 +561,46 @@ function ImageBlock({
   );
 }
 
+function CtaBlock({
+  title,
+  text,
+  label,
+  href,
+}: {
+  title?: string;
+  text?: string;
+  label: string;
+  href: string;
+}) {
+  const external = /^https?:\/\//i.test(href);
+  return (
+    <div className="creta-cta-band flex flex-col items-start gap-4 rounded-2xl border border-gold-200 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <div className="min-w-0">
+        {title && (
+          <p className="font-display text-xl font-bold leading-tight text-navy-900">
+            {title}
+          </p>
+        )}
+        {text && (
+          <p className={`text-[0.98rem] leading-7 text-navy-600 ${title ? "mt-1" : ""}`}>
+            <InlineText text={text} />
+          </p>
+        )}
+      </div>
+      <a
+        href={href}
+        {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
+        className="creta-cta-grad inline-flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-md shadow-navy-900/15 transition hover:-translate-y-0.5"
+      >
+        {label}
+        <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </a>
+    </div>
+  );
+}
+
 /* ── Dispatcher dei blocchi ─────────────────────────────────── */
 
 export function renderDesignBlock(block: PageDesignBlock, index: number) {
@@ -600,6 +644,10 @@ export function renderDesignBlock(block: PageDesignBlock, index: number) {
     case "image":
       return (
         <ImageBlock key={index} src={block.src} alt={block.alt} caption={block.caption} />
+      );
+    case "cta":
+      return (
+        <CtaBlock key={index} title={block.title} text={block.text} label={block.label} href={block.href} />
       );
   }
 }

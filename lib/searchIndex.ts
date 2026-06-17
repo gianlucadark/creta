@@ -116,6 +116,8 @@ function blockText(block: PageDesignBlock): string {
         .join(" ");
     case "image":
       return [block.alt, block.caption].filter(Boolean).join(" ");
+    case "cta":
+      return [block.title, block.text, block.label].filter(Boolean).join(" ");
   }
 }
 

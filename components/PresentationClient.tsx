@@ -91,6 +91,8 @@ function blockWeight(block: PageDesignBlock): number {
     }
     case "image":
       return 3;
+    case "cta":
+      return 1;
   }
 }
 

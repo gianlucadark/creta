@@ -56,6 +56,20 @@ body {
   color: #113250;
 }
 
+/* Focus da tastiera visibile e coerente su tutti gli interattivi (anello gold). */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-gold-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 ::-webkit-scrollbar {
   width: 11px;
 }
@@ -187,6 +201,14 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* Blocco "cta": banda con tinta gold tenue e bottone navy del brand. */
+.creta-cta-band {
+  background-image: linear-gradient(135deg, #FEFAE8, #FFFFFF 70%);
+}
+.creta-cta-grad {
+  background-image: linear-gradient(135deg, #1D5490, #113250);
 }
 
 /* Deep navy for quote blocks */
