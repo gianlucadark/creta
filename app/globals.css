@@ -304,19 +304,6 @@ summary:focus-visible,
   opacity: 0.6;
 }
 
-.creta-reading-column::before {
-  content: "";
-  position: absolute;
-  inset: -1.75rem -2.5rem;
-  z-index: -1;
-  border-radius: 2rem;
-  background:
-    linear-gradient(180deg, #FFFFFF, #F7FAFD),
-    linear-gradient(90deg, transparent, rgba(180, 211, 236, 0.2), transparent);
-  box-shadow: 0 28px 80px rgba(13, 37, 64, 0.08);
-  opacity: 1;
-}
-
 .creta-scanline {
   background-image: linear-gradient(
     90deg,
