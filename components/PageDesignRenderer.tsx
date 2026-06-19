@@ -542,7 +542,7 @@ function ImageBlock({
   caption?: string;
 }) {
   return (
-    <figure className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-navy-200 bg-white shadow-sm">
+    <figure className="overflow-hidden rounded-2xl border border-navy-200 bg-white shadow-sm">
       {/* URL arbitraria dallo store (Blob pubblico o /creta-assets), inclusi
           SVG: <img> nativo evita la config domini di next/image. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -668,21 +668,38 @@ function groupByChapter(sections: PageDesign["sections"]) {
   return groups;
 }
 
-/* Blocchi "larghi": griglie e momenti visivi che escono dalla colonna di
-   lettura per dare il ritmo da landing. Il testo di scorrimento (paragrafi,
-   liste, callout, steps…) resta invece nella colonna stretta, leggibile. */
-const WIDE_BLOCKS = new Set<PageDesignBlock["type"]>([
-  "cards",
-  "feature",
-  "stats",
-  "quote",
-  "table",
-  "compare",
-]);
+/* Editoriale "a misura", centrato: ogni tipo di blocco prende la larghezza che
+   gli si addice e resta centrato nella banda (mx-auto). Il testo di lettura sta
+   su misura stretta (~2xl), i blocchi medi su 3xl, i momenti visivi (griglie,
+   stats, immagini) si allargano fino al bordo della banda (5xl). È lo scarto di
+   larghezza tra blocchi — non più la colonna unica — a dare il ritmo da
+   landing, senza rompere il centraggio. */
+const BLOCK_WIDTH: Record<PageDesignBlock["type"], string> = {
+  // Flusso di lettura: misura stretta, riga corta e leggibile
+  paragraph: "max-w-2xl",
+  list: "max-w-2xl",
+  checklist: "max-w-2xl",
+  // Blocchi medi: liste strutturate, schede, codice, azioni
+  callout: "max-w-3xl",
+  spec: "max-w-3xl",
+  steps: "max-w-3xl",
+  timeline: "max-w-3xl",
+  accordion: "max-w-3xl",
+  code: "max-w-3xl",
+  cta: "max-w-3xl",
+  // Momenti: pull-quote e figure, larghi ma non a tutta banda
+  quote: "max-w-4xl",
+  image: "max-w-4xl",
+  // Visivi extra-large: riempiono la banda
+  cards: "max-w-5xl",
+  feature: "max-w-5xl",
+  stats: "max-w-5xl",
+  table: "max-w-5xl",
+  compare: "max-w-5xl",
+};
 
 /* Sezione in stile landing: intestazione centrata con numero filigrana dietro,
-   poi i blocchi in colonna di lettura stretta; i blocchi larghi sfondano ai
-   lati (lg:-mx-24) restando dentro la banda. */
+   poi i blocchi centrati, ognuno con la propria larghezza (BLOCK_WIDTH). */
 function LandingSection({
   section,
   index,
@@ -741,12 +758,12 @@ function LandingSection({
         </div>
       </Reveal>
 
-      <div className="creta-reading-column relative mx-auto mt-10 max-w-3xl space-y-8 sm:mt-12">
+      <div className="relative mx-auto mt-10 max-w-5xl space-y-10 sm:mt-12">
         {section.blocks.map((block, blockIndex) => (
           <Reveal
             key={blockIndex}
             delay={Math.min(blockIndex, 4) * 70}
-            className={WIDE_BLOCKS.has(block.type) ? "lg:-mx-24" : ""}
+            className={`mx-auto ${BLOCK_WIDTH[block.type]}`}
           >
             {renderDesignBlock(block, blockIndex)}
           </Reveal>
